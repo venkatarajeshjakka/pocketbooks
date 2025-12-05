@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__shadcn__get_project_registries",
+      "mcp__shadcn__search_items_in_registries",
+      "mcp__shadcn__view_items_in_registries",
+      "mcp__shadcn__get_item_examples_from_registries",
+      "mcp__shadcn__get_add_command_for_items",
+      "Bash(npx:*)",
+      "Bash(npm install:*)",
+      "Bash(move \"src\\app\\page.tsx\" \"src\\app\\(dashboard)\\page.tsx\")",
+      "Bash(timeout 30 npm run dev)",
+      "Read(//c/Users/rajes/Downloads/**)",
+      "Bash(npm run build:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(powershell:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run dev:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
+}

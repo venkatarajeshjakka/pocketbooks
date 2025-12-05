@@ -15,6 +15,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
@@ -25,10 +26,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
@@ -123,28 +125,60 @@ const menuItems: MenuItem[] = [
 ];
 
 export function AppSidebar() {
+  const pathname = usePathname();
+  const { state } = useSidebar();
+
+  // Helper function to check if a menu item or its sub-items are active
+  const isMenuItemActive = (item: MenuItem): boolean => {
+    if (item.url && pathname === item.url) {
+      return true;
+    }
+    if (item.items) {
+      return item.items.some((subItem) => pathname === subItem.url);
+    }
+    return false;
+  };
+
+  // Helper function to check if a sub-item is active
+  const isSubItemActive = (url: string): boolean => {
+    return pathname === url;
+  };
+
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b px-6 py-4">
-        <Link href="/" className="flex items-center gap-2">
-          <TrendingUp className="h-6 w-6" />
-          <div className="flex flex-col">
-            <span className="text-lg font-semibold">Pocket Books</span>
-            <span className="text-xs text-muted-foreground">
-              Business Management
-            </span>
-          </div>
-        </Link>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="border-b">
+        <SidebarMenuButton
+          size="lg"
+          asChild
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        >
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <TrendingUp className="size-4" />
+            </div>
+            <div className="flex flex-col gap-0.5 leading-none">
+              <span className="font-semibold">Pocket Books</span>
+              <span className="text-xs">Business Management</span>
+            </div>
+          </Link>
+        </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
             {menuItems.map((item) =>
               item.items ? (
-                <Collapsible key={item.title} className="group/collapsible">
+                <Collapsible
+                  key={item.title}
+                  className="group/collapsible"
+                  defaultOpen={isMenuItemActive(item)}
+                >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton tooltip={item.title}>
+                      <SidebarMenuButton
+                        tooltip={item.title}
+                        isActive={isMenuItemActive(item)}
+                      >
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                         <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
@@ -154,7 +188,10 @@ export function AppSidebar() {
                       <SidebarMenuSub>
                         {item.items.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton asChild>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={isSubItemActive(subItem.url)}
+                            >
                               <Link href={subItem.url}>
                                 <span>{subItem.title}</span>
                               </Link>
@@ -167,7 +204,11 @@ export function AppSidebar() {
                 </Collapsible>
               ) : (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    isActive={isMenuItemActive(item)}
+                  >
                     <Link href={item.url!}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -182,6 +223,7 @@ export function AppSidebar() {
       <SidebarFooter className="border-t p-4">
         <p className="text-xs text-muted-foreground">Version 1.0.0</p>
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

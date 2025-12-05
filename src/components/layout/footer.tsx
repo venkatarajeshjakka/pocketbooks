@@ -1,4 +1,3 @@
-import { Separator } from "@/components/ui/separator";
 import { Heart } from "lucide-react";
 
 export function Footer() {
