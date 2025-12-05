@@ -1,29 +1,45 @@
 /**
- * Clients List Page
+ * Clients Page
  *
- * Displays all clients with search, filter, and CRUD operations
+ * Main listing page for viewing and managing clients
+ * Server Component that fetches initial client data
  */
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { ClientList } from '@/components/clients/client-list';
+import { ClientSearch } from '@/components/clients/client-search';
+import { Skeleton } from '@/components/ui/skeleton';
 import { PlusCircle } from 'lucide-react';
 
-export default async function ClientsPage() {
+interface ClientsPageProps {
+  searchParams: Promise<{
+    page?: string;
+    search?: string;
+    status?: string;
+  }>;
+}
+
+export const metadata = {
+  title: 'Clients | PocketBooks',
+  description: 'Manage your clients and customer relationships',
+};
+
+export default async function ClientsPage({ searchParams }: ClientsPageProps) {
+  const params = await searchParams;
+  const page = Number(params?.page) || 1;
+  const search = params?.search || '';
+  const status = params?.status || '';
+
   return (
-    <div className="flex flex-1 flex-col gap-6">
+    <div className="flex flex-1 flex-col gap-4 md:gap-8">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Clients</h2>
+          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
           <p className="text-muted-foreground">
-            Manage your client database and relationships
+            Manage your clients and customer relationships
           </p>
         </div>
         <Button asChild>
@@ -34,23 +50,33 @@ export default async function ClientsPage() {
         </Button>
       </div>
 
-      {/* Clients Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Clients</CardTitle>
-          <CardDescription>
-            View and manage all your business clients
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Connect to MongoDB to view clients data.</p>
-            <p className="text-sm mt-2">
-              Configure your .env file with MONGODB_URI to get started.
-            </p>
+      {/* Search and Filters */}
+      <ClientSearch />
+
+      {/* Clients List */}
+      <Suspense
+        key={`${page}-${search}-${status}`}
+        fallback={<ClientListSkeleton />}
+      >
+        <ClientList page={page} search={search} status={status} />
+      </Suspense>
+    </div>
+  );
+}
+
+function ClientListSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border">
+        <div className="p-4">
+          <Skeleton className="h-8 w-full" />
+        </div>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="border-t p-4">
+            <Skeleton className="h-16 w-full" />
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
     </div>
   );
 }
