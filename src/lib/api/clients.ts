@@ -6,6 +6,30 @@
 
 import { IClient, IClientInput, ApiResponse, PaginatedResponse } from '@/types';
 
+/**
+ * Get the base URL for API calls
+ * Works in both server and client contexts
+ */
+function getBaseUrl(): string {
+  // Browser should use relative URL
+  if (typeof window !== 'undefined') {
+    return '';
+  }
+
+  // Server: Use NEXTAUTH_URL if available (for deployed environments)
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL;
+  }
+
+  // Server: Use VERCEL_URL if available (Vercel deployment)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Server: Default to localhost for development
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
+
 const API_BASE = '/api/clients';
 
 export interface FetchClientsParams {
@@ -28,7 +52,8 @@ export async function fetchClients(
   if (params.search) searchParams.set('search', params.search);
   if (params.status) searchParams.set('status', params.status);
 
-  const url = `${API_BASE}?${searchParams.toString()}`;
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}${API_BASE}?${searchParams.toString()}`;
 
   const response = await fetch(url, {
     cache: 'no-store',
@@ -45,7 +70,8 @@ export async function fetchClients(
  * Fetch a single client by ID
  */
 export async function fetchClient(id: string): Promise<IClient> {
-  const response = await fetch(`${API_BASE}/${id}`, {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}${API_BASE}/${id}`, {
     cache: 'no-store',
   });
 
@@ -70,7 +96,8 @@ export async function fetchClient(id: string): Promise<IClient> {
 export async function createClient(
   input: IClientInput
 ): Promise<ApiResponse<IClient>> {
-  const response = await fetch(API_BASE, {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}${API_BASE}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -94,7 +121,8 @@ export async function updateClient(
   id: string,
   input: IClientInput
 ): Promise<ApiResponse<IClient>> {
-  const response = await fetch(`${API_BASE}/${id}`, {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}${API_BASE}/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -115,7 +143,8 @@ export async function updateClient(
  * Delete a client
  */
 export async function deleteClient(id: string): Promise<ApiResponse<void>> {
-  const response = await fetch(`${API_BASE}/${id}`, {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}${API_BASE}/${id}`, {
     method: 'DELETE',
   });
 
