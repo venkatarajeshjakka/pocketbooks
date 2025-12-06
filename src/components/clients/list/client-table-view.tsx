@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +27,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MoreVertical } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { MoreVertical, TrendingUp, TrendingDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fadeInUp, listItem } from '@/lib/utils/animation-variants';
 import { cn } from '@/lib/utils';
@@ -50,15 +52,38 @@ export function ClientTableView({
   onEdit,
   onDelete,
 }: ClientTableViewProps) {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      'bg-blue-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-green-500',
+      'bg-orange-500',
+      'bg-cyan-500',
+    ];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
   return (
-    <motion.div
-      variants={fadeInUp}
-      initial="hidden"
-      animate="visible"
-      className="overflow-hidden rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm"
-    >
-      <div className="overflow-x-auto">
-        <Table>
+    <TooltipProvider>
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="overflow-hidden rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm"
+      >
+        <div className="overflow-x-auto">
+          <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-12">
@@ -103,18 +128,25 @@ export function ClientTableView({
                     />
                   </TableCell>
 
-                  {/* Name */}
+                  {/* Name with Avatar */}
                   <TableCell>
                     <Link
                       href={`/clients/${clientId}`}
-                      className="block transition-colors hover:text-primary"
+                      className="flex items-center gap-3 transition-colors hover:text-primary"
                     >
-                      <div className="font-medium">{client.name}</div>
-                      {client.contactPerson && (
-                        <div className="text-sm text-muted-foreground">
-                          {client.contactPerson}
-                        </div>
-                      )}
+                      <Avatar className="h-9 w-9 border border-border/50">
+                        <AvatarFallback className={cn('text-white text-xs font-semibold', getAvatarColor(client.name))}>
+                          {getInitials(client.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{client.name}</div>
+                        {client.contactPerson && (
+                          <div className="text-sm text-muted-foreground">
+                            {client.contactPerson}
+                          </div>
+                        )}
+                      </div>
                     </Link>
                   </TableCell>
 
@@ -154,16 +186,32 @@ export function ClientTableView({
 
                   {/* Outstanding Balance */}
                   <TableCell className="text-right">
-                    <span
-                      className={cn(
-                        'text-sm font-medium',
-                        client.outstandingBalance > 0
-                          ? 'text-orange-600 dark:text-orange-400'
-                          : 'text-muted-foreground'
-                      )}
-                    >
-                      ₹{client.outstandingBalance.toLocaleString('en-IN')}
-                    </span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center justify-end gap-1.5">
+                          {client.outstandingBalance > 0 && (
+                            <TrendingUp className="h-3.5 w-3.5 text-orange-500" />
+                          )}
+                          <span
+                            className={cn(
+                              'text-sm font-medium',
+                              client.outstandingBalance > 0
+                                ? 'text-orange-600 dark:text-orange-400'
+                                : 'text-green-600 dark:text-green-400'
+                            )}
+                          >
+                            ₹{client.outstandingBalance.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          {client.outstandingBalance > 0
+                            ? `Outstanding amount to be collected`
+                            : 'No outstanding balance'}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
                   </TableCell>
 
                   {/* Last Updated */}
@@ -210,5 +258,6 @@ export function ClientTableView({
         </Table>
       </div>
     </motion.div>
+    </TooltipProvider>
   );
 }

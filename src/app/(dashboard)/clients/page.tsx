@@ -106,16 +106,27 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   return (
     <div className="flex flex-1 flex-col gap-6 md:gap-8">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Clients
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Manage your clients and customer relationships
-          </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 ring-1 ring-primary/20">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Clients
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Manage your clients and customer relationships
+              </p>
+            </div>
+          </div>
         </div>
-        <Button asChild size="lg" className="shadow-lg shadow-primary/20">
+        <Button
+          asChild
+          size="lg"
+          className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+        >
           <Link href="/clients/new">
             <PlusCircle className="mr-2 h-5 w-5" />
             Add Client

@@ -6,7 +6,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import { Users, UserCheck, UserX, IndianRupee } from 'lucide-react';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +14,7 @@ export interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: LucideIcon;
+  icon: 'Users' | 'UserCheck' | 'UserX' | 'IndianRupee';
   trend?: {
     value: number;
     isPositive: boolean;
@@ -39,15 +39,23 @@ const iconBgClasses = {
   green: 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400',
 };
 
+const iconMap = {
+  Users,
+  UserCheck,
+  UserX,
+  IndianRupee,
+};
+
 export function StatCard({
   title,
   value,
   subtitle,
-  icon: Icon,
+  icon,
   trend,
   gradient,
   delay = 0,
 }: StatCardProps) {
+  const Icon = iconMap[icon];
   return (
     <motion.div
       variants={fadeInUp}

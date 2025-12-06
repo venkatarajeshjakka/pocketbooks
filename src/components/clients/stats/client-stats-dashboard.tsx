@@ -3,7 +3,6 @@
  * Server Component that displays aggregated client metrics
  */
 
-import { Users, UserCheck, UserX, IndianRupee } from 'lucide-react';
 import { StatCard } from './stat-card';
 import { fetchClientStats } from '@/lib/api/client-stats';
 
@@ -16,7 +15,7 @@ export async function ClientStatsDashboard() {
         title="Total Clients"
         value={stats.totalClients}
         subtitle="All registered clients"
-        icon={Users}
+        icon="Users"
         gradient="blue"
         delay={0}
       />
@@ -24,7 +23,7 @@ export async function ClientStatsDashboard() {
         title="Active Clients"
         value={stats.activeClients}
         subtitle={`${stats.inactiveClients} inactive`}
-        icon={UserCheck}
+        icon="UserCheck"
         gradient="green"
         delay={0.1}
       />
@@ -32,7 +31,7 @@ export async function ClientStatsDashboard() {
         title="Outstanding Balance"
         value={`₹${stats.totalOutstanding.toLocaleString('en-IN')}`}
         subtitle={`${stats.clientsWithOutstanding} clients`}
-        icon={IndianRupee}
+        icon="IndianRupee"
         gradient="purple"
         delay={0.2}
       />
@@ -40,7 +39,7 @@ export async function ClientStatsDashboard() {
         title="Average Outstanding"
         value={`₹${Math.round(stats.averageOutstanding).toLocaleString('en-IN')}`}
         subtitle="Per client with balance"
-        icon={IndianRupee}
+        icon="IndianRupee"
         gradient="pink"
         delay={0.3}
       />
