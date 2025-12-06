@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ClientForm } from '@/components/clients/client-form';
+import { ClientFormEnhanced } from '@/components/clients/client-form-enhanced';
 import { fetchClient } from '@/lib/api/clients';
 
 interface EditClientPageProps {
@@ -54,14 +54,14 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Edit Client</h1>
           <p className="text-muted-foreground">
-            Update {client.name}'s information
+            Update {client.name}&apos;s information
           </p>
         </div>
       </div>
 
       {/* Client Form */}
       <div className="mx-auto w-full max-w-3xl">
-        <ClientForm mode="edit" clientId={id} initialData={client} />
+        <ClientFormEnhanced mode="edit" clientId={id} initialData={client} />
       </div>
     </div>
   );

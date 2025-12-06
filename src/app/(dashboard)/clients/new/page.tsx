@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ClientForm } from '@/components/clients/client-form';
+import { ClientFormEnhanced } from '@/components/clients/client-form-enhanced';
 
 export const metadata = {
   title: 'New Client | PocketBooks',
@@ -34,7 +34,7 @@ export default function NewClientPage() {
 
       {/* Client Form */}
       <div className="mx-auto w-full max-w-3xl">
-        <ClientForm mode="create" />
+        <ClientFormEnhanced mode="create" />
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ClientDetails } from '@/components/clients/client-details';
+import { ClientDetailsEnhanced } from '@/components/clients/client-details-enhanced';
 import { DeleteClientDialog } from '@/components/clients/delete-client-dialog';
 import { fetchClient } from '@/lib/api/clients';
 
@@ -74,7 +74,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       </div>
 
       {/* Client Details */}
-      <ClientDetails client={client} />
+      <ClientDetailsEnhanced client={client} />
     </div>
   );
 }
