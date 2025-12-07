@@ -3,7 +3,6 @@
  * Calculates and returns aggregated client metrics
  */
 
-import { IClient } from '@/types';
 import { fetchClients } from './clients';
 
 export interface ClientStats {

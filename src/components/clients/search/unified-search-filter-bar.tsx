@@ -25,9 +25,7 @@ import { ViewToggle, ViewMode } from '../list/view-toggle';
 import { EntityStatus } from '@/types';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 
-export interface UnifiedSearchFilterBarProps {
-  // Props removed - now using URL params for view mode
-}
+// Component uses URL params for view mode, no props needed
 
 export function UnifiedSearchFilterBar() {
   const router = useRouter();

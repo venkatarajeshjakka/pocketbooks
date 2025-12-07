@@ -126,7 +126,7 @@ const menuItems: MenuItem[] = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  useSidebar();
 
   // Helper function to check if a menu item or its sub-items are active
   const isMenuItemActive = (item: MenuItem): boolean => {

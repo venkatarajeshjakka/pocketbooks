@@ -18,8 +18,8 @@ export function OverviewTab({ client }: OverviewTabProps) {
 
   return (
     <div className="space-y-6">
-
-      <div className='flex md:flex-row justify-between justify-items-center gap-8'>
+      {/* Responsive grid: 1 col on mobile, 2 cols on tablet, 3 cols on desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {/* Contact Information */}
         <ContactInfoCard client={client} />
 
@@ -27,11 +27,8 @@ export function OverviewTab({ client }: OverviewTabProps) {
         {hasAddress && <AddressCard client={client} />}
 
         {/* Record Info */}
-      <RecordInfoCard client={client} />
+        <RecordInfoCard client={client} />
       </div>
-
-
-      
     </div>
   );
 }

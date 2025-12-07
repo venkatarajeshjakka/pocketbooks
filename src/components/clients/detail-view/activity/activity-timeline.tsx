@@ -29,7 +29,7 @@ export function ActivityTimeline({ client }: ActivityTabProps) {
       description: `${client.name} was added to the system`,
       timestamp: new Date(client.createdAt),
       icon: Plus,
-      iconBg: 'bg-green-100 dark:bg-green-900/30',
+      iconBg: 'bg-green-100 dark:bg-green-500/20',
       iconColor: 'text-green-600 dark:text-green-400',
     },
   ];
@@ -43,7 +43,7 @@ export function ActivityTimeline({ client }: ActivityTabProps) {
       description: 'Client information was modified',
       timestamp: new Date(client.updatedAt),
       icon: Edit,
-      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+      iconBg: 'bg-blue-100 dark:bg-blue-500/20',
       iconColor: 'text-blue-600 dark:text-blue-400',
     });
   }
@@ -51,10 +51,10 @@ export function ActivityTimeline({ client }: ActivityTabProps) {
   return (
     <div className="space-y-0">
       {events.map((event, index) => (
-        <div key={event.id} className="relative flex gap-4 pb-6 last:pb-0">
+        <div key={event.id} className="relative flex gap-3 sm:gap-4 pb-6 last:pb-0">
           {/* Connecting Line */}
           {index < events.length - 1 && (
-            <div className="absolute left-4 top-10 bottom-0 w-px bg-[var(--saas-border)]" />
+            <div className="absolute left-4 top-10 bottom-0 w-px bg-border" />
           )}
 
           {/* Icon */}
@@ -66,13 +66,13 @@ export function ActivityTimeline({ client }: ActivityTabProps) {
 
           {/* Content */}
           <div className="flex-1 min-w-0 pt-0.5">
-            <p className="text-sm font-medium text-[var(--saas-heading)]">
+            <p className="text-sm font-medium text-foreground">
               {event.title}
             </p>
-            <p className="text-sm text-[var(--saas-muted)] mt-0.5">
+            <p className="text-sm text-muted-foreground mt-0.5">
               {event.description}
             </p>
-            <p className="text-xs text-[var(--saas-subtle)] mt-1 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground/70 mt-1 flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {formatDistanceToNow(event.timestamp, { addSuffix: true })}
             </p>

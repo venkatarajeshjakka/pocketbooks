@@ -4,7 +4,9 @@
  * Handles sales transactions with inventory updates
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/mongodb';
 import Sale from '@/models/Sale';

@@ -10,16 +10,16 @@ interface ActivityTabProps {
 
 export function ActivityTab({ client }: ActivityTabProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Sales History Section */}
-      <div className="saas-card p-6">
-        <h3 className="font-semibold text-[var(--saas-heading)] mb-4">Sales History</h3>
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+        <h3 className="font-semibold text-foreground mb-4">Sales History</h3>
         <SalesHistoryEmpty />
       </div>
 
       {/* Activity Timeline */}
-      <div className="saas-card p-6">
-        <h3 className="font-semibold text-[var(--saas-heading)] mb-4">Activity Log</h3>
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+        <h3 className="font-semibold text-foreground mb-4">Activity Log</h3>
         <ActivityTimeline client={client} />
       </div>
     </div>

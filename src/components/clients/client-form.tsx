@@ -163,15 +163,15 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information Section */}
         <div className="space-y-6">
-          <div className="flex items-center gap-3 pb-2 border-b border-[var(--saas-border)]">
-            <div className="h-10 w-10 rounded-lg bg-[var(--saas-accent)]/10 flex items-center justify-center">
-              <svg className="h-5 w-5 text-[var(--saas-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-center gap-3 pb-2 border-b border-border">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-[var(--saas-heading)]">Basic Information</h2>
-              <p className="text-sm text-[var(--saas-muted)]">Enter the client's basic contact details</p>
+              <h2 className="text-lg font-semibold text-foreground">Basic Information</h2>
+              <p className="text-sm text-muted-foreground">Enter the client&apos;s basic contact details</p>
             </div>
           </div>
 
@@ -191,9 +191,9 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 className={cn(errors.name && 'border-red-500')}
               />
               {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.name}</p>
               )}
-              <p className="text-xs text-[var(--saas-muted)]">{formData.name.length}/100 characters</p>
+              <p className="text-xs text-muted-foreground">{formData.name.length}/100 characters</p>
             </div>
 
             {/* Contact Person */}
@@ -202,10 +202,10 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 Contact Person
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 text-[var(--saas-muted)]" />
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Primary contact person at the client's organization</p>
+                    <p>Primary contact person at the client&apos;s organization</p>
                   </TooltipContent>
                 </Tooltip>
               </Label>
@@ -234,7 +234,7 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 className={cn(errors.email && 'border-red-500')}
               />
               {errors.email && (
-                <p className="text-sm text-red-500">{errors.email}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.email}</p>
               )}
             </div>
 
@@ -244,7 +244,7 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 Phone
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 text-[var(--saas-muted)]" />
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>10-digit Indian phone number</p>
@@ -258,10 +258,10 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 onChange={(e) => updateFormField('phone', formatPhoneNumber(e.target.value))}
                 placeholder="9876543210"
                 disabled={isSubmitting}
-                className={cn(errors.phone && 'border-red-500')}
+                className={cn(errors.phone && 'border-red-500 dark:border-red-400')}
               />
               {errors.phone && (
-                <p className="text-sm text-red-500">{errors.phone}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.phone}</p>
               )}
             </div>
 
@@ -271,7 +271,7 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 GST Number
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 text-[var(--saas-muted)]" />
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Format: 22AAAAA0000A1Z5</p>
@@ -284,10 +284,10 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 onChange={(e) => updateFormField('gstNumber', formatGSTNumber(e.target.value))}
                 placeholder="22AAAAA0000A1Z5"
                 disabled={isSubmitting}
-                className={cn('font-mono', errors.gstNumber && 'border-red-500')}
+                className={cn('font-mono', errors.gstNumber && 'border-red-500 dark:border-red-400')}
               />
               {errors.gstNumber && (
-                <p className="text-sm text-red-500">{errors.gstNumber}</p>
+                <p className="text-sm text-red-500 dark:text-red-400">{errors.gstNumber}</p>
               )}
             </div>
 
@@ -323,16 +323,16 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
 
         {/* Address Information Section */}
         <div className="space-y-6">
-          <div className="flex items-center gap-3 pb-2 border-b border-[var(--saas-border)]">
-            <div className="h-10 w-10 rounded-lg bg-[var(--saas-accent)]/10 flex items-center justify-center">
-              <svg className="h-5 w-5 text-[var(--saas-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex items-center gap-3 pb-2 border-b border-border">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-[var(--saas-heading)]">Address Information</h2>
-              <p className="text-sm text-[var(--saas-muted)]">Enter the client's address details</p>
+              <h2 className="text-lg font-semibold text-foreground">Address Information</h2>
+              <p className="text-sm text-muted-foreground">Enter the client&apos;s address details</p>
             </div>
           </div>
 
@@ -410,24 +410,25 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
         )}
 
         {/* Form Actions */}
-        <div className="flex items-center justify-between pt-6">
-          <div className="text-sm text-[var(--saas-muted)]">
-            <kbd className="rounded bg-[var(--saas-canvas)] px-2 py-1 text-xs border border-[var(--saas-border)]">Ctrl</kbd>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6">
+          <div className="text-sm text-muted-foreground hidden sm:block">
+            <kbd className="rounded bg-muted px-2 py-1 text-xs border border-border">Ctrl</kbd>
             {' + '}
-            <kbd className="rounded bg-[var(--saas-canvas)] px-2 py-1 text-xs border border-[var(--saas-border)]">S</kbd>
+            <kbd className="rounded bg-muted px-2 py-1 text-xs border border-border">S</kbd>
             {' to save'}
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 w-full sm:w-auto">
             <Button
               type="button"
               variant="outline"
               onClick={() => router.back()}
               disabled={isSubmitting}
+              className="flex-1 sm:flex-none"
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="flex-1 sm:flex-none">
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

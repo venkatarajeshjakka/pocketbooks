@@ -39,22 +39,22 @@ export function AddressCard({ client }: AddressCardProps) {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-5">
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-5">
         <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-[var(--saas-muted)]" />
-          <h3 className="text-base font-semibold text-[var(--saas-heading)]">Address</h3>
+          <MapPin className="h-5 w-5 text-muted-foreground" />
+          <h3 className="text-base font-semibold text-foreground">Address</h3>
         </div>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={copyToClipboard}
-              className="p-1.5 rounded-md hover:bg-[var(--saas-canvas)] transition-colors"
+              className="p-1.5 rounded-md hover:bg-muted transition-colors"
             >
               {copied ? (
-                <Check className="h-4 w-4 text-green-500" />
+                <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
               ) : (
-                <Copy className="h-4 w-4 text-[var(--saas-muted)]" />
+                <Copy className="h-4 w-4 text-muted-foreground" />
               )}
             </button>
           </TooltipTrigger>
@@ -62,7 +62,7 @@ export function AddressCard({ client }: AddressCardProps) {
         </Tooltip>
       </div>
 
-      <address className="not-italic text-sm text-[var(--saas-body)] leading-relaxed">
+      <address className="not-italic text-sm text-foreground leading-relaxed space-y-1">
         {client.address?.street && <p>{client.address.street}</p>}
         <p>
           {[client.address?.city, client.address?.state]
@@ -70,7 +70,7 @@ export function AddressCard({ client }: AddressCardProps) {
             .join(", ")}
           {client.address?.postalCode && ` - ${client.address.postalCode}`}
         </p>
-        <p className="text-[var(--saas-muted)] mt-1">
+        <p className="text-muted-foreground">
           {client.address?.country || "India"}
         </p>
       </address>

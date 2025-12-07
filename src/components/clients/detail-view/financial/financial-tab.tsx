@@ -10,13 +10,13 @@ interface FinancialTabProps {
 
 export function FinancialTab({ client }: FinancialTabProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Metric Cards Row */}
       <MetricCardsRow client={client} />
 
       {/* Payment History Section */}
-      <div className="saas-card p-6">
-        <h3 className="font-semibold text-[var(--saas-heading)] mb-4">Payment History</h3>
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+        <h3 className="font-semibold text-foreground mb-4">Payment History</h3>
         <PaymentHistoryEmpty />
       </div>
     </div>

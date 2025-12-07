@@ -36,7 +36,6 @@ export function ClientListContainer({
 
   const {
     selectedItems,
-    isSelected,
     toggleSelection,
     toggleAll,
     clearSelection,

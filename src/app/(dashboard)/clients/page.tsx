@@ -8,7 +8,6 @@ import { Users } from 'lucide-react';
 import { ClientStatsDashboard } from '@/components/clients/stats/client-stats-dashboard';
 import { UnifiedSearchFilterBar } from '@/components/clients/search/unified-search-filter-bar';
 import { ClientListWithCache } from '@/components/clients/list/client-list-with-cache';
-import { ClientListSkeleton } from '@/components/clients/ui/client-list-skeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ClientsPageProps {

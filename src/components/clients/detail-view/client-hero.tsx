@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Pencil, Mail,Phone } from 'lucide-react';
+import { ChevronLeft, Pencil, Mail, Phone } from 'lucide-react';
 import { IClient, EntityStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -44,44 +44,44 @@ export function ClientHero({ client }: ClientHeroProps) {
       <div className="flex items-center gap-2 text-sm">
         <Link
           href="/clients"
-          className="flex items-center gap-1 text-[var(--saas-muted)] hover:text-[var(--saas-heading)] transition-colors"
+          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
           Clients
         </Link>
-        <span className="text-[var(--saas-subtle)]">/</span>
-        <span className="text-[var(--saas-heading)] font-medium">{client.name}</span>
+        <span className="text-muted-foreground/50">/</span>
+        <span className="text-foreground font-medium">{client.name}</span>
       </div>
 
       {/* Header Row */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         {/* Left: Avatar + Name + Badge */}
         <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16 border-2 border-[var(--saas-border)] shadow-sm">
+          <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-border shadow-sm">
             <AvatarFallback
-              className={cn('text-white text-xl font-semibold', getAvatarColor(client.name))}
+              className={cn('text-white text-lg sm:text-xl font-semibold', getAvatarColor(client.name))}
             >
               {getInitials(client.name)}
             </AvatarFallback>
           </Avatar>
-          <div className="space-y-2 pt-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-[var(--saas-heading)]">
+          <div className="space-y-1.5 pt-1">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                 {client.name}
               </h1>
               <span
                 className={cn(
                   'inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium',
                   client.status === EntityStatus.ACTIVE
-                    ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                    ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
                 )}
               >
                 {client.status}
               </span>
             </div>
             {client.contactPerson && (
-              <p className="text-sm text-[var(--saas-muted)]">{client.contactPerson}</p>
+              <p className="text-sm text-muted-foreground">{client.contactPerson}</p>
             )}
           </div>
         </div>
@@ -94,7 +94,7 @@ export function ClientHero({ client }: ClientHeroProps) {
               <Button
                 variant="outline"
                 size="icon"
-                className="h-9 w-9 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                className="h-9 w-9 rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:border-blue-500/30"
                 asChild
               >
                 <a href={`mailto:${client.email}`}>
@@ -110,7 +110,7 @@ export function ClientHero({ client }: ClientHeroProps) {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-9 w-9 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                  className="h-9 w-9 rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:border-blue-500/30"
                   asChild
                 >
                   <a href={`tel:${client.phone}`}>
@@ -124,20 +124,19 @@ export function ClientHero({ client }: ClientHeroProps) {
 
           {/* Edit button */}
           <Tooltip>
-             <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30"
-            asChild
-          >
-            <Link href={`/clients/${String(client._id)}/edit`}>
-              <Pencil className="h-4 w-4" />
-             
-            </Link>
-          </Button>
-          </TooltipTrigger>
-           <TooltipContent>Edit client</TooltipContent>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:border-blue-500/30"
+                asChild
+              >
+                <Link href={`/clients/${String(client._id)}/edit`}>
+                  <Pencil className="h-4 w-4" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit client</TooltipContent>
           </Tooltip>
 
           {/* Delete button */}

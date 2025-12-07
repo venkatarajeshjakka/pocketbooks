@@ -17,21 +17,23 @@ import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+    <header className="flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b border-border bg-background px-3 sm:px-4">
       <SidebarTrigger className="-ml-1" />
 
-      <h1 className="flex-1 text-xl font-semibold ml-2">Pocket Books</h1>
+      <h1 className="flex-1 text-lg sm:text-xl font-semibold ml-2 text-foreground truncate">
+        Pocket Books
+      </h1>
 
       {/* Notifications */}
       <Button
         variant="ghost"
         size="icon"
-        className="relative"
+        className="relative h-9 w-9"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
         <span
-          className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500"
+          className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 dark:bg-red-400"
           aria-hidden="true"
         />
       </Button>
@@ -42,7 +44,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full"
+            className="rounded-full h-9 w-9"
             aria-label="User menu"
           >
             <User className="h-5 w-5" />
@@ -64,7 +66,7 @@ export function Header() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
+          <DropdownMenuItem className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400">
             <LogOut className="mr-2 h-4 w-4" />
             <span>Logout</span>
           </DropdownMenuItem>

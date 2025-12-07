@@ -18,17 +18,14 @@ export function ClientDetailPage({ client }: ClientDetailPageProps) {
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        className="min-h-screen"
+        className="min-h-screen space-y-4 sm:space-y-6"
       >
         {/* Hero Section */}
         <ClientHero client={client} />
 
-        {/* Main Content - Bento Grid Layout */}
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left Column - Primary Content (2/3 width) */}
-          <div className="lg:col-span-3">
-            <ClientTabs client={client} />
-          </div>
+        {/* Main Content */}
+        <div className="w-full">
+          <ClientTabs client={client} />
         </div>
       </motion.div>
     </TooltipProvider>

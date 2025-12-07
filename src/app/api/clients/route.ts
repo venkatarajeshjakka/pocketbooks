@@ -4,6 +4,8 @@
  * Handles CRUD operations for clients
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import Client from '@/models/Client';

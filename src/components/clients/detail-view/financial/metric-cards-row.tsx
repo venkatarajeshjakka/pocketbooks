@@ -19,17 +19,17 @@ interface MetricCardProps {
 function MetricCard({ icon: Icon, label, value, subtext, variant = 'default' }: MetricCardProps) {
   const variantStyles = {
     default: {
-      iconBg: 'bg-[var(--saas-accent-light)]',
-      iconColor: 'text-[var(--saas-accent)]',
-      valueColor: 'text-[var(--saas-heading)]',
+      iconBg: 'bg-primary/10 dark:bg-primary/20',
+      iconColor: 'text-primary',
+      valueColor: 'text-foreground',
     },
     success: {
-      iconBg: 'bg-green-100 dark:bg-green-900/30',
+      iconBg: 'bg-green-100 dark:bg-green-500/20',
       iconColor: 'text-green-600 dark:text-green-400',
       valueColor: 'text-green-600 dark:text-green-400',
     },
     warning: {
-      iconBg: 'bg-orange-100 dark:bg-orange-900/30',
+      iconBg: 'bg-orange-100 dark:bg-orange-500/20',
       iconColor: 'text-orange-600 dark:text-orange-400',
       valueColor: 'text-orange-600 dark:text-orange-400',
     },
@@ -38,18 +38,18 @@ function MetricCard({ icon: Icon, label, value, subtext, variant = 'default' }: 
   const styles = variantStyles[variant];
 
   return (
-    <div className="saas-card p-5">
-      <div className="flex items-start gap-4">
-        <div className={cn('rounded-xl p-3', styles.iconBg)}>
-          <Icon className={cn('h-6 w-6', styles.iconColor)} />
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
+      <div className="flex items-start gap-3 sm:gap-4">
+        <div className={cn('rounded-xl p-2.5 sm:p-3', styles.iconBg)}>
+          <Icon className={cn('h-5 w-5 sm:h-6 sm:w-6', styles.iconColor)} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="saas-label mb-1">{label}</p>
-          <p className={cn('text-2xl font-bold tracking-tight', styles.valueColor)}>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
+          <p className={cn('text-xl sm:text-2xl font-bold tracking-tight', styles.valueColor)}>
             {value}
           </p>
           {subtext && (
-            <p className="text-xs text-[var(--saas-muted)] mt-1">{subtext}</p>
+            <p className="text-xs text-muted-foreground mt-1">{subtext}</p>
           )}
         </div>
       </div>

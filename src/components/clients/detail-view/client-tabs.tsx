@@ -17,33 +17,34 @@ export function ClientTabs({ client }: ClientTabsProps) {
   return (
     <motion.div variants={fadeInUp}>
       <Tabs defaultValue="overview" className="w-full">
-        {/* Underline Style Tabs */}
-        <TabsList className="bg-transparent p-0 h-auto w-full justify-start rounded-none">
+        {/* Tab Navigation - Responsive */}
+        <TabsList className="bg-transparent p-0 h-auto w-full justify-start rounded-none flex-wrap gap-1 sm:gap-2">
           <TabsTrigger
             value="overview"
-            className="data-[state=active]:shadow-none data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-lg border-transparent px-4 py-3"
+            className="data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg border-transparent px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
           >
-            <Building2 className="mr-2 h-4 w-4" />
-            Overview
+            <Building2 className="mr-1.5 sm:mr-2 h-4 w-4" />
+            <span className="hidden xs:inline sm:inline">Overview</span>
+            <span className="xs:hidden sm:hidden">Info</span>
           </TabsTrigger>
           <TabsTrigger
             value="financial"
-            className="data-[state=active]:shadow-none data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-lg border-transparent px-4 py-3"
+            className="data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg border-transparent px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
           >
-            <DollarSign className="mr-2 h-4 w-4" />
+            <DollarSign className="mr-1.5 sm:mr-2 h-4 w-4" />
             Financial
           </TabsTrigger>
           <TabsTrigger
             value="activity"
-            className="data-[state=active]:shadow-none data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-lg border-transparent px-4 py-3"
+            className="data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg border-transparent px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
           >
-            <Activity className="mr-2 h-4 w-4" />
+            <Activity className="mr-1.5 sm:mr-2 h-4 w-4" />
             Activity
           </TabsTrigger>
         </TabsList>
 
         {/* Tab Content */}
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <TabsContent value="overview" className="mt-0">
             <OverviewTab client={client} />
           </TabsContent>

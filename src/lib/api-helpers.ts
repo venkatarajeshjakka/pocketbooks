@@ -4,6 +4,8 @@
  * Reusable utilities for API route handlers
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Model } from 'mongoose';
 import { connectToDatabase } from './mongodb';
