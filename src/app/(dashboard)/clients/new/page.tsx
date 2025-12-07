@@ -6,8 +6,7 @@
 
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ClientFormEnhanced } from '@/components/clients/client-form-enhanced';
+import { ClientForm } from '@/components/clients/client-form';
 
 export const metadata = {
   title: 'New Client | PocketBooks',
@@ -16,17 +15,19 @@ export const metadata = {
 
 export default function NewClientPage() {
   return (
-    <div className="flex flex-1 flex-col gap-4 md:gap-8">
+    <div className="flex flex-1 flex-col saas-canvas -m-4 md:-m-6 p-4 md:p-6 min-h-screen">
       {/* Page Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/clients">
-            <ChevronLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Add New Client</h1>
-          <p className="text-muted-foreground">
+      <div className="mb-6">
+        <Link
+          href="/clients"
+          className="inline-flex items-center gap-2 text-sm text-[var(--saas-muted)] hover:text-[var(--saas-heading)] transition-colors mb-4"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Clients
+        </Link>
+        <div className='mx-auto w-full max-w-3xl mb-4'>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--saas-heading)]">Add New Client</h1>
+          <p className="text-sm text-[var(--saas-muted)] mt-1">
             Enter client information to add them to your system
           </p>
         </div>
@@ -34,7 +35,7 @@ export default function NewClientPage() {
 
       {/* Client Form */}
       <div className="mx-auto w-full max-w-3xl">
-        <ClientFormEnhanced mode="create" />
+        <ClientForm mode="create" />
       </div>
     </div>
   );
