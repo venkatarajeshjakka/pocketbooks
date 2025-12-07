@@ -100,7 +100,12 @@ export function ClientGridView({
                       />
                       <Badge
                         variant={client.status === 'active' ? 'default' : 'secondary'}
-                        className="text-xs"
+                        className={cn(
+                          "text-xs capitalize",
+                          client.status === 'active'
+                            ? 'bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:bg-green-500/20 dark:text-green-400 border-green-500/20'
+                            : 'bg-gray-500/10 text-gray-700 hover:bg-gray-500/20 dark:bg-gray-500/20 dark:text-gray-400 border-gray-500/20'
+                        )}
                       >
                         {client.status}
                       </Badge>
@@ -165,7 +170,15 @@ export function ClientGridView({
                         )}
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground">Status:</span>
-                          <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                          <Badge
+                            variant={client.status === 'active' ? 'default' : 'secondary'}
+                            className={cn(
+                              "text-xs capitalize",
+                              client.status === 'active'
+                                ? 'bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:bg-green-500/20 dark:text-green-400 border-green-500/20'
+                                : 'bg-gray-500/10 text-gray-700 hover:bg-gray-500/20 dark:bg-gray-500/20 dark:text-gray-400 border-gray-500/20'
+                            )}
+                          >
                             {client.status}
                           </Badge>
                         </div>
@@ -245,14 +258,14 @@ export function ClientGridView({
                 <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-4">
                   <div className="flex items-center gap-1.5">
                     <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Outstanding</span>
+                    <span className="text-xs font-medium text-muted-foreground">Outstanding</span>
                   </div>
                   <span
                     className={cn(
-                      'text-sm font-semibold',
+                      'text-xl font-bold',
                       client.outstandingBalance > 0
                         ? 'text-orange-600 dark:text-orange-400'
-                        : 'text-muted-foreground'
+                        : 'text-green-600 dark:text-green-400'
                     )}
                   >
                     ₹{client.outstandingBalance.toLocaleString('en-IN')}
@@ -260,7 +273,7 @@ export function ClientGridView({
                 </div>
 
                   {/* Last Updated */}
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="mt-3 text-[10px] text-muted-foreground/60">
                     Updated {formatDistanceToNow(new Date(client.updatedAt), { addSuffix: true })}
                   </p>
                 </div>

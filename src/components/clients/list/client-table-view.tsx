@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { MoreVertical, TrendingUp, TrendingDown } from 'lucide-react';
+import { MoreVertical, TrendingUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fadeInUp, listItem } from '@/lib/utils/animation-variants';
 import { cn } from '@/lib/utils';
@@ -170,7 +170,7 @@ export function ClientTableView({
                         {client.phone}
                       </a>
                     ) : (
-                      <span className="text-sm text-muted-foreground">-</span>
+                      <span className="text-sm text-muted-foreground/40">-</span>
                     )}
                   </TableCell>
 
@@ -178,7 +178,12 @@ export function ClientTableView({
                   <TableCell>
                     <Badge
                       variant={client.status === 'active' ? 'default' : 'secondary'}
-                      className="text-xs"
+                      className={cn(
+                        "text-xs capitalize",
+                        client.status === 'active'
+                          ? 'bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:bg-green-500/20 dark:text-green-400 border-green-500/20'
+                          : 'bg-gray-500/10 text-gray-700 hover:bg-gray-500/20 dark:bg-gray-500/20 dark:text-gray-400 border-gray-500/20'
+                      )}
                     >
                       {client.status}
                     </Badge>

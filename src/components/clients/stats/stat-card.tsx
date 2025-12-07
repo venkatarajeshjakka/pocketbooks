@@ -24,19 +24,19 @@ export interface StatCardProps {
 }
 
 const gradientClasses = {
-  blue: 'from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-500/20 dark:via-blue-500/10',
+  blue: 'from-blue-500/20 via-blue-500/10 to-transparent dark:from-blue-500/30 dark:via-blue-500/15',
   purple:
-    'from-purple-500/10 via-purple-500/5 to-transparent dark:from-purple-500/20 dark:via-purple-500/10',
-  pink: 'from-pink-500/10 via-pink-500/5 to-transparent dark:from-pink-500/20 dark:via-pink-500/10',
+    'from-purple-500/20 via-purple-500/10 to-transparent dark:from-purple-500/30 dark:via-purple-500/15',
+  pink: 'from-pink-500/20 via-pink-500/10 to-transparent dark:from-pink-500/30 dark:via-pink-500/15',
   green:
-    'from-green-500/10 via-green-500/5 to-transparent dark:from-green-500/20 dark:via-green-500/10',
+    'from-green-500/20 via-green-500/10 to-transparent dark:from-green-500/30 dark:via-green-500/15',
 };
 
 const iconBgClasses = {
-  blue: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
-  purple: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
-  pink: 'bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400',
-  green: 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400',
+  blue: 'bg-blue-500/15 text-blue-600 dark:bg-blue-500/25 dark:text-blue-400',
+  purple: 'bg-purple-500/15 text-purple-600 dark:bg-purple-500/25 dark:text-purple-400',
+  pink: 'bg-pink-500/15 text-pink-600 dark:bg-pink-500/25 dark:text-pink-400',
+  green: 'bg-green-500/15 text-green-600 dark:bg-green-500/25 dark:text-green-400',
 };
 
 const iconMap = {
@@ -76,13 +76,13 @@ export function StatCard({
       <div className="relative p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <div className="mt-2 flex items-baseline gap-2">
-              <h3 className="text-3xl font-bold tracking-tight">{value}</h3>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">{title}</p>
+            <div className="mt-3 flex items-baseline gap-2">
+              <h3 className="text-4xl font-extrabold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">{value}</h3>
               {trend && (
                 <span
                   className={cn(
-                    'text-sm font-medium',
+                    'text-sm font-bold',
                     trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   )}
                 >
@@ -90,17 +90,17 @@ export function StatCard({
                 </span>
               )}
             </div>
-            {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+            {subtitle && <p className="mt-2 text-xs font-medium text-muted-foreground/70">{subtitle}</p>}
           </div>
 
           {/* Icon */}
           <div
             className={cn(
-              'flex h-12 w-12 items-center justify-center rounded-lg transition-transform group-hover:scale-110',
+              'flex h-14 w-14 items-center justify-center rounded-xl shadow-lg transition-all group-hover:scale-110 group-hover:shadow-xl',
               iconBgClasses[gradient]
             )}
           >
-            <Icon className="h-6 w-6" />
+            <Icon className="h-7 w-7" />
           </div>
         </div>
       </div>

@@ -28,7 +28,14 @@ export function useClientSearch(): UseClientSearchReturn {
 
   // Update URL when debounced query changes
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
+    const currentSearch = searchParams.get('search') || '';
+
+    // Only update URL if the debounced query differs from current URL param
+    if (debouncedQuery === currentSearch) {
+      return;
+    }
+
+    const params = new URLSearchParams(searchParams.toString());
 
     if (debouncedQuery) {
       params.set('search', debouncedQuery);

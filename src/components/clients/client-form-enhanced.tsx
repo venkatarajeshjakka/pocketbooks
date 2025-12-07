@@ -49,8 +49,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { createClient, updateClient } from '@/lib/api/clients';
 import { IClient, IClientInput, EntityStatus } from '@/types';
+import { useCreateClient, useUpdateClient } from '@/lib/hooks/use-clients';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { fadeInUp, staggerContainer } from '@/lib/utils/animation-variants';
@@ -89,10 +89,16 @@ const getAvatarColor = (name: string) => {
 
 export function ClientFormEnhanced({ mode, clientId, initialData }: ClientFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Use React Query mutations
+  const createClientMutation = useCreateClient();
+  const updateClientMutation = useUpdateClient();
+
+  // Compute isSubmitting from mutation states
+  const isSubmitting = createClientMutation.isPending || updateClientMutation.isPending;
 
   const [formData, setFormData] = useState<FormData>({
     name: initialData?.name || '',
@@ -149,23 +155,28 @@ export function ClientFormEnhanced({ mode, clientId, initialData }: ClientFormPr
   const validateField = (field: keyof FormData, value: FormData[keyof FormData]): string | null => {
     switch (field) {
       case 'name':
-        if (!value?.trim()) return 'Client name is required';
-        if (value.length > 100) return 'Name cannot exceed 100 characters';
+        if (typeof value === 'string') {
+          if (!value?.trim()) return 'Client name is required';
+          if (value.length > 100) return 'Name cannot exceed 100 characters';
+        }
         break;
       case 'email':
-        if (!value?.trim()) return 'Email is required';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please provide a valid email address';
+        if (typeof value === 'string') {
+          if (!value?.trim()) return 'Email is required';
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please provide a valid email address';
+        }
         break;
       case 'phone':
-        if (value && !/^[6-9]\d{9}$/.test(value.replace(/\D/g, '')))
+        if (typeof value === 'string' && value && !/^[6-9]\d{9}$/.test(value.replace(/\D/g, '')))
           return 'Please provide a valid 10-digit Indian phone number';
         break;
       case 'gstNumber':
-        if (value && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value))
+        if (typeof value === 'string' && value && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value))
           return 'Please provide a valid GST number';
         break;
       case 'contactPerson':
-        if (value && value.length > 100) return 'Contact person name cannot exceed 100 characters';
+        if (typeof value === 'string' && value && value.length > 100)
+          return 'Contact person name cannot exceed 100 characters';
         break;
     }
     return null;
@@ -194,7 +205,6 @@ export function ClientFormEnhanced({ mode, clientId, initialData }: ClientFormPr
       return;
     }
 
-    setIsSubmitting(true);
     setErrors({});
 
     try {
@@ -206,29 +216,20 @@ export function ClientFormEnhanced({ mode, clientId, initialData }: ClientFormPr
       };
 
       if (mode === 'create') {
-        const response = await createClient(submitData);
-        toast.success('Client created', {
-          description: `${formData.name} has been successfully created.`,
-        });
+        const response = await createClientMutation.mutateAsync(submitData);
+        // Navigation handled - cache automatically updated
         router.push(`/clients/${response.data?._id}`);
       } else if (mode === 'edit' && clientId) {
-        await updateClient(clientId, submitData);
-        toast.success('Client updated', {
-          description: `${formData.name} has been successfully updated.`,
-        });
+        await updateClientMutation.mutateAsync({ id: clientId, input: submitData });
+        // Navigation handled - cache automatically updated
         router.push(`/clients/${clientId}`);
       }
 
       setHasUnsavedChanges(false);
-      router.refresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : `Failed to ${mode} client`;
       setErrors({ submit: message });
-      toast.error(`${mode === 'create' ? 'Create' : 'Update'} failed`, {
-        description: message,
-      });
-    } finally {
-      setIsSubmitting(false);
+      // Toast is handled by the mutation hooks
     }
   };
 

@@ -10,11 +10,11 @@ import { useRouter } from 'next/navigation';
 import { IClient } from '@/types';
 import { ClientGridView } from './client-grid-view';
 import { ClientTableView } from './client-table-view';
-import { ViewToggle, ViewMode } from './view-toggle';
+import { ViewMode } from './view-toggle';
 import { useBulkSelection } from '@/lib/hooks/use-bulk-selection';
 import { BulkActionsBar } from '../actions/bulk-actions-bar';
 import { DeleteConfirmation } from '../actions/delete-confirmation';
-import { deleteClient } from '@/lib/api/clients';
+import { useDeleteClient } from '@/lib/hooks/use-clients';
 import { toast } from 'sonner';
 
 export interface ClientListContainerProps {
@@ -27,10 +27,12 @@ export function ClientListContainer({
   initialView = 'table',
 }: ClientListContainerProps) {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<ViewMode>(initialView);
+  const viewMode = initialView;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Use React Query mutation hook for delete
+  const deleteClientMutation = useDeleteClient();
 
   const {
     selectedItems,
@@ -69,28 +71,13 @@ export function ClientListContainer({
   const confirmDelete = async () => {
     if (!clientToDelete) return;
 
-    setIsDeleting(true);
-    try {
-      await deleteClient(clientToDelete);
+    // Use the mutation hook - it handles cache invalidation automatically
+    await deleteClientMutation.mutateAsync(clientToDelete);
 
-      toast.success('Client deleted', {
-        description: 'The client has been successfully deleted.',
-      });
-
-      setDeleteDialogOpen(false);
-      setClientToDelete(null);
-      clearSelection();
-
-      // Refresh the page data
-      router.refresh();
-    } catch (error) {
-      toast.error('Delete failed', {
-        description:
-          error instanceof Error ? error.message : 'Failed to delete client',
-      });
-    } finally {
-      setIsDeleting(false);
-    }
+    // Close dialog and clear selection
+    setDeleteDialogOpen(false);
+    setClientToDelete(null);
+    clearSelection();
   };
 
   const handleExport = () => {
@@ -104,12 +91,9 @@ export function ClientListContainer({
 
   return (
     <div className="space-y-4">
-      {/* View Toggle and Bulk Actions */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          {clients.length} client{clients.length !== 1 ? 's' : ''}
-        </div>
-        <ViewToggle view={viewMode} onViewChange={setViewMode} />
+      {/* Client count */}
+      <div className="text-sm text-muted-foreground">
+        {clients.length} client{clients.length !== 1 ? 's' : ''}
       </div>
 
       {/* Bulk Actions Bar */}
@@ -148,7 +132,7 @@ export function ClientListContainer({
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDelete}
-        isDeleting={isDeleting}
+        isDeleting={deleteClientMutation.isPending}
         title="Delete Client"
         description="Are you sure you want to delete this client? This action cannot be undone."
       />

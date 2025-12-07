@@ -19,7 +19,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { deleteClient } from '@/lib/api/clients';
+import { useDeleteClient } from '@/lib/hooks/use-clients';
 import { toast } from 'sonner';
 
 interface DeleteClientDialogProps {
@@ -39,35 +39,26 @@ export function DeleteClientDialog({
 }: DeleteClientDialogProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Use React Query mutation hook
+  const deleteClientMutation = useDeleteClient();
 
   // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : isOpen;
   const setOpen = controlledOnOpenChange || setIsOpen;
 
   const handleDelete = async () => {
-    setIsDeleting(true);
-
     try {
-      await deleteClient(clientId);
-
-      toast.success('Client deleted', {
-        description: `${clientName} has been successfully deleted.`,
-      });
+      // Use mutation hook - it handles cache invalidation and toast automatically
+      await deleteClientMutation.mutateAsync(clientId);
 
       setOpen(false);
 
-      // Redirect to clients list and refresh
+      // Redirect to clients list
       router.push('/clients');
-      router.refresh();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to delete client';
-      toast.error('Delete failed', {
-        description: message,
-      });
-    } finally {
-      setIsDeleting(false);
+      // Error toast is handled by the mutation hook
+      console.error('Delete failed:', error);
     }
   };
 
@@ -93,16 +84,16 @@ export function DeleteClientDialog({
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
-            disabled={isDeleting}
+            disabled={deleteClientMutation.isPending}
           >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={handleDelete}
-            disabled={isDeleting}
+            disabled={deleteClientMutation.isPending}
           >
-            {isDeleting ? (
+            {deleteClientMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Deleting...

@@ -1,19 +1,14 @@
 /**
- * Clients Page - Redesigned
- * Modern UI with stats dashboard, advanced search/filters, and beautiful layouts
+ * Clients Page - Redesigned with Caching
+ * Modern UI with stats dashboard, advanced search/filters, and React Query caching
  */
 
 import { Suspense } from 'react';
-import Link from 'next/link';
-import { PlusCircle, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Users } from 'lucide-react';
 import { ClientStatsDashboard } from '@/components/clients/stats/client-stats-dashboard';
-import { ClientSearchBar } from '@/components/clients/search/client-search-bar';
-import { AdvancedFilters } from '@/components/clients/search/advanced-filters';
-import { ClientListContainer } from '@/components/clients/list/client-list-container';
+import { UnifiedSearchFilterBar } from '@/components/clients/search/unified-search-filter-bar';
+import { ClientListWithCache } from '@/components/clients/list/client-list-with-cache';
 import { ClientListSkeleton } from '@/components/clients/ui/client-list-skeleton';
-import { EmptyState } from '@/components/clients/ui/empty-state';
-import { fetchClients } from '@/lib/api/clients';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ClientsPageProps {
@@ -22,6 +17,7 @@ interface ClientsPageProps {
     search?: string;
     status?: string;
     hasOutstanding?: string;
+    view?: 'grid' | 'table';
   }>;
 }
 
@@ -30,71 +26,6 @@ export const metadata = {
   description: 'Manage your clients and customer relationships',
 };
 
-async function ClientList({
-  page,
-  search,
-  status,
-  hasOutstanding,
-}: {
-  page: number;
-  search: string;
-  status: string;
-  hasOutstanding: string;
-}) {
-  try {
-    const response = await fetchClients({
-      page,
-      limit: 50,
-      search,
-      status,
-    });
-
-    const clients = response.data;
-
-    // Filter by outstanding balance if needed
-    const filteredClients =
-      hasOutstanding === 'true'
-        ? clients.filter((c) => c.outstandingBalance > 0)
-        : clients;
-
-    if (filteredClients.length === 0) {
-      const hasFilters = search || status || hasOutstanding;
-
-      return (
-        <EmptyState
-          icon={Users}
-          title={hasFilters ? 'No clients found' : 'No clients yet'}
-          description={
-            hasFilters
-              ? 'Try adjusting your search or filters to find what you are looking for.'
-              : 'Get started by adding your first client to begin managing your customer relationships.'
-          }
-          action={
-            !hasFilters
-              ? {
-                  label: 'Add your first client',
-                  onClick: () => {
-                    window.location.href = '/clients/new';
-                  },
-                }
-              : undefined
-          }
-        />
-      );
-    }
-
-    return <ClientListContainer clients={filteredClients} />;
-  } catch (error) {
-    console.error('Error fetching clients:', error);
-    return (
-      <EmptyState
-        icon={Users}
-        title="Failed to load clients"
-        description="An error occurred while loading clients. Please try again later."
-      />
-    );
-  }
-}
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   const params = await searchParams;
@@ -102,36 +33,25 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   const search = params?.search || '';
   const status = params?.status || '';
   const hasOutstanding = params?.hasOutstanding || '';
+  const view = params?.view || 'table';
 
   return (
     <div className="flex flex-1 flex-col gap-6 md:gap-8">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 ring-1 ring-primary/20">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Clients
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Manage your clients and customer relationships
-              </p>
-            </div>
+      <div className="space-y-1">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 ring-1 ring-primary/20">
+            <Users className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Clients
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your clients and customer relationships
+            </p>
           </div>
         </div>
-        <Button
-          asChild
-          size="lg"
-          className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
-        >
-          <Link href="/clients/new">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Add Client
-          </Link>
-        </Button>
       </div>
 
       {/* Stats Dashboard */}
@@ -154,24 +74,17 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         <ClientStatsDashboard />
       </Suspense>
 
-      {/* Search Bar */}
-      <ClientSearchBar />
+      {/* Unified Search, Filters, and Actions Bar */}
+      <UnifiedSearchFilterBar />
 
-      {/* Advanced Filters */}
-      <AdvancedFilters />
-
-      {/* Clients List */}
-      <Suspense
-        key={`${page}-${search}-${status}-${hasOutstanding}`}
-        fallback={<ClientListSkeleton view="table" count={8} />}
-      >
-        <ClientList
-          page={page}
-          search={search}
-          status={status}
-          hasOutstanding={hasOutstanding}
-        />
-      </Suspense>
+      {/* Clients List with Caching */}
+      <ClientListWithCache
+        page={page}
+        search={search}
+        status={status}
+        hasOutstanding={hasOutstanding}
+        view={view}
+      />
     </div>
   );
 }
