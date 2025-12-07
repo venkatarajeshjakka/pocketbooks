@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useDeleteClient } from '@/lib/hooks/use-clients';
-import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DeleteClientDialogProps {
   clientId: string;
@@ -63,10 +63,15 @@ export function DeleteClientDialog({
   };
 
   const dialogTrigger = trigger || (
-    <Button variant="destructive" size="sm">
-      <Trash2 className="mr-2 h-4 w-4" />
-      Delete
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="destructive" size="sm">
+          <Trash2 className="mr-2 h-4 w-4" />
+
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Delete Client</TooltipContent>
+    </Tooltip>
   );
 
   return (

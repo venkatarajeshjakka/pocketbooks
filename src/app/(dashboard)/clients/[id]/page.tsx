@@ -1,16 +1,12 @@
 /**
  * Client Details Page
  *
- * View and edit individual client details
+ * Modern SaaS-style client view with Bento grid layout
  */
 
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ChevronLeft, Pencil } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ClientDetailsEnhanced } from '@/components/clients/client-details-enhanced';
-import { DeleteClientDialog } from '@/components/clients/delete-client-dialog';
 import { fetchClient } from '@/lib/api/clients';
+import { ClientDetailPage } from '@/components/clients/detail-view';
 
 interface ClientPageProps {
   params: Promise<{ id: string }>;
@@ -46,35 +42,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 md:gap-8">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/clients">
-              <ChevronLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{client.name}</h1>
-            <p className="text-muted-foreground">
-              Client details and transaction history
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/clients/${id}/edit`}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
-          </Button>
-          <DeleteClientDialog clientId={id} clientName={client.name} />
-        </div>
-      </div>
-
-      {/* Client Details */}
-      <ClientDetailsEnhanced client={client} />
+    <div className="flex flex-1 flex-col saas-canvas -m-4 md:-m-6 p-4 md:p-6 min-h-screen">
+      <ClientDetailPage client={client} />
     </div>
   );
 }
