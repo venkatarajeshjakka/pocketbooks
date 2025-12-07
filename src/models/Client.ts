@@ -68,7 +68,7 @@ const ClientSchema = new Schema<IClient>(
 );
 
 // Indexes for better query performance
-ClientSchema.index({ email: 1 });
+// Note: email index is already created by unique: true
 ClientSchema.index({ name: 1 });
 ClientSchema.index({ status: 1 });
 ClientSchema.index({ outstandingBalance: 1 });

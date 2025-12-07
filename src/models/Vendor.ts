@@ -77,7 +77,7 @@ const VendorSchema = new Schema<IVendor>(
 );
 
 // Indexes for better query performance
-VendorSchema.index({ email: 1 });
+// Note: email index is already created by unique: true
 VendorSchema.index({ name: 1 });
 VendorSchema.index({ status: 1 });
 VendorSchema.index({ specialty: 1 });
