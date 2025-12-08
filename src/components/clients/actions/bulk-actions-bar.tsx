@@ -31,7 +31,7 @@ export function BulkActionsBar({
       exit="exit"
       className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
     >
-      <div className="flex items-center gap-3 rounded-full border border-border/50 bg-card/95 px-6 py-3 shadow-lg backdrop-blur-md">
+      <div className="flex items-center gap-3 rounded-full border border-border/50 bg-card/95 px-6 py-3 shadow-lg backdrop-blur-md transition-colors duration-200">
         {/* Selected Count */}
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">

@@ -16,7 +16,7 @@ export async function ClientStatsDashboard() {
         value={stats.totalClients}
         subtitle="All registered clients"
         icon="Users"
-        gradient="blue"
+        gradient="primary"
         delay={0}
       />
       <StatCard
@@ -24,7 +24,7 @@ export async function ClientStatsDashboard() {
         value={stats.activeClients}
         subtitle={`${stats.inactiveClients} inactive`}
         icon="UserCheck"
-        gradient="green"
+        gradient="success"
         delay={0.1}
       />
       <StatCard
@@ -32,7 +32,7 @@ export async function ClientStatsDashboard() {
         value={`₹${stats.totalOutstanding.toLocaleString('en-IN')}`}
         subtitle={`${stats.clientsWithOutstanding} clients`}
         icon="IndianRupee"
-        gradient="purple"
+        gradient="secondary"
         delay={0.2}
       />
       <StatCard
@@ -40,7 +40,7 @@ export async function ClientStatsDashboard() {
         value={`₹${Math.round(stats.averageOutstanding).toLocaleString('en-IN')}`}
         subtitle="Per client with balance"
         icon="IndianRupee"
-        gradient="pink"
+        gradient="warning"
         delay={0.3}
       />
     </div>

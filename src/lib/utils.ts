@@ -151,19 +151,29 @@ export function isOverdue(date: Date | string): boolean {
 }
 
 /**
- * Get status badge color classes
+ * Get status badge color classes using semantic tokens
+ *
+ * Color mapping:
+ * - success (green): active, completed, received states
+ * - warning (orange/yellow): pending, partially_paid states
+ * - destructive (red): cancelled, error states
+ * - secondary (purple): ordered, in_progress states
+ * - muted (gray): inactive, disabled states
+ * - primary (blue): info, default states
  */
 export function getStatusColor(status: string): string {
   const statusColors: Record<string, string> = {
-    active: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    inactive: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-    pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    completed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    cancelled: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-    ordered: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    received: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    partially_paid: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+    active: 'bg-success/10 text-success border-success/20',
+    inactive: 'bg-muted text-muted-foreground border-border',
+    pending: 'bg-warning/10 text-warning border-warning/20',
+    completed: 'bg-success/10 text-success border-success/20',
+    cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
+    ordered: 'bg-secondary/10 text-secondary border-secondary/20',
+    received: 'bg-success/10 text-success border-success/20',
+    partially_paid: 'bg-warning/10 text-warning border-warning/20',
+    in_progress: 'bg-primary/10 text-primary border-primary/20',
+    info: 'bg-info/10 text-info border-info/20',
   };
 
-  return statusColors[status.toLowerCase()] || statusColors.pending;
+  return statusColors[status.toLowerCase()] || 'bg-muted text-muted-foreground border-border';
 }

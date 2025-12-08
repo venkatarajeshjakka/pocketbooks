@@ -179,7 +179,7 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
             {/* Client Name */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium">
-                Client Name <span className="text-red-500">*</span>
+                Client Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="name"
@@ -188,10 +188,10 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 placeholder="e.g., Acme Corporation"
                 required
                 disabled={isSubmitting}
-                className={cn(errors.name && 'border-red-500')}
+                className={cn(errors.name && 'border-destructive')}
               />
               {errors.name && (
-                <p className="text-sm text-red-500 dark:text-red-400">{errors.name}</p>
+                <p className="text-sm text-destructive">{errors.name}</p>
               )}
               <p className="text-xs text-muted-foreground">{formData.name.length}/100 characters</p>
             </div>
@@ -221,7 +221,7 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
-                Email <span className="text-red-500">*</span>
+                Email <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="email"
@@ -231,10 +231,10 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 placeholder="client@example.com"
                 required
                 disabled={isSubmitting}
-                className={cn(errors.email && 'border-red-500')}
+                className={cn(errors.email && 'border-destructive')}
               />
               {errors.email && (
-                <p className="text-sm text-red-500 dark:text-red-400">{errors.email}</p>
+                <p className="text-sm text-destructive">{errors.email}</p>
               )}
             </div>
 
@@ -258,10 +258,10 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 onChange={(e) => updateFormField('phone', formatPhoneNumber(e.target.value))}
                 placeholder="9876543210"
                 disabled={isSubmitting}
-                className={cn(errors.phone && 'border-red-500 dark:border-red-400')}
+                className={cn(errors.phone && 'border-destructive')}
               />
               {errors.phone && (
-                <p className="text-sm text-red-500 dark:text-red-400">{errors.phone}</p>
+                <p className="text-sm text-destructive">{errors.phone}</p>
               )}
             </div>
 
@@ -284,10 +284,10 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 onChange={(e) => updateFormField('gstNumber', formatGSTNumber(e.target.value))}
                 placeholder="22AAAAA0000A1Z5"
                 disabled={isSubmitting}
-                className={cn('font-mono', errors.gstNumber && 'border-red-500 dark:border-red-400')}
+                className={cn('font-mono', errors.gstNumber && 'border-destructive')}
               />
               {errors.gstNumber && (
-                <p className="text-sm text-red-500 dark:text-red-400">{errors.gstNumber}</p>
+                <p className="text-sm text-destructive">{errors.gstNumber}</p>
               )}
             </div>
 
@@ -305,13 +305,13 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
                 <SelectContent>
                   <SelectItem value={EntityStatus.ACTIVE}>
                     <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-green-500" />
+                      <div className="h-2 w-2 rounded-full bg-primary" />
                       Active
                     </div>
                   </SelectItem>
                   <SelectItem value={EntityStatus.INACTIVE}>
                     <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-gray-500" />
+                      <div className="h-2 w-2 rounded-full bg-muted-foreground" />
                       Inactive
                     </div>
                   </SelectItem>
@@ -404,8 +404,8 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
 
         {/* Submit Error */}
         {errors.submit && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-            <p className="text-sm text-red-600 dark:text-red-400">{errors.submit}</p>
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <p className="text-sm text-destructive">{errors.submit}</p>
           </div>
         )}
 

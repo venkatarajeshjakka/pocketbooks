@@ -27,7 +27,7 @@ export function CopyButton({ text, field, isCopied, onCopy }: CopyButtonProps) {
           onClick={() => onCopy(text, field)}
         >
           {isCopied ? (
-            <Check className="h-3.5 w-3.5 text-green-500" />
+            <Check className="h-3.5 w-3.5 text-primary" />
           ) : (
             <Copy className="h-3.5 w-3.5" />
           )}

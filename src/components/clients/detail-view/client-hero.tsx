@@ -26,12 +26,12 @@ const getInitials = (name: string) => {
 
 const getAvatarColor = (name: string) => {
   const colors = [
-    'bg-blue-500',
-    'bg-purple-500',
-    'bg-pink-500',
-    'bg-green-500',
-    'bg-orange-500',
-    'bg-cyan-500',
+    'bg-primary',
+    'bg-secondary',
+    'bg-accent',
+    'bg-primary/80',
+    'bg-secondary/80',
+    'bg-accent/80',
   ];
   const index = name.charCodeAt(0) % colors.length;
   return colors[index];
@@ -71,10 +71,10 @@ export function ClientHero({ client }: ClientHeroProps) {
               </h1>
               <span
                 className={cn(
-                  'inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium',
+                  'inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium transition-colors duration-200',
                   client.status === EntityStatus.ACTIVE
-                    ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
-                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+                    ? 'bg-success/10 text-success'
+                    : 'bg-muted text-muted-foreground'
                 )}
               >
                 {client.status}
@@ -94,7 +94,7 @@ export function ClientHero({ client }: ClientHeroProps) {
               <Button
                 variant="outline"
                 size="icon"
-                className="h-9 w-9 rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:border-blue-500/30"
+                className="h-9 w-9 rounded-md hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200"
                 asChild
               >
                 <a href={`mailto:${client.email}`}>
@@ -110,7 +110,7 @@ export function ClientHero({ client }: ClientHeroProps) {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-9 w-9 rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:border-blue-500/30"
+                  className="h-9 w-9 rounded-md hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200"
                   asChild
                 >
                   <a href={`tel:${client.phone}`}>
@@ -128,7 +128,7 @@ export function ClientHero({ client }: ClientHeroProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:border-blue-500/30"
+                className="rounded-md hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200"
                 asChild
               >
                 <Link href={`/clients/${String(client._id)}/edit`}>

@@ -19,26 +19,26 @@ interface MetricCardProps {
 function MetricCard({ icon: Icon, label, value, subtext, variant = 'default' }: MetricCardProps) {
   const variantStyles = {
     default: {
-      iconBg: 'bg-primary/10 dark:bg-primary/20',
+      iconBg: 'bg-primary/10',
       iconColor: 'text-primary',
       valueColor: 'text-foreground',
     },
     success: {
-      iconBg: 'bg-green-100 dark:bg-green-500/20',
-      iconColor: 'text-green-600 dark:text-green-400',
-      valueColor: 'text-green-600 dark:text-green-400',
+      iconBg: 'bg-success/10',
+      iconColor: 'text-success',
+      valueColor: 'text-success',
     },
     warning: {
-      iconBg: 'bg-orange-100 dark:bg-orange-500/20',
-      iconColor: 'text-orange-600 dark:text-orange-400',
-      valueColor: 'text-orange-600 dark:text-orange-400',
+      iconBg: 'bg-warning/10',
+      iconColor: 'text-warning',
+      valueColor: 'text-warning',
     },
   };
 
   const styles = variantStyles[variant];
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-5 transition-colors duration-200">
       <div className="flex items-start gap-3 sm:gap-4">
         <div className={cn('rounded-xl p-2.5 sm:p-3', styles.iconBg)}>
           <Icon className={cn('h-5 w-5 sm:h-6 sm:w-6', styles.iconColor)} />

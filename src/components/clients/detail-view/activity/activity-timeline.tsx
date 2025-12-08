@@ -29,8 +29,8 @@ export function ActivityTimeline({ client }: ActivityTabProps) {
       description: `${client.name} was added to the system`,
       timestamp: new Date(client.createdAt),
       icon: Plus,
-      iconBg: 'bg-green-100 dark:bg-green-500/20',
-      iconColor: 'text-green-600 dark:text-green-400',
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
     },
   ];
 
@@ -43,8 +43,8 @@ export function ActivityTimeline({ client }: ActivityTabProps) {
       description: 'Client information was modified',
       timestamp: new Date(client.updatedAt),
       icon: Edit,
-      iconBg: 'bg-blue-100 dark:bg-blue-500/20',
-      iconColor: 'text-blue-600 dark:text-blue-400',
+      iconBg: 'bg-secondary',
+      iconColor: 'text-secondary-foreground',
     });
   }
 

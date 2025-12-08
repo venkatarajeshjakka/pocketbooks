@@ -74,12 +74,12 @@ const getInitials = (name: string) => {
 
 const getAvatarColor = (name: string) => {
   const colors = [
-    'bg-blue-500',
-    'bg-purple-500',
-    'bg-pink-500',
-    'bg-green-500',
-    'bg-orange-500',
-    'bg-cyan-500',
+    'bg-primary',
+    'bg-secondary',
+    'bg-accent',
+    'bg-primary/80',
+    'bg-secondary/80',
+    'bg-accent/80',
   ];
   const index = name.charCodeAt(0) % colors.length;
   return colors[index];
@@ -186,23 +186,23 @@ export function ClientDetailsEnhanced({ client }: ClientDetailsProps) {
               {/* Outstanding Balance Banner */}
               {client.outstandingBalance > 0 && (
                 <div className="mt-6">
-                  <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-900 dark:bg-orange-950/20">
+                  <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 transition-colors duration-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="rounded-full bg-orange-100 p-2 dark:bg-orange-900">
-                          <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                        <div className="rounded-full bg-warning/20 p-2">
+                          <TrendingUp className="h-5 w-5 text-warning" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-orange-900 dark:text-orange-100">
+                          <p className="text-sm font-medium text-foreground">
                             Outstanding Balance
                           </p>
-                          <p className="text-xs text-orange-700 dark:text-orange-300">
+                          <p className="text-xs text-muted-foreground">
                             Amount pending from client
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                        <p className="text-2xl font-bold text-warning">
                           ₹{client.outstandingBalance.toLocaleString('en-IN')}
                         </p>
                       </div>
@@ -436,20 +436,20 @@ export function ClientDetailsEnhanced({ client }: ClientDetailsProps) {
                 <CardContent>
                   <div className="space-y-4">
                     {/* Outstanding Balance Card */}
-                    <div className="rounded-lg border p-4">
+                    <div className="rounded-lg border p-4 transition-colors duration-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             "rounded-full p-3",
                             client.outstandingBalance > 0
-                              ? "bg-orange-100 dark:bg-orange-900"
-                              : "bg-green-100 dark:bg-green-900"
+                              ? "bg-warning/10"
+                              : "bg-success/10"
                           )}>
                             <DollarSign className={cn(
                               "h-6 w-6",
                               client.outstandingBalance > 0
-                                ? "text-orange-600 dark:text-orange-400"
-                                : "text-green-600 dark:text-green-400"
+                                ? "text-warning"
+                                : "text-success"
                             )} />
                           </div>
                           <div>
@@ -465,13 +465,13 @@ export function ClientDetailsEnhanced({ client }: ClientDetailsProps) {
                           <p className={cn(
                             "text-3xl font-bold",
                             client.outstandingBalance > 0
-                              ? "text-orange-600 dark:text-orange-400"
-                              : "text-green-600 dark:text-green-400"
+                              ? "text-warning"
+                              : "text-success"
                           )}>
                             ₹{client.outstandingBalance.toLocaleString('en-IN')}
                           </p>
                           {client.outstandingBalance > 0 && (
-                            <Badge variant="outline" className="mt-1 text-orange-600">
+                            <Badge variant="outline" className="mt-1 text-warning border-warning/30">
                               Payment pending
                             </Badge>
                           )}
@@ -523,7 +523,7 @@ export function ClientDetailsEnhanced({ client }: ClientDetailsProps) {
                   <div className="space-y-4">
                     {/* Creation event */}
                     <div className="flex gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 transition-colors duration-200">
                         <User className="h-4 w-4 text-primary" />
                       </div>
                       <div className="flex-1">
@@ -537,8 +537,8 @@ export function ClientDetailsEnhanced({ client }: ClientDetailsProps) {
                     {/* Update event */}
                     {client.updatedAt !== client.createdAt && (
                       <div className="flex gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10">
-                          <Clock className="h-4 w-4 text-blue-500" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary transition-colors duration-200">
+                          <Clock className="h-4 w-4 text-secondary-foreground" />
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">Last updated</p>

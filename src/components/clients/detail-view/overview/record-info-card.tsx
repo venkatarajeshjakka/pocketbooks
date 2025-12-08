@@ -15,7 +15,7 @@ interface RecordInfoCardProps {
 
 export function RecordInfoCard({ client }: RecordInfoCardProps) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-6 transition-colors duration-200">
       <div className="flex items-center gap-2 mb-4 sm:mb-5">
         <Clock className="h-5 w-5 text-muted-foreground" />
         <h3 className="text-base font-semibold text-foreground">Record Information</h3>

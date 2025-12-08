@@ -39,7 +39,7 @@ export function AddressCard({ client }: AddressCardProps) {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-6 transition-colors duration-200">
       <div className="flex items-center justify-between mb-4 sm:mb-5">
         <div className="flex items-center gap-2">
           <MapPin className="h-5 w-5 text-muted-foreground" />
@@ -49,10 +49,10 @@ export function AddressCard({ client }: AddressCardProps) {
           <TooltipTrigger asChild>
             <button
               onClick={copyToClipboard}
-              className="p-1.5 rounded-md hover:bg-muted transition-colors"
+              className="p-1.5 rounded-md hover:bg-muted transition-colors duration-200"
             >
               {copied ? (
-                <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <Check className="h-4 w-4 text-primary" />
               ) : (
                 <Copy className="h-4 w-4 text-muted-foreground" />
               )}

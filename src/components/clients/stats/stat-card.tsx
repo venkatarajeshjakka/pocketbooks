@@ -19,24 +19,22 @@ export interface StatCardProps {
     value: number;
     isPositive: boolean;
   };
-  gradient: 'blue' | 'purple' | 'pink' | 'green';
+  gradient: 'primary' | 'secondary' | 'warning' | 'success';
   delay?: number;
 }
 
 const gradientClasses = {
-  blue: 'from-blue-500/20 via-blue-500/10 to-transparent dark:from-blue-500/30 dark:via-blue-500/15',
-  purple:
-    'from-purple-500/20 via-purple-500/10 to-transparent dark:from-purple-500/30 dark:via-purple-500/15',
-  pink: 'from-pink-500/20 via-pink-500/10 to-transparent dark:from-pink-500/30 dark:via-pink-500/15',
-  green:
-    'from-green-500/20 via-green-500/10 to-transparent dark:from-green-500/30 dark:via-green-500/15',
+  primary: 'from-primary/20 via-primary/10 to-transparent',
+  secondary: 'from-secondary/30 via-secondary/15 to-transparent',
+  warning: 'from-warning/30 via-warning/15 to-transparent',
+  success: 'from-success/20 via-success/10 to-transparent',
 };
 
 const iconBgClasses = {
-  blue: 'bg-blue-500/15 text-blue-600 dark:bg-blue-500/25 dark:text-blue-400',
-  purple: 'bg-purple-500/15 text-purple-600 dark:bg-purple-500/25 dark:text-purple-400',
-  pink: 'bg-pink-500/15 text-pink-600 dark:bg-pink-500/25 dark:text-pink-400',
-  green: 'bg-green-500/15 text-green-600 dark:bg-green-500/25 dark:text-green-400',
+  primary: 'bg-primary/15 text-primary',
+  secondary: 'bg-secondary/15 text-secondary',
+  warning: 'bg-warning/15 text-warning',
+  success: 'bg-success/15 text-success',
 };
 
 const iconMap = {
@@ -62,7 +60,7 @@ export function StatCard({
       initial="hidden"
       animate="visible"
       transition={{ delay }}
-      className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all hover:border-border hover:shadow-lg"
+      className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-200 hover:border-border hover:shadow-lg"
     >
       {/* Gradient Background */}
       <div
@@ -83,7 +81,7 @@ export function StatCard({
                 <span
                   className={cn(
                     'text-sm font-bold',
-                    trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    trend.isPositive ? 'text-success' : 'text-destructive'
                   )}
                 >
                   {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%

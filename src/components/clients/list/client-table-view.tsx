@@ -63,12 +63,12 @@ export function ClientTableView({
 
   const getAvatarColor = (name: string) => {
     const colors = [
-      'bg-blue-500',
-      'bg-purple-500',
-      'bg-pink-500',
-      'bg-green-500',
-      'bg-orange-500',
-      'bg-cyan-500',
+      'bg-primary',
+      'bg-secondary',
+      'bg-accent',
+      'bg-primary/80',
+      'bg-secondary/80',
+      'bg-accent/80',
     ];
     const index = name.charCodeAt(0) % colors.length;
     return colors[index];
@@ -179,10 +179,10 @@ export function ClientTableView({
                     <Badge
                       variant={client.status === 'active' ? 'default' : 'secondary'}
                       className={cn(
-                        "text-xs capitalize",
+                        "text-xs capitalize transition-colors duration-200",
                         client.status === 'active'
-                          ? 'bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:bg-green-500/20 dark:text-green-400 border-green-500/20'
-                          : 'bg-gray-500/10 text-gray-700 hover:bg-gray-500/20 dark:bg-gray-500/20 dark:text-gray-400 border-gray-500/20'
+                          ? 'bg-success/10 text-success hover:bg-success/20 border-success/20'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80 border-border'
                       )}
                     >
                       {client.status}
@@ -195,14 +195,14 @@ export function ClientTableView({
                       <TooltipTrigger asChild>
                         <div className="flex items-center justify-end gap-1.5">
                           {client.outstandingBalance > 0 && (
-                            <TrendingUp className="h-3.5 w-3.5 text-orange-500" />
+                            <TrendingUp className="h-3.5 w-3.5 text-warning" />
                           )}
                           <span
                             className={cn(
-                              'text-sm font-medium',
+                              'text-sm font-medium transition-colors duration-200',
                               client.outstandingBalance > 0
-                                ? 'text-orange-600 dark:text-orange-400'
-                                : 'text-green-600 dark:text-green-400'
+                                ? 'text-warning'
+                                : 'text-success'
                             )}
                           >
                             ₹{client.outstandingBalance.toLocaleString('en-IN')}

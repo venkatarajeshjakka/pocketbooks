@@ -7,16 +7,16 @@ import {
   Package,
   ArrowUpRight,
   ArrowDownRight,
-} from "lucide-react"
-import Link from "next/link"
+} from "lucide-react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 /**
  * Business Tracker Dashboard Page
@@ -55,7 +55,7 @@ export default function DashboardPage() {
     arChange: -5.2,
     apChange: 8.3,
     profitChange: 15.8,
-  }
+  };
 
   const recentSales = [
     {
@@ -79,17 +79,17 @@ export default function DashboardPage() {
       date: "2024-12-03",
       status: "Paid",
     },
-  ]
+  ];
 
   const pendingPayments = [
     { client: "Acme Corporation", amount: 2500.0, dueDate: "2024-12-10" },
     { client: "TechStart Inc.", amount: 1850.0, dueDate: "2024-12-05" },
-  ]
+  ];
 
   const lowStockItems = [
     { name: "Raw Material A", quantity: 5, unit: "kg" },
     { name: "Trading Product B", quantity: 12, unit: "units" },
-  ]
+  ];
 
   return (
     <div className="flex flex-1 flex-col gap-6">
@@ -114,8 +114,8 @@ export default function DashboardPage() {
               ${metrics.totalSales.toLocaleString()}
             </div>
             <p className="flex items-center text-xs text-muted-foreground">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
-              <span className="text-green-500">+{metrics.salesChange}%</span>
+              <ArrowUpRight className="mr-1 h-3 w-3 text-primary" />
+              <span className="text-primary">+{metrics.salesChange}%</span>
               <span className="ml-1">from last month</span>
             </p>
           </CardContent>
@@ -134,8 +134,8 @@ export default function DashboardPage() {
               ${metrics.pendingReceivables.toLocaleString()}
             </div>
             <p className="flex items-center text-xs text-muted-foreground">
-              <ArrowDownRight className="mr-1 h-3 w-3 text-green-500" />
-              <span className="text-green-500">{metrics.arChange}%</span>
+              <ArrowDownRight className="mr-1 h-3 w-3 text-primary" />
+              <span className="text-primary">{metrics.arChange}%</span>
               <span className="ml-1">from last month</span>
             </p>
           </CardContent>
@@ -154,8 +154,8 @@ export default function DashboardPage() {
               ${metrics.pendingPayables.toLocaleString()}
             </div>
             <p className="flex items-center text-xs text-muted-foreground">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-orange-500" />
-              <span className="text-orange-500">+{metrics.apChange}%</span>
+              <ArrowUpRight className="mr-1 h-3 w-3 text-accent-foreground" />
+              <span className="text-accent-foreground">+{metrics.apChange}%</span>
               <span className="ml-1">from last month</span>
             </p>
           </CardContent>
@@ -172,8 +172,8 @@ export default function DashboardPage() {
               ${metrics.netProfit.toLocaleString()}
             </div>
             <p className="flex items-center text-xs text-muted-foreground">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
-              <span className="text-green-500">+{metrics.profitChange}%</span>
+              <ArrowUpRight className="mr-1 h-3 w-3 text-primary" />
+              <span className="text-primary">+{metrics.profitChange}%</span>
               <span className="ml-1">from last month</span>
             </p>
           </CardContent>
@@ -217,10 +217,10 @@ export default function DashboardPage() {
                       ${sale.amount.toLocaleString()}
                     </span>
                     <span
-                      className={`rounded-full px-2 py-1 text-xs ${
+                      className={`rounded-full px-2 py-1 text-xs transition-colors duration-200 ${
                         sale.status === "Paid"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                          ? "bg-primary/10 text-primary"
+                          : "bg-accent text-accent-foreground"
                       }`}
                     >
                       {sale.status}
@@ -236,12 +236,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-orange-500" />
+              <AlertCircle className="h-4 w-4 text-accent-foreground" />
               Pending Payments
             </CardTitle>
-            <CardDescription>
-              Payments requiring attention
-            </CardDescription>
+            <CardDescription>Payments requiring attention</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -253,7 +251,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-muted-foreground">
                     ${payment.amount.toLocaleString()}
                   </p>
-                  <p className="text-xs text-orange-600 dark:text-orange-400">
+                  <p className="text-xs text-accent-foreground">
                     Due: {payment.dueDate}
                   </p>
                 </div>
@@ -269,22 +267,17 @@ export default function DashboardPage() {
         <Card className="col-span-full lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-red-500" />
+              <Package className="h-4 w-4 text-destructive" />
               Low Stock Alerts
             </CardTitle>
-            <CardDescription>
-              Items requiring reorder
-            </CardDescription>
+            <CardDescription>Items requiring reorder</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {lowStockItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between"
-                >
+                <div key={index} className="flex items-center justify-between">
                   <p className="text-sm font-medium">{item.name}</p>
-                  <span className="rounded-full bg-red-100 px-2 py-1 text-xs text-red-700 dark:bg-red-900 dark:text-red-300">
+                  <span className="rounded-full bg-destructive/10 px-2 py-1 text-xs text-destructive transition-colors duration-200">
                     {item.quantity} {item.unit}
                   </span>
                 </div>
@@ -297,5 +290,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
