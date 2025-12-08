@@ -17,10 +17,10 @@ import Link from "next/link";
 
 export function Header() {
   return (
-    <header className="flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b border-border bg-background px-3 sm:px-4">
-      <SidebarTrigger className="-ml-1" />
+    <header className="flex h-14 sm:h-16 shrink-0 items-center gap-2 sm:gap-3 border-b border-border bg-background px-3 sm:px-4 md:px-6 transition-colors duration-200">
+      <SidebarTrigger className="-ml-1 text-foreground/80 hover:text-foreground transition-colors duration-200" />
 
-      <h1 className="flex-1 text-lg sm:text-xl font-semibold ml-2 text-foreground truncate">
+      <h1 className="flex-1 text-base sm:text-lg md:text-xl font-semibold ml-1 sm:ml-2 text-foreground truncate transition-colors duration-200">
         Pocket Books
       </h1>
 
@@ -28,12 +28,12 @@ export function Header() {
       <Button
         variant="ghost"
         size="icon"
-        className="relative h-9 w-9"
+        className="relative h-8 w-8 sm:h-9 sm:w-9 text-foreground/80 hover:text-foreground transition-colors duration-200"
         aria-label="Notifications"
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
         <span
-          className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 dark:bg-red-400"
+          className="absolute right-1 top-1 sm:right-1.5 sm:top-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse"
           aria-hidden="true"
         />
       </Button>
@@ -44,14 +44,14 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full h-9 w-9"
+            className="rounded-full h-8 w-8 sm:h-9 sm:w-9 text-foreground/80 hover:text-foreground transition-colors duration-200"
             aria-label="User menu"
           >
-            <User className="h-5 w-5" />
+            <User className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel className="font-semibold">My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/profile" className="flex cursor-pointer items-center">
@@ -66,7 +66,7 @@ export function Header() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400">
+          <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
             <LogOut className="mr-2 h-4 w-4" />
             <span>Logout</span>
           </DropdownMenuItem>
