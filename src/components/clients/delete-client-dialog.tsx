@@ -66,20 +66,26 @@ export function DeleteClientDialog({
     }
   };
 
+  const defaultTrigger = (
+    <Button variant="destructive" size="sm">
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  );
+
   const dialogTrigger = trigger || (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="destructive" size="sm">
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {defaultTrigger}
       </TooltipTrigger>
-      <TooltipContent>Delete Client</TooltipContent>
+      <TooltipContent>Delete client</TooltipContent>
     </Tooltip>
   );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{dialogTrigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        {trigger ? trigger : defaultTrigger}
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Client</DialogTitle>
