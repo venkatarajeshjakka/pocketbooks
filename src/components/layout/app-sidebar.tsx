@@ -146,19 +146,19 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b">
+      <SidebarHeader className="border-b border-sidebar-border">
         <SidebarMenuButton
           size="lg"
           asChild
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-colors duration-200"
         >
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-sm transition-transform duration-200 hover:scale-105">
               <TrendingUp className="size-4" />
             </div>
             <div className="flex flex-col gap-0.5 leading-none">
-              <span className="font-semibold">Pocket Books</span>
-              <span className="text-xs">Business Management</span>
+              <span className="font-semibold text-sidebar-foreground">Pocket Books</span>
+              <span className="text-xs text-sidebar-foreground/70">Business Management</span>
             </div>
           </Link>
         </SidebarMenuButton>
@@ -220,8 +220,8 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t p-4">
-        <p className="text-xs text-muted-foreground">Version 1.0.0</p>
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        <p className="text-xs text-sidebar-foreground/60 transition-colors duration-200">Version 1.0.0</p>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

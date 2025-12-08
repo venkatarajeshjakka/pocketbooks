@@ -20,14 +20,14 @@ export default function NewClientPage() {
       <div className="mb-6">
         <Link
           href="/clients"
-          className="inline-flex items-center gap-2 text-sm text-[var(--saas-muted)] hover:text-[var(--saas-heading)] transition-colors mb-4"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
           Clients
         </Link>
         <div className='mx-auto w-full max-w-3xl mb-4'>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--saas-heading)]">Add New Client</h1>
-          <p className="text-sm text-[var(--saas-muted)] mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Add New Client</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Enter client information to add them to your system
           </p>
         </div>

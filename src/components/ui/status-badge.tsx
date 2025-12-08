@@ -14,7 +14,7 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
-    <Badge className={`${getStatusColor(status)} ${className || ''}`} variant="secondary">
+    <Badge className={`${getStatusColor(status)} transition-colors duration-200 ${className || ''}`} variant="secondary">
       {status.replace(/_/g, ' ').toUpperCase()}
     </Badge>
   );

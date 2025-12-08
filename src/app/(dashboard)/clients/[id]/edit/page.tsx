@@ -47,14 +47,14 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
       <div className="mb-6">
         <Link
           href={`/clients/${id}`}
-          className="inline-flex items-center gap-2 text-sm text-[var(--saas-muted)] hover:text-[var(--saas-heading)] transition-colors mb-4"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
           Back to {client.name}
         </Link>
         <div className='mx-auto w-full max-w-3xl'>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--saas-heading)]">Edit Client</h1>
-          <p className="text-sm text-[var(--saas-muted)] mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Edit Client</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Update {client.name}&apos;s information
           </p>
         </div>

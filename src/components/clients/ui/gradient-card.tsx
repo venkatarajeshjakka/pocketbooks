@@ -42,7 +42,7 @@ export function GradientCard({
       })}
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden rounded-lg border border-border/50 backdrop-blur-sm',
+        'relative overflow-hidden rounded-lg border border-border/50 backdrop-blur-sm transition-colors duration-200',
         gradientClasses[gradient],
         interactive && 'cursor-pointer transition-shadow hover:shadow-lg',
         className

@@ -19,7 +19,7 @@ export interface ViewToggleProps {
 
 export function ViewToggle({ view, onViewChange }: ViewToggleProps) {
   return (
-    <div className="relative flex items-center gap-1 rounded-lg border border-border/50 bg-muted/30 p-1">
+    <div className="relative flex items-center gap-1 rounded-lg border border-border/50 bg-muted/30 p-1 transition-colors duration-200">
       {/* Animated background */}
       <motion.div
         className="absolute inset-y-1 w-[calc(50%-4px)] rounded-md bg-background shadow-sm"
