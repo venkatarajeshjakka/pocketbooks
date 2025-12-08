@@ -4,11 +4,11 @@
  * Confirmation dialog for deleting a client
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Trash2, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,10 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { useDeleteClient } from '@/lib/hooks/use-clients';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useDeleteClient } from "@/lib/hooks/use-clients";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DeleteClientDialogProps {
   clientId: string;
@@ -55,10 +59,10 @@ export function DeleteClientDialog({
       setOpen(false);
 
       // Redirect to clients list
-      router.push('/clients');
+      router.push("/clients");
     } catch (error) {
       // Error toast is handled by the mutation hook
-      console.error('Delete failed:', error);
+      console.error("Delete failed:", error);
     }
   };
 
@@ -66,8 +70,7 @@ export function DeleteClientDialog({
     <Tooltip>
       <TooltipTrigger asChild>
         <Button variant="destructive" size="sm">
-          <Trash2 className="mr-2 h-4 w-4" />
-
+          <Trash2 className="h-4 w-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>Delete Client</TooltipContent>
