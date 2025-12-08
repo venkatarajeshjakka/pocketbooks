@@ -3,33 +3,37 @@
  * Displays clients in a card grid layout
  */
 
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { Mail, Phone, MapPin, IndianRupee, MoreVertical } from 'lucide-react';
-import { IClient } from '@/types';
-import { GradientCard } from '../ui/gradient-card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { Mail, Phone, MapPin, IndianRupee, MoreVertical } from "lucide-react";
+import { IClient } from "@/types";
+import { GradientCard } from "../ui/gradient-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from '@/components/ui/hover-card';
+} from "@/components/ui/hover-card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { formatDistanceToNow } from 'date-fns';
-import { staggerContainer, fadeInUp } from '@/lib/utils/animation-variants';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { formatDistanceToNow } from "date-fns";
+import { staggerContainer, fadeInUp } from "@/lib/utils/animation-variants";
+import { cn } from "@/lib/utils";
 
 export interface ClientGridViewProps {
   clients: IClient[];
@@ -46,28 +50,6 @@ export function ClientGridView({
   onEdit,
   onDelete,
 }: ClientGridViewProps) {
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      'bg-primary',
-      'bg-secondary',
-      'bg-accent',
-      'bg-primary/80',
-      'bg-secondary/80',
-      'bg-accent/80',
-    ];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
-  };
-
   return (
     <TooltipProvider>
       <motion.div
@@ -84,8 +66,9 @@ export function ClientGridView({
             <motion.div key={clientId} variants={fadeInUp} className="relative">
               <GradientCard
                 className={cn(
-                  'group transition-all hover:shadow-xl',
-                  isSelected && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                  "group transition-all hover:shadow-xl",
+                  isSelected &&
+                    "ring-2 ring-primary ring-offset-2 ring-offset-background"
                 )}
               >
                 <div className="p-5">
@@ -99,12 +82,14 @@ export function ClientGridView({
                         className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <Badge
-                        variant={client.status === 'active' ? 'default' : 'secondary'}
+                        variant={
+                          client.status === "active" ? "default" : "secondary"
+                        }
                         className={cn(
                           "text-xs capitalize transition-colors duration-200",
-                          client.status === 'active'
-                            ? 'bg-success/10 text-success hover:bg-success/20 border-success/20'
-                            : 'bg-muted text-muted-foreground hover:bg-muted/80 border-border'
+                          client.status === "active"
+                            ? "bg-success/10 text-success hover:bg-success/20 border-success/20"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80 border-border"
                         )}
                       >
                         {client.status}
@@ -124,7 +109,9 @@ export function ClientGridView({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/clients/${clientId}`}>View details</Link>
+                          <Link href={`/clients/${clientId}`}>
+                            View details
+                          </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onEdit(clientId)}>
                           Edit
@@ -147,17 +134,14 @@ export function ClientGridView({
                         href={`/clients/${clientId}`}
                         className="group/link mb-3 flex items-center gap-3 transition-colors"
                       >
-                        <Avatar className="h-12 w-12 border-2 border-background shadow-md">
-                          <AvatarFallback className={cn('text-white font-semibold', getAvatarColor(client.name))}>
-                            {getInitials(client.name)}
-                          </AvatarFallback>
-                        </Avatar>
                         <div className="flex-1 min-w-0">
                           <h3 className="text-lg font-semibold group-hover/link:text-primary truncate">
                             {client.name}
                           </h3>
                           {client.contactPerson && (
-                            <p className="text-sm text-muted-foreground truncate">{client.contactPerson}</p>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {client.contactPerson}
+                            </p>
                           )}
                         </div>
                       </Link>
@@ -166,31 +150,41 @@ export function ClientGridView({
                       <div className="space-y-2">
                         <h4 className="text-sm font-semibold">{client.name}</h4>
                         {client.contactPerson && (
-                          <p className="text-sm text-muted-foreground">Contact: {client.contactPerson}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Contact: {client.contactPerson}
+                          </p>
                         )}
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground">Status:</span>
                           <Badge
-                            variant={client.status === 'active' ? 'default' : 'secondary'}
+                            variant={
+                              client.status === "active"
+                                ? "default"
+                                : "secondary"
+                            }
                             className={cn(
                               "text-xs capitalize transition-colors duration-200",
-                              client.status === 'active'
-                                ? 'bg-success/10 text-success hover:bg-success/20 border-success/20'
-                                : 'bg-muted text-muted-foreground hover:bg-muted/80 border-border'
+                              client.status === "active"
+                                ? "bg-success/10 text-success hover:bg-success/20 border-success/20"
+                                : "bg-muted text-muted-foreground hover:bg-muted/80 border-border"
                             )}
                           >
                             {client.status}
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Outstanding:</span>
-                          <span className={cn(
-                            'font-semibold',
-                            client.outstandingBalance > 0
-                              ? 'text-warning'
-                              : 'text-success'
-                          )}>
-                            ₹{client.outstandingBalance.toLocaleString('en-IN')}
+                          <span className="text-muted-foreground">
+                            Outstanding:
+                          </span>
+                          <span
+                            className={cn(
+                              "font-semibold",
+                              client.outstandingBalance > 0
+                                ? "text-warning"
+                                : "text-success"
+                            )}
+                          >
+                            ₹{client.outstandingBalance.toLocaleString("en-IN")}
                           </span>
                         </div>
                       </div>
@@ -238,43 +232,52 @@ export function ClientGridView({
                             <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
                             <span className="truncate">
                               {client.address.city}
-                              {client.address.state && `, ${client.address.state}`}
+                              {client.address.state &&
+                                `, ${client.address.state}`}
                             </span>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            {client.address.street && `${client.address.street}, `}
+                            {client.address.street &&
+                              `${client.address.street}, `}
                             {client.address.city}
-                            {client.address.state && `, ${client.address.state}`}
-                            {client.address.postalCode && ` - ${client.address.postalCode}`}
+                            {client.address.state &&
+                              `, ${client.address.state}`}
+                            {client.address.postalCode &&
+                              ` - ${client.address.postalCode}`}
                           </p>
                         </TooltipContent>
                       </Tooltip>
                     )}
                   </div>
 
-                {/* Outstanding Balance */}
-                <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-4">
-                  <div className="flex items-center gap-1.5">
-                    <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">Outstanding</span>
+                  {/* Outstanding Balance */}
+                  <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-4">
+                    <div className="flex items-center gap-1.5">
+                      <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Outstanding
+                      </span>
+                    </div>
+                    <span
+                      className={cn(
+                        "text-xl font-bold transition-colors duration-200",
+                        client.outstandingBalance > 0
+                          ? "text-warning"
+                          : "text-success"
+                      )}
+                    >
+                      ₹{client.outstandingBalance.toLocaleString("en-IN")}
+                    </span>
                   </div>
-                  <span
-                    className={cn(
-                      'text-xl font-bold transition-colors duration-200',
-                      client.outstandingBalance > 0
-                        ? 'text-warning'
-                        : 'text-success'
-                    )}
-                  >
-                    ₹{client.outstandingBalance.toLocaleString('en-IN')}
-                  </span>
-                </div>
 
                   {/* Last Updated */}
                   <p className="mt-3 text-[10px] text-muted-foreground/60">
-                    Updated {formatDistanceToNow(new Date(client.updatedAt), { addSuffix: true })}
+                    Updated{" "}
+                    {formatDistanceToNow(new Date(client.updatedAt), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
               </GradientCard>
