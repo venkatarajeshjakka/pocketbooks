@@ -17,28 +17,28 @@ export function ClientTabs({ client }: ClientTabsProps) {
   return (
     <motion.div variants={fadeInUp}>
       <Tabs defaultValue="overview" className="w-full">
-        {/* Tab Navigation - Responsive */}
-        <TabsList className="bg-transparent p-0 h-auto w-full justify-start rounded-none flex-wrap gap-1 sm:gap-2">
+        {/* Tab Navigation */}
+        <TabsList className="bg-muted/50 p-2.5 h-auto w-full justify-start rounded-lg gap-1 sm:gap-2">
           <TabsTrigger
             value="overview"
-            className="data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg border-transparent px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
+            className="bg-background/60 hover:bg-background data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-3 transition-colors"
           >
-            <Building2 className="mr-1.5 sm:mr-2 h-4 w-4" />
+            <Building2 className="mr-2 h-4 w-4" />
             <span className="hidden xs:inline sm:inline">Overview</span>
             <span className="xs:hidden sm:hidden">Info</span>
           </TabsTrigger>
           <TabsTrigger
             value="financial"
-            className="data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg border-transparent px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
+            className="bg-background/60 hover:bg-background data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-3 transition-colors"
           >
-            <DollarSign className="mr-1.5 sm:mr-2 h-4 w-4" />
+            <DollarSign className="mr-2 h-4 w-4" />
             Financial
           </TabsTrigger>
           <TabsTrigger
             value="activity"
-            className="data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg border-transparent px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
+            className="bg-background/60 hover:bg-background data-[state=active]:shadow-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-4 py-3 transition-colors"
           >
-            <Activity className="mr-1.5 sm:mr-2 h-4 w-4" />
+            <Activity className="mr-2 h-4 w-4" />
             Activity
           </TabsTrigger>
         </TabsList>

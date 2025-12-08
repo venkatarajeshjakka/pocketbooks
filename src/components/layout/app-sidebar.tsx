@@ -130,18 +130,25 @@ export function AppSidebar() {
 
   // Helper function to check if a menu item or its sub-items are active
   const isMenuItemActive = (item: MenuItem): boolean => {
-    if (item.url && pathname === item.url) {
-      return true;
+    if (item.url) {
+      // Exact match for home page
+      if (item.url === "/" && pathname === "/") {
+        return true;
+      }
+      // For other pages, check if pathname starts with the item URL
+      if (item.url !== "/" && pathname.startsWith(item.url)) {
+        return true;
+      }
     }
     if (item.items) {
-      return item.items.some((subItem) => pathname === subItem.url);
+      return item.items.some((subItem) => pathname.startsWith(subItem.url));
     }
     return false;
   };
 
   // Helper function to check if a sub-item is active
   const isSubItemActive = (url: string): boolean => {
-    return pathname === url;
+    return pathname.startsWith(url);
   };
 
   return (
