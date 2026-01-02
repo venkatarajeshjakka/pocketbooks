@@ -1,41 +1,96 @@
 /**
- * Vendors List Page
+ * Vendors Page - Full-featured with Caching
+ * Modern UI with stats dashboard, advanced search/filters, and React Query caching
+ * Mirrors the client management page structure
  */
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
+import { Suspense } from 'react';
+import { Package } from 'lucide-react';
+import { VendorStatsDashboard } from '@/components/vendors/vendor-stats-dashboard';
+import { EntitySearchFilterBar } from '@/components/shared/entity/entity-search-filter-bar';
+import { VendorListWithCache } from '@/components/vendors/vendor-list-with-cache';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default async function VendorsPage() {
+interface VendorsPageProps {
+  searchParams: Promise<{
+    page?: string;
+    search?: string;
+    status?: string;
+    hasOutstanding?: string;
+    view?: 'grid' | 'table';
+  }>;
+}
+
+export const metadata = {
+  title: 'Vendors | PocketBooks',
+  description: 'Manage your vendors and supplier relationships',
+};
+
+export default async function VendorsPage({ searchParams }: VendorsPageProps) {
+  const params = await searchParams;
+  const page = Number(params?.page) || 1;
+  const search = params?.search || '';
+  const status = params?.status || '';
+  const hasOutstanding = params?.hasOutstanding || '';
+  const view = params?.view || 'table';
+
   return (
-    <div className="flex flex-1 flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Vendors</h2>
-          <p className="text-muted-foreground">
-            Manage your vendor relationships and procurement
-          </p>
+    <div className="flex flex-1 flex-col gap-6 md:gap-8">
+      {/* Page Header */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 ring-1 ring-primary/20">
+            <Package className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Vendors
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your vendors and supplier relationships
+            </p>
+          </div>
         </div>
-        <Button asChild>
-          <Link href="/vendors/new">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Vendor
-          </Link>
-        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Vendors</CardTitle>
-          <CardDescription>View and manage all your business vendors</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Connect to MongoDB to view vendors data.</p>
+      {/* Stats Dashboard */}
+      <Suspense
+        fallback={
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-border/50 bg-card/50 p-6"
+              >
+                <Skeleton className="h-4 w-24 mb-3" />
+                <Skeleton className="h-8 w-32 mb-2" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        }
+      >
+        <VendorStatsDashboard />
+      </Suspense>
+
+      {/* Search, Filters, and Actions Bar */}
+      <EntitySearchFilterBar
+        entityType="vendor"
+        addNewPath="/vendors/new"
+        addNewLabel="Add Vendor"
+        searchPlaceholder="Search by name, email, or phone..."
+        showOutstandingFilter={true}
+        outstandingFilterLabel="With payable"
+      />
+
+      {/* Vendors List with Caching */}
+      <VendorListWithCache
+        page={page}
+        search={search}
+        status={status}
+        hasOutstanding={hasOutstanding}
+        view={view}
+      />
     </div>
   );
 }
