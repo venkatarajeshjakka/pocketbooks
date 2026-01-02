@@ -13,6 +13,7 @@ import {
   BarChart3,
   Settings,
   ChevronDown,
+  Monitor,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -69,6 +70,11 @@ const menuItems: MenuItem[] = [
       { title: "Trading Goods", url: "/inventory/trading-goods" },
       { title: "Finished Goods", url: "/inventory/finished-goods" },
     ],
+  },
+  {
+    title: "Assets",
+    url: "/assets",
+    icon: Monitor,
   },
   {
     title: "Procurement",

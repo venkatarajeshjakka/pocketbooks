@@ -11,6 +11,8 @@ import { Model } from 'mongoose';
 import { connectToDatabase } from './mongodb';
 import { PaginatedResponse, ApiResponse } from '@/types';
 
+export { connectToDatabase };
+
 /**
  * Generic GET all handler with pagination and search
  */

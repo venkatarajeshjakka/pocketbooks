@@ -16,3 +16,5 @@ export { default as Payment } from './Payment';
 export { default as Expense } from './Expense';
 export { default as InterestPayment } from './InterestPayment';
 export { default as RawMaterialType } from './RawMaterialType';
+export { default as Asset } from './Asset';
+export { default as AssetProcurement } from './AssetProcurement';

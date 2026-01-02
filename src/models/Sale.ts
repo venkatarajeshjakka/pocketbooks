@@ -110,7 +110,6 @@ const SaleSchema = new Schema<ISale>(
 SaleSchema.index({ clientId: 1 });
 SaleSchema.index({ saleDate: -1 });
 SaleSchema.index({ status: 1 });
-SaleSchema.index({ invoiceNumber: 1 });
 SaleSchema.index({ balanceAmount: 1 });
 
 // Virtual to check if payment is complete

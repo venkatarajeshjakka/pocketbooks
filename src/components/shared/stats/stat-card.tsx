@@ -6,7 +6,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Users, UserCheck, UserX, IndianRupee } from 'lucide-react';
+import { Users, UserCheck, UserX, IndianRupee, Package, CheckCircle, TrendingUp, Monitor } from 'lucide-react';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +14,7 @@ export interface StatCardProps {
     title: string;
     value: string | number;
     subtitle?: string;
-    icon: 'Users' | 'UserCheck' | 'UserX' | 'IndianRupee';
+    icon: 'Users' | 'UserCheck' | 'UserX' | 'IndianRupee' | 'Package' | 'CheckCircle' | 'TrendingUp' | 'Monitor';
     trend?: {
         value: number;
         isPositive: boolean;
@@ -42,6 +42,10 @@ const iconMap = {
     UserCheck,
     UserX,
     IndianRupee,
+    Package,
+    CheckCircle,
+    TrendingUp,
+    Monitor,
 };
 
 export function StatCard({

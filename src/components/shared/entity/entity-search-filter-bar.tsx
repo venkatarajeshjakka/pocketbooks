@@ -26,7 +26,7 @@ import { EntityStatus } from '@/types';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 
 export interface EntitySearchFilterBarProps {
-  entityType: 'client' | 'vendor';
+  entityType: 'client' | 'vendor' | 'asset';
   addNewPath: string;
   addNewLabel?: string;
   addNewIcon?: LucideIcon;

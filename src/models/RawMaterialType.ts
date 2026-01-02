@@ -38,8 +38,8 @@ const RawMaterialTypeSchema = new Schema<IRawMaterialType>(
     }
 );
 
-// Index for name for faster lookups
-RawMaterialTypeSchema.index({ name: 1 });
+// Index for active status
+RawMaterialTypeSchema.index({ isActive: 1 });
 
 const RawMaterialType: Model<IRawMaterialType> =
     mongoose.models.RawMaterialType ||

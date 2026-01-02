@@ -90,8 +90,8 @@ RawMaterialProcurementSchema.index({ procurementDate: -1 });
 RawMaterialProcurementSchema.index({ status: 1 });
 RawMaterialProcurementSchema.index({ invoiceNumber: 1 });
 
-// Calculate amounts before saving
-RawMaterialProcurementSchema.pre('save', async function () {
+// Calculate amounts before validation
+RawMaterialProcurementSchema.pre('validate', async function () {
   // Calculate item amounts
   this.items.forEach((item) => {
     item.amount = item.quantity * item.unitPrice;

@@ -75,6 +75,22 @@ export enum ExpenseCategory {
   MISCELLANEOUS = 'miscellaneous',
 }
 
+export enum AssetCategory {
+  ELECTRONICS = 'electronics',
+  FURNITURE = 'furniture',
+  MACHINERY = 'machinery',
+  VEHICLE = 'vehicle',
+  OFFICE_EQUIPMENT = 'office_equipment',
+  OTHER = 'other',
+}
+
+export enum AssetStatus {
+  ACTIVE = 'active',
+  REPAIR = 'repair',
+  RETIRED = 'retired',
+  DISPOSED = 'disposed',
+}
+
 export enum UnitOfMeasurement {
   KG = 'kg',
   GRAM = 'gram',
@@ -461,6 +477,81 @@ export interface IExpenseInput {
   amount: number;
   paymentMethod: PaymentMethod;
   receiptNumber?: string;
+  notes?: string;
+}
+
+// ============================================================================
+// ASSET ENTITY
+// ============================================================================
+
+export interface IAsset {
+  _id: Types.ObjectId | string;
+  name: string;
+  description?: string;
+  category: AssetCategory;
+  serialNumber?: string;
+  purchaseDate: Date;
+  purchasePrice: number;
+  currentValue: number;
+  location?: string;
+  vendorId?: Types.ObjectId | string;
+  status: AssetStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IAssetInput {
+  name: string;
+  description?: string;
+  category: AssetCategory;
+  serialNumber?: string;
+  purchaseDate: Date;
+  purchasePrice: number;
+  currentValue?: number;
+  location?: string;
+  vendorId?: string;
+  status?: AssetStatus;
+}
+
+// ============================================================================
+// ASSET PROCUREMENT ENTITY
+// ============================================================================
+
+export interface IAssetProcurement {
+  _id: Types.ObjectId | string;
+  vendorId: Types.ObjectId | string;
+  procurementDate: Date;
+  items: {
+    assetName: string;
+    description?: string;
+    category: AssetCategory;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+  }[];
+  totalAmount: number;
+  gstAmount: number;
+  grandTotal: number;
+  status: ProcurementStatus;
+  invoiceNumber?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IAssetProcurementInput {
+  vendorId: string;
+  procurementDate: Date;
+  items: {
+    assetName: string;
+    description?: string;
+    category: AssetCategory;
+    quantity: number;
+    unitPrice: number;
+  }[];
+  gstAmount?: number;
+  status?: ProcurementStatus;
+  invoiceNumber?: string;
   notes?: string;
 }
 

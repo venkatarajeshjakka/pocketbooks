@@ -60,7 +60,6 @@ const TradingGoodSchema = new Schema<ITradingGood>(
 );
 
 // Indexes
-TradingGoodSchema.index({ sku: 1 });
 TradingGoodSchema.index({ name: 1 });
 TradingGoodSchema.index({ currentStock: 1 });
 

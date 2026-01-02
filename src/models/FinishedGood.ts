@@ -69,7 +69,6 @@ const FinishedGoodSchema = new Schema<IFinishedGood>(
 );
 
 // Indexes
-FinishedGoodSchema.index({ sku: 1 });
 FinishedGoodSchema.index({ name: 1 });
 FinishedGoodSchema.index({ currentStock: 1 });
 

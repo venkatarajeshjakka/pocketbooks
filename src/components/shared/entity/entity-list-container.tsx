@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { IClient, IVendor } from '@/types';
+import { IClient, IVendor, IAsset } from '@/types';
 import { EntityGridView } from './entity-grid-view';
 import { EntityTableView } from './entity-table-view';
 import { ViewMode } from './view-toggle';
@@ -16,14 +16,21 @@ import { BulkActionsBar } from './bulk-actions-bar';
 import { DeleteEntityDialog } from './delete-entity-dialog';
 import { toast } from 'sonner';
 
-export type EntityType = IClient | IVendor;
+export type EntityType = IClient | IVendor | IAsset;
 
 export interface EntityListContainerProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor';
+  entityType: 'client' | 'vendor' | 'asset';
   initialView?: ViewMode;
   basePath: string;
   onDelete: (id: string) => Promise<void>;
+  // Support custom rendering (mostly for assets)
+  renderCardContent?: (entity: T) => React.ReactNode;
+  columns?: Array<{
+    header: string;
+    accessorKey?: string;
+    cell?: (entity: T) => React.ReactNode;
+  }>;
 }
 
 export function EntityListContainer<T extends EntityType>({
@@ -32,6 +39,8 @@ export function EntityListContainer<T extends EntityType>({
   initialView = 'table',
   basePath,
   onDelete,
+  renderCardContent,
+  columns,
 }: EntityListContainerProps<T>) {
   const router = useRouter();
   const viewMode = initialView;
@@ -92,7 +101,7 @@ export function EntityListContainer<T extends EntityType>({
   };
 
   const allSelected = isAllSelected(entities, (entity) => entity._id.toString());
-  const entityLabel = entityType === 'client' ? 'client' : 'vendor';
+  const entityLabel = entityType === 'client' ? 'client' : entityType === 'vendor' ? 'vendor' : 'asset';
 
   return (
     <div className="space-y-4">
@@ -121,6 +130,7 @@ export function EntityListContainer<T extends EntityType>({
           onEdit={handleEdit}
           onDelete={handleDelete}
           basePath={basePath}
+          renderCardContent={renderCardContent}
         />
       ) : (
         <EntityTableView
@@ -133,6 +143,7 @@ export function EntityListContainer<T extends EntityType>({
           onEdit={handleEdit}
           onDelete={handleDelete}
           basePath={basePath}
+          columns={columns}
         />
       )}
 
