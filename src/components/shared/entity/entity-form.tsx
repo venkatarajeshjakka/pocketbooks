@@ -276,8 +276,8 @@ export function EntityForm<T extends BaseEntityFormData>({
                 </div>
               </CardHeader>
 
-              <CardContent className="p-8">
-                <div className="grid gap-8 md:grid-cols-2">
+              <CardContent className="px-6 py-2">
+                <div className="grid gap-6 md:grid-cols-2">
                   {/* Entity Name */}
                   <div className="space-y-2.5">
                     <Label htmlFor="name" className="text-sm font-semibold tracking-tight text-foreground/80 flex justify-between">
@@ -547,7 +547,7 @@ export function EntityForm<T extends BaseEntityFormData>({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="pt-4"
+            className="pt-0"
           >
             <Card className="border-border/40 bg-card/60 backdrop-blur-md shadow-xl shadow-primary/5 overflow-hidden group hover:border-primary/20 transition-all duration-500">
               <CardHeader className="flex flex-row items-center gap-4 pb-4 border-b border-border/20 bg-muted/20">
@@ -566,7 +566,7 @@ export function EntityForm<T extends BaseEntityFormData>({
                 </div>
               </CardHeader>
 
-              <CardContent className="p-8 space-y-8">
+              <CardContent className="px-6 py-2 space-y-6">
                 {/* Street Address */}
                 <div className="space-y-2.5">
                   <Label htmlFor="street" className="text-sm font-semibold tracking-tight text-foreground/80">Street Address</Label>
