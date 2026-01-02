@@ -206,7 +206,7 @@ export function EntityTableView<T extends EntityType>({
                                   : "text-success"
                               )}
                             >
-                              {'\u20B9'}
+                              ₹
                               {balance.toLocaleString("en-IN")}
                             </span>
                           </div>

@@ -4,7 +4,7 @@
  * Reuses the StatCard component from clients
  */
 
-import { StatCard } from '@/components/clients/stats/stat-card';
+import { StatCard } from '@/components/shared/stats/stat-card';
 import { fetchVendorStats } from '@/lib/api/vendor-stats';
 
 export async function VendorStatsDashboard() {
@@ -30,7 +30,7 @@ export async function VendorStatsDashboard() {
       />
       <StatCard
         title="Total Payable"
-        value={`\u20B9${stats.totalPayable.toLocaleString('en-IN')}`}
+        value={`₹${stats.totalPayable.toLocaleString('en-IN')}`}
         subtitle={`${stats.vendorsWithPayable} vendors`}
         icon="IndianRupee"
         gradient="warning"
@@ -38,7 +38,7 @@ export async function VendorStatsDashboard() {
       />
       <StatCard
         title="Average Payable"
-        value={`\u20B9${Math.round(stats.averagePayable).toLocaleString('en-IN')}`}
+        value={`₹${Math.round(stats.averagePayable).toLocaleString('en-IN')}`}
         subtitle="Per vendor with balance"
         icon="IndianRupee"
         gradient="secondary"

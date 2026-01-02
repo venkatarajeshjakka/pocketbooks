@@ -7,7 +7,7 @@
 
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { GradientCard } from '@/components/clients/ui/gradient-card';
+import { GradientCard } from '@/components/shared/ui/gradient-card';
 import { staggerContainer, fadeInUp } from '@/lib/utils/animation-variants';
 
 export interface EntityListSkeletonProps {

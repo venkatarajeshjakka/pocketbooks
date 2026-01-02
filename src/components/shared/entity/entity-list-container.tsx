@@ -10,9 +10,9 @@ import { useRouter } from 'next/navigation';
 import { IClient, IVendor } from '@/types';
 import { EntityGridView } from './entity-grid-view';
 import { EntityTableView } from './entity-table-view';
-import { ViewMode } from '@/components/clients/list/view-toggle';
+import { ViewMode } from './view-toggle';
 import { useBulkSelection } from '@/lib/hooks/use-bulk-selection';
-import { BulkActionsBar } from '@/components/clients/actions/bulk-actions-bar';
+import { BulkActionsBar } from './bulk-actions-bar';
 import { DeleteEntityDialog } from './delete-entity-dialog';
 import { toast } from 'sonner';
 
@@ -37,7 +37,7 @@ export function EntityListContainer<T extends EntityType>({
   const viewMode = initialView;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [entityToDelete, setEntityToDelete] = useState<{
-    id: string;
+    id: string | string[];
     name: string;
   } | null>(null);
 
@@ -70,12 +70,19 @@ export function EntityListContainer<T extends EntityType>({
   const handleBulkDelete = () => {
     if (selectedCount === 0) return;
 
-    const firstSelectedId = Array.from(selectedItems)[0];
-    const entity = entities.find((e) => e._id.toString() === firstSelectedId);
-    if (entity) {
-      setEntityToDelete({ id: firstSelectedId, name: entity.name });
-      setDeleteDialogOpen(true);
+    const selectedIds = Array.from(selectedItems);
+    if (selectedIds.length === 1) {
+      const entity = entities.find((e) => e._id.toString() === selectedIds[0]);
+      if (entity) {
+        setEntityToDelete({ id: selectedIds[0], name: entity.name });
+      }
+    } else {
+      setEntityToDelete({
+        id: selectedIds,
+        name: `${selectedCount} ${entityType}${selectedCount !== 1 ? 's' : ''}`,
+      });
     }
+    setDeleteDialogOpen(true);
   };
 
   const handleExport = () => {

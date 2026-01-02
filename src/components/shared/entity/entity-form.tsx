@@ -27,9 +27,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 import { EntityStatus } from '@/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 // Base form data that both clients and vendors share
 export interface BaseEntityFormData {
@@ -73,6 +75,17 @@ export interface EntityFormProps<T extends BaseEntityFormData> {
 
 type FormErrors = Partial<Record<string, string>>;
 
+const commonRawMaterialTypes = [
+  'Yarn',
+  'Fabric',
+  'Buttons',
+  'Zippers',
+  'Thread',
+  'Elastic',
+  'Packaging',
+  'Other',
+];
+
 export function EntityForm<T extends BaseEntityFormData>({
   config,
   initialData,
@@ -99,6 +112,29 @@ export function EntityForm<T extends BaseEntityFormData>({
     specialty: (initialData as VendorFormData)?.specialty || '',
     rawMaterialTypes: (initialData as VendorFormData)?.rawMaterialTypes || [],
   });
+
+  // Reset form when initialData changes (fix reactivity bug)
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || '',
+        email: initialData.email || '',
+        contactPerson: initialData.contactPerson || '',
+        phone: initialData.phone || '',
+        address: {
+          street: initialData.address?.street || '',
+          city: initialData.address?.city || '',
+          state: initialData.address?.state || '',
+          postalCode: initialData.address?.postalCode || '',
+          country: initialData.address?.country || 'India',
+        },
+        status: initialData.status || EntityStatus.ACTIVE,
+        gstNumber: initialData.gstNumber || '',
+        specialty: (initialData as VendorFormData)?.specialty || '',
+        rawMaterialTypes: (initialData as VendorFormData)?.rawMaterialTypes || [],
+      });
+    }
+  }, [initialData]);
 
   const entityLabel = config.entityType === 'client' ? 'Client' : 'Vendor';
 
@@ -362,27 +398,53 @@ export function EntityForm<T extends BaseEntityFormData>({
               </Select>
             </div>
 
-            {/* Vendor-specific: Specialty */}
-            {config.showSpecialty && (
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="specialty" className="text-sm font-medium flex items-center gap-1">
-                  Specialty
+            {/* Vendor-specific: Raw Material Types */}
+            {config.showRawMaterialTypes && (
+              <div className="space-y-3 md:col-span-2">
+                <Label className="text-sm font-medium flex items-center gap-1">
+                  Raw Material Types
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3.5 w-3.5 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>The vendor&apos;s area of specialty or expertise</p>
+                      <p>Select the types of raw materials provided by this vendor</p>
                     </TooltipContent>
                   </Tooltip>
                 </Label>
-                <Input
-                  id="specialty"
-                  value={formData.specialty}
-                  onChange={(e) => updateFormField('specialty', e.target.value)}
-                  placeholder="e.g., Raw materials supplier, Packaging"
-                  disabled={isSubmitting}
-                />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 pt-2">
+                  {commonRawMaterialTypes.map((type) => (
+                    <div key={type} className="flex items-center space-x-2 py-1">
+                      <Checkbox
+                        id={`type-${type}`}
+                        checked={formData.rawMaterialTypes?.includes(type)}
+                        onCheckedChange={(checked) => {
+                          const current = formData.rawMaterialTypes || [];
+                          const updated = checked
+                            ? [...current, type]
+                            : current.filter((t) => t !== type);
+                          updateFormField('rawMaterialTypes', updated);
+                        }}
+                        disabled={isSubmitting}
+                      />
+                      <label
+                        htmlFor={`type-${type}`}
+                        className="text-sm cursor-pointer hover:text-primary transition-colors"
+                      >
+                        {type}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {formData.rawMaterialTypes && formData.rawMaterialTypes.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {formData.rawMaterialTypes.map((type) => (
+                      <Badge key={type} variant="secondary" className="px-2 py-0 text-xs font-normal">
+                        {type}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

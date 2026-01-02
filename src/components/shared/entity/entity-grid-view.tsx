@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Mail, Phone, MapPin, IndianRupee } from "lucide-react";
 import { IClient, IVendor } from "@/types";
-import { GradientCard } from "@/components/clients/ui/gradient-card";
+import { GradientCard } from "@/components/shared/ui/gradient-card";
 import { Badge } from "@/components/ui/badge";
 import {
   HoverCard,
@@ -84,7 +84,7 @@ export function EntityGridView<T extends EntityType>({
                 className={cn(
                   "group transition-all hover:shadow-xl",
                   isSelected &&
-                    "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                  "ring-2 ring-primary ring-offset-2 ring-offset-background"
                 )}
               >
                 <div className="p-5">
@@ -183,7 +183,7 @@ export function EntityGridView<T extends EntityType>({
                                 : "text-success"
                             )}
                           >
-                            {'\u20B9'}{balance.toLocaleString("en-IN")}
+                            ₹{balance.toLocaleString("en-IN")}
                           </span>
                         </div>
                       </div>

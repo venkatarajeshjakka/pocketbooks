@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 interface DeleteEntityDialogProps {
-  entityId: string;
+  entityId: string | string[];
   entityName: string;
   entityType: 'client' | 'vendor';
   open: boolean;
@@ -46,7 +46,15 @@ export function DeleteEntityDialog({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await onDelete(entityId);
+      if (Array.isArray(entityId)) {
+        // Delete multiple in sequence (or we could expose a bulk delete in parent)
+        // For now, let's just loop since we have the single onDelete prop
+        for (const id of entityId) {
+          await onDelete(id);
+        }
+      } else {
+        await onDelete(entityId);
+      }
       onOpenChange(false);
       router.push(basePath);
     } catch (error) {

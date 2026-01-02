@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ViewToggle, ViewMode } from '@/components/clients/list/view-toggle';
+import { ViewToggle, ViewMode } from './view-toggle';
 import { EntityStatus } from '@/types';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 

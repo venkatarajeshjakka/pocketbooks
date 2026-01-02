@@ -56,7 +56,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { fadeInUp, staggerContainer } from '@/lib/utils/animation-variants';
 import { toast } from 'sonner';
-import { CopyButton } from './ui/copy-button';
+import { CopyButton } from '@/components/shared/ui/copy-button';
 
 interface ClientDetailsProps {
   client: IClient;
@@ -340,38 +340,38 @@ export function ClientDetailsEnhanced({ client }: ClientDetailsProps) {
                 client.address?.city ||
                 client.address?.state ||
                 client.address?.postalCode) && (
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-primary" />
-                      Address
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-start justify-between">
-                      <address className="not-italic text-sm">
-                        {client.address.street && (
-                          <>
-                            {client.address.street}
-                            <br />
-                          </>
-                        )}
-                        {client.address.city && `${client.address.city}, `}
-                        {client.address.state && `${client.address.state} `}
-                        {client.address.postalCode && client.address.postalCode}
-                        <br />
-                        {client.address.country || 'India'}
-                      </address>
-                      <CopyButton
-                        text={`${client.address.street || ''}, ${client.address.city || ''}, ${client.address.state || ''} ${client.address.postalCode || ''}, ${client.address.country || 'India'}`}
-                        field="Address"
-                        isCopied={copiedField === 'Address'}
-                        onCopy={copyToClipboard}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-primary" />
+                        Address
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-start justify-between">
+                        <address className="not-italic text-sm">
+                          {client.address.street && (
+                            <>
+                              {client.address.street}
+                              <br />
+                            </>
+                          )}
+                          {client.address.city && `${client.address.city}, `}
+                          {client.address.state && `${client.address.state} `}
+                          {client.address.postalCode && client.address.postalCode}
+                          <br />
+                          {client.address.country || 'India'}
+                        </address>
+                        <CopyButton
+                          text={`${client.address.street || ''}, ${client.address.city || ''}, ${client.address.state || ''} ${client.address.postalCode || ''}, ${client.address.country || 'India'}`}
+                          field="Address"
+                          isCopied={copiedField === 'Address'}
+                          onCopy={copyToClipboard}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* Record Information */}
               <Card className="border-border/50 bg-card/50 backdrop-blur-sm">

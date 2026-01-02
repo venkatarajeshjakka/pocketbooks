@@ -5,8 +5,7 @@
  */
 
 import Link from 'next/link';
-import { ArrowLeft, Package } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
 import { VendorForm } from '@/components/vendors/vendor-form';
 
 export const metadata = {
@@ -16,34 +15,27 @@ export const metadata = {
 
 export default function NewVendorPage() {
   return (
-    <div className="flex flex-1 flex-col gap-6 md:gap-8">
-      {/* Header with back navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/vendors">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Package className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Add New Vendor</h1>
-              <p className="text-sm text-muted-foreground">
-                Create a new vendor for your business
-              </p>
-            </div>
-          </div>
+    <div className="flex flex-1 flex-col saas-canvas -m-4 md:-m-6 p-4 md:p-6 min-h-screen">
+      {/* Page Header */}
+      <div className="mb-6">
+        <Link
+          href="/vendors"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 mb-4"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Vendors
+        </Link>
+        <div className='mx-auto w-full max-w-3xl mb-4'>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Add New Vendor</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Create a new vendor for your business
+          </p>
         </div>
       </div>
 
-      {/* Form Card */}
+      {/* Vendor Form */}
       <div className="mx-auto w-full max-w-3xl">
-        <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 md:p-8">
-          <VendorForm mode="create" />
-        </div>
+        <VendorForm mode="create" />
       </div>
     </div>
   );

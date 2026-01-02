@@ -3,7 +3,7 @@
  * Server Component that displays aggregated client metrics
  */
 
-import { StatCard } from './stat-card';
+import { StatCard } from '@/components/shared/stats/stat-card';
 import { fetchClientStats } from '@/lib/api/client-stats';
 
 export async function ClientStatsDashboard() {

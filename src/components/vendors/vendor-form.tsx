@@ -28,7 +28,7 @@ export function VendorForm({ mode, vendorId, initialData }: VendorFormProps) {
     entityId: vendorId,
     returnPath: '/vendors',
     showSpecialty: true,
-    showRawMaterialTypes: false, // TODO: Add support for this in the form
+    showRawMaterialTypes: true,
   };
 
   const handleSubmit = async (data: VendorFormData): Promise<{ _id?: string | { toString(): string } } | void> => {
@@ -55,16 +55,16 @@ export function VendorForm({ mode, vendorId, initialData }: VendorFormProps) {
   // Transform IVendor to VendorFormData for initial data
   const formInitialData: VendorFormData | undefined = initialData
     ? {
-        name: initialData.name,
-        email: initialData.email,
-        contactPerson: initialData.contactPerson,
-        phone: initialData.phone,
-        address: initialData.address,
-        status: initialData.status,
-        gstNumber: initialData.gstNumber,
-        specialty: initialData.specialty,
-        rawMaterialTypes: initialData.rawMaterialTypes,
-      }
+      name: initialData.name,
+      email: initialData.email,
+      contactPerson: initialData.contactPerson,
+      phone: initialData.phone,
+      address: initialData.address,
+      status: initialData.status,
+      gstNumber: initialData.gstNumber,
+      specialty: initialData.specialty,
+      rawMaterialTypes: initialData.rawMaterialTypes,
+    }
     : undefined;
 
   return (
