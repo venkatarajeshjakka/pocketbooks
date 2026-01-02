@@ -52,6 +52,9 @@ export function useClients(
   return useQuery({
     queryKey: clientKeys.list(params),
     queryFn: () => fetchClients(params),
+    staleTime: 1000 * 60, // 1 minute
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window gains focus
     ...options,
   });
 }
@@ -88,9 +91,12 @@ export function useCreateClient() {
 
   return useMutation({
     mutationFn: (input: IClientInput) => createClient(input),
-    onSuccess: (data) => {
-      // Invalidate all client lists to refetch with new client
-      queryClient.invalidateQueries({ queryKey: clientKeys.lists() });
+    onSuccess: async (data) => {
+      // Invalidate all client lists and refetch immediately
+      await queryClient.invalidateQueries({
+        queryKey: clientKeys.lists(),
+        refetchType: 'all'
+      });
 
       // Optionally set the new client in cache
       if (data.success && data.data) {

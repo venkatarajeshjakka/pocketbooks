@@ -17,14 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Tooltip,
@@ -32,10 +24,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MoreVertical, TrendingUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fadeInUp, listItem } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
+import { ClientActionsMenu } from "./client-actions-menu";
 
 export interface ClientTableViewProps {
   clients: IClient[];
@@ -216,35 +209,11 @@ export function ClientTableView({
 
                     {/* Actions */}
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
-                            aria-label="More options"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/clients/${clientId}`}>
-                              View details
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit(clientId)}>
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => onDelete(clientId)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <ClientActionsMenu
+                        clientId={clientId}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                      />
                     </TableCell>
                   </motion.tr>
                 );

@@ -13,8 +13,7 @@ import { ClientTableView } from './client-table-view';
 import { ViewMode } from './view-toggle';
 import { useBulkSelection } from '@/lib/hooks/use-bulk-selection';
 import { BulkActionsBar } from '../actions/bulk-actions-bar';
-import { DeleteConfirmation } from '../actions/delete-confirmation';
-import { useDeleteClient } from '@/lib/hooks/use-clients';
+import { DeleteClientDialog } from '../delete-client-dialog';
 import { toast } from 'sonner';
 
 export interface ClientListContainerProps {
@@ -29,10 +28,10 @@ export function ClientListContainer({
   const router = useRouter();
   const viewMode = initialView;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
-
-  // Use React Query mutation hook for delete
-  const deleteClientMutation = useDeleteClient();
+  const [clientToDelete, setClientToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const {
     selectedItems,
@@ -53,8 +52,11 @@ export function ClientListContainer({
   };
 
   const handleDelete = (clientId: string) => {
-    setClientToDelete(clientId);
-    setDeleteDialogOpen(true);
+    const client = clients.find((c) => c._id.toString() === clientId);
+    if (client) {
+      setClientToDelete({ id: clientId, name: client.name });
+      setDeleteDialogOpen(true);
+    }
   };
 
   const handleBulkDelete = () => {
@@ -63,20 +65,11 @@ export function ClientListContainer({
     // For bulk delete, we'll delete the first selected item as confirmation
     // In production, you'd want a different confirmation dialog for bulk actions
     const firstSelectedId = Array.from(selectedItems)[0];
-    setClientToDelete(firstSelectedId);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!clientToDelete) return;
-
-    // Use the mutation hook - it handles cache invalidation automatically
-    await deleteClientMutation.mutateAsync(clientToDelete);
-
-    // Close dialog and clear selection
-    setDeleteDialogOpen(false);
-    setClientToDelete(null);
-    clearSelection();
+    const client = clients.find((c) => c._id.toString() === firstSelectedId);
+    if (client) {
+      setClientToDelete({ id: firstSelectedId, name: client.name });
+      setDeleteDialogOpen(true);
+    }
   };
 
   const handleExport = () => {
@@ -126,15 +119,21 @@ export function ClientListContainer({
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmation
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={confirmDelete}
-        isDeleting={deleteClientMutation.isPending}
-        title="Delete Client"
-        description="Are you sure you want to delete this client? This action cannot be undone."
-      />
+      {/* Delete Client Dialog */}
+      {clientToDelete && (
+        <DeleteClientDialog
+          clientId={clientToDelete.id}
+          clientName={clientToDelete.name}
+          open={deleteDialogOpen}
+          onOpenChange={(open) => {
+            setDeleteDialogOpen(open);
+            if (!open) {
+              setClientToDelete(null);
+              clearSelection();
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
