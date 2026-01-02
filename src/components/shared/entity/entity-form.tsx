@@ -161,7 +161,7 @@ export function EntityForm<T extends BaseEntityFormData>({
         gstNumber: formData.gstNumber?.trim() || undefined,
         specialty: config.showSpecialty ? (formData.specialty?.trim() || undefined) : undefined,
         rawMaterialTypes: config.showRawMaterialTypes ? formData.rawMaterialTypes : undefined,
-      } as T;
+      } as unknown as T;
 
       const result = await onSubmit(submitData);
 

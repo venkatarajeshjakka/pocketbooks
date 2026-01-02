@@ -2,14 +2,15 @@
  * Client List with Caching
  *
  * Client component that uses React Query for data fetching and caching
+ * Uses shared EntityListContainer for consistency with vendors
  */
 
 'use client';
 
 import { Users } from 'lucide-react';
-import { useClients } from '@/lib/hooks/use-clients';
-import { ClientListContainer } from './client-list-container';
-import { ClientListSkeleton } from '../ui/client-list-skeleton';
+import { useClients, useDeleteClient } from '@/lib/hooks/use-clients';
+import { EntityListContainer } from '@/components/shared/entity/entity-list-container';
+import { EntityListSkeleton } from '@/components/shared/entity/entity-list-skeleton';
 import { EmptyState } from '../ui/empty-state';
 import type { ViewMode } from './view-toggle';
 
@@ -36,9 +37,15 @@ export function ClientListWithCache({
     status,
   });
 
+  const deleteClientMutation = useDeleteClient();
+
+  const handleDelete = async (id: string) => {
+    await deleteClientMutation.mutateAsync(id);
+  };
+
   // Loading state
   if (isLoading) {
-    return <ClientListSkeleton view={view} count={8} />;
+    return <EntityListSkeleton view={view} count={8} />;
   }
 
   // Error state
@@ -89,6 +96,14 @@ export function ClientListWithCache({
     );
   }
 
-  // Render client list
-  return <ClientListContainer clients={filteredClients} initialView={view} />;
+  // Render client list using shared EntityListContainer
+  return (
+    <EntityListContainer
+      entities={filteredClients}
+      entityType="client"
+      initialView={view}
+      basePath="/clients"
+      onDelete={handleDelete}
+    />
+  );
 }

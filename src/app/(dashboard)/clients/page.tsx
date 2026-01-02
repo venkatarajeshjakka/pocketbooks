@@ -6,7 +6,7 @@
 import { Suspense } from 'react';
 import { Users } from 'lucide-react';
 import { ClientStatsDashboard } from '@/components/clients/stats/client-stats-dashboard';
-import { UnifiedSearchFilterBar } from '@/components/clients/search/unified-search-filter-bar';
+import { EntitySearchFilterBar } from '@/components/shared/entity/entity-search-filter-bar';
 import { ClientListWithCache } from '@/components/clients/list/client-list-with-cache';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -73,8 +73,15 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         <ClientStatsDashboard />
       </Suspense>
 
-      {/* Unified Search, Filters, and Actions Bar */}
-      <UnifiedSearchFilterBar />
+      {/* Search, Filters, and Actions Bar */}
+      <EntitySearchFilterBar
+        entityType="client"
+        addNewPath="/clients/new"
+        addNewLabel="Add Client"
+        searchPlaceholder="Search by name, email, or phone..."
+        showOutstandingFilter={true}
+        outstandingFilterLabel="With outstanding"
+      />
 
       {/* Clients List with Caching */}
       <ClientListWithCache
