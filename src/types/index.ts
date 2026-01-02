@@ -100,6 +100,25 @@ export enum InventoryItemType {
 }
 
 // ============================================================================
+// SETTINGS ENTITIES
+// ============================================================================
+
+export interface IRawMaterialType {
+  _id: Types.ObjectId | string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IRawMaterialTypeInput {
+  name: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+// ============================================================================
 // CLIENT ENTITY
 // ============================================================================
 

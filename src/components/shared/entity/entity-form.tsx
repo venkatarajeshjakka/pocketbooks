@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Save, X, Info } from 'lucide-react';
+import { Loader2, Save, X, Info, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +32,8 @@ import { EntityStatus } from '@/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useRawMaterialTypes } from '@/lib/hooks/use-raw-material-types';
+import { QuickAddRawMaterialType } from '@/components/settings/quick-add-raw-material-type';
 
 // Base form data that both clients and vendors share
 export interface BaseEntityFormData {
@@ -75,16 +77,6 @@ export interface EntityFormProps<T extends BaseEntityFormData> {
 
 type FormErrors = Partial<Record<string, string>>;
 
-const commonRawMaterialTypes = [
-  'Yarn',
-  'Fabric',
-  'Buttons',
-  'Zippers',
-  'Thread',
-  'Elastic',
-  'Packaging',
-  'Other',
-];
 
 export function EntityForm<T extends BaseEntityFormData>({
   config,
@@ -94,6 +86,15 @@ export function EntityForm<T extends BaseEntityFormData>({
 }: EntityFormProps<T>) {
   const router = useRouter();
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Fetch raw material types dynamically
+  const {
+    data: rawMaterialTypesData,
+    isLoading: rawMaterialTypesLoading,
+    error: rawMaterialTypesError
+  } = useRawMaterialTypes({ limit: 100 });
+
+  const dynamicRawMaterialTypes = rawMaterialTypesData?.data.map(t => t.name) || [];
 
   const [formData, setFormData] = useState<VendorFormData>({
     name: initialData?.name || '',
@@ -401,40 +402,81 @@ export function EntityForm<T extends BaseEntityFormData>({
             {/* Vendor-specific: Raw Material Types */}
             {config.showRawMaterialTypes && (
               <div className="space-y-3 md:col-span-2">
-                <Label className="text-sm font-medium flex items-center gap-1">
-                  Raw Material Types
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Select the types of raw materials provided by this vendor</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium flex items-center gap-1">
+                    Raw Material Types
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Select the types of raw materials provided by this vendor</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <QuickAddRawMaterialType
+                    onSuccess={(typeName) => {
+                      const current = formData.rawMaterialTypes || [];
+                      if (!current.includes(typeName)) {
+                        updateFormField('rawMaterialTypes', [...current, typeName]);
+                      }
+                    }}
+                  />
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 pt-2">
-                  {commonRawMaterialTypes.map((type) => (
-                    <div key={type} className="flex items-center space-x-2 py-1">
-                      <Checkbox
-                        id={`type-${type}`}
-                        checked={formData.rawMaterialTypes?.includes(type)}
-                        onCheckedChange={(checked) => {
-                          const current = formData.rawMaterialTypes || [];
-                          const updated = checked
-                            ? [...current, type]
-                            : current.filter((t) => t !== type);
-                          updateFormField('rawMaterialTypes', updated);
-                        }}
-                        disabled={isSubmitting}
-                      />
-                      <label
-                        htmlFor={`type-${type}`}
-                        className="text-sm cursor-pointer hover:text-primary transition-colors"
-                      >
-                        {type}
-                      </label>
+                  {rawMaterialTypesLoading ? (
+                    <div className="col-span-4 flex items-center justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     </div>
-                  ))}
+                  ) : rawMaterialTypesError ? (
+                    <div className="col-span-4 text-sm text-destructive py-2">
+                      Failed to load material types
+                    </div>
+                  ) : dynamicRawMaterialTypes.length === 0 ? (
+                    <div className="col-span-4 flex flex-col items-center justify-center py-8 px-4 rounded-lg border border-dashed border-border/50 bg-muted/20">
+                      <p className="text-sm text-muted-foreground mb-4 text-center">
+                        No raw material types are configured yet.<br />
+                        Create one to start associating them with vendors.
+                      </p>
+                      <QuickAddRawMaterialType
+                        onSuccess={(typeName) => {
+                          const current = formData.rawMaterialTypes || [];
+                          if (!current.includes(typeName)) {
+                            updateFormField('rawMaterialTypes', [...current, typeName]);
+                          }
+                        }}
+                        trigger={
+                          <Button size="sm" variant="secondary" className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            Initialize Material Types
+                          </Button>
+                        }
+                      />
+                    </div>
+                  ) : (
+                    dynamicRawMaterialTypes.map((type) => (
+                      <div key={type} className="flex items-center space-x-2 py-1">
+                        <Checkbox
+                          id={`type-${type}`}
+                          checked={formData.rawMaterialTypes?.includes(type)}
+                          onCheckedChange={(checked) => {
+                            const current = formData.rawMaterialTypes || [];
+                            const updated = checked
+                              ? [...current, type]
+                              : current.filter((t) => t !== type);
+                            updateFormField('rawMaterialTypes', updated);
+                          }}
+                          disabled={isSubmitting}
+                        />
+                        <label
+                          htmlFor={`type-${type}`}
+                          className="text-sm cursor-pointer hover:text-primary transition-colors"
+                        >
+                          {type}
+                        </label>
+                      </div>
+                    ))
+                  )}
                 </div>
                 {formData.rawMaterialTypes && formData.rawMaterialTypes.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
