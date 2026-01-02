@@ -42,34 +42,38 @@ export default async function EditVendorPage({ params }: EditVendorPageProps) {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 md:gap-8">
-      {/* Header with back navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/vendors/${id}`}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Package className="h-5 w-5 text-primary" />
+    <div className="flex-1 saas-canvas p-6 md:p-10 min-h-screen">
+      {/* Page Header */}
+      <div className="mx-auto w-full max-w-4xl mb-10">
+        <Link
+          href={`/vendors/${id}`}
+          className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-6"
+        >
+          <div className="h-8 w-8 rounded-full border border-border/40 flex items-center justify-center group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
+            <ArrowLeft className="h-4 w-4" />
+          </div>
+          Back to Profile
+        </Link>
+        <div className="relative">
+          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary/20 rounded-full" />
+          <div className="flex items-center gap-5">
+            <div className="hidden sm:flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 shadow-inner relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
+              <Package className="h-7 w-7 text-primary relative z-10" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Edit Vendor</h1>
-              <p className="text-sm text-muted-foreground">
-                Update information for {vendor.name}
+              <h1 className="text-4xl font-extrabold tracking-tight text-foreground/90 sm:text-5xl">Edit Vendor</h1>
+              <p className="text-base text-muted-foreground mt-2 font-medium max-w-2xl leading-relaxed">
+                Refine {vendor.name}&apos;s vendor profile. Update procurement categories and contact details to ensure smooth supply chain operations.
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Form Card */}
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 md:p-8">
-          <VendorForm mode="edit" vendorId={id} initialData={vendor} />
-        </div>
+      {/* Form Section */}
+      <div className="mx-auto w-full max-w-4xl">
+        <VendorForm mode="edit" vendorId={id} initialData={vendor} />
       </div>
     </div>
   );
