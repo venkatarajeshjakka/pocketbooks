@@ -1,7 +1,7 @@
 ---
 name: nextjs-code-reviewer
 description: Use this agent when you have completed writing or modifying Next.js code and need a comprehensive quality review. Trigger this agent after:\n\n- Implementing new features or components\n- Refactoring existing code\n- Adding new API routes or server actions\n- Making changes to data fetching logic\n- Updating authentication or authorization code\n- Before committing code to version control\n- When you want to ensure adherence to Next.js best practices\n\nExamples:\n\nExample 1:\nuser: "I've just created a new dashboard component with data fetching. Can you review it?"\nassistant: "I'll use the nextjs-code-reviewer agent to perform a comprehensive review of your dashboard component."\n[Agent reviews the recently modified files for Next.js patterns, security, performance, and best practices]\n\nExample 2:\nuser: "I've finished implementing the user authentication flow with API routes."\nassistant: "Let me launch the nextjs-code-reviewer agent to review your authentication implementation for security vulnerabilities and Next.js best practices."\n[Agent examines the auth-related files for security issues, proper Server/Client component usage, and error handling]\n\nExample 3:\nuser: "I've updated the product listing page to use Server Components."\nassistant: "I'll use the nextjs-code-reviewer agent to verify your Server Components implementation and check for any anti-patterns."\n[Agent reviews the component for proper 'use client' directive usage, data fetching patterns, and performance considerations]
-model: sonnet
+model: opus
 color: purple
 ---
 
