@@ -434,6 +434,7 @@ export interface IPayment {
   partyType: PartyType;
   saleId?: Types.ObjectId | string;
   procurementId?: Types.ObjectId | string;
+  assetId?: Types.ObjectId | string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -450,6 +451,7 @@ export interface IPaymentInput {
   partyType: PartyType;
   saleId?: string;
   procurementId?: string;
+  assetId?: string;
   notes?: string;
 }
 
@@ -496,6 +498,16 @@ export interface IAsset {
   location?: string;
   vendorId?: Types.ObjectId | string;
   status: AssetStatus;
+  gstEnabled?: boolean;
+  gstPercentage?: number;
+  gstAmount?: number;
+  paymentId?: Types.ObjectId | string;
+  paymentDetails?: {
+    amount: number;
+    paymentMethod: PaymentMethod;
+    paymentDate: Date;
+    notes?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -511,6 +523,9 @@ export interface IAssetInput {
   location?: string;
   vendorId?: string;
   status?: AssetStatus;
+  gstEnabled?: boolean;
+  gstPercentage?: number;
+  gstAmount?: number;
   paymentDetails?: {
     amount: number;
     paymentMethod: PaymentMethod;

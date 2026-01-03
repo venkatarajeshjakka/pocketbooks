@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Save, Info, MapPin, DollarSign, Monitor, IndianRupee } from 'lucide-react';
+import { Loader2, Save, Info, MapPin, DollarSign, Monitor, IndianRupee, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -60,6 +60,10 @@ interface AssetFormData {
   location: string;
   vendorId: string;
   status: AssetStatus;
+  gstEnabled: boolean;
+  gstPercentage: number;
+  gstAmount: number;
+  basePrice: number;
 }
 
 interface PaymentFormData {
@@ -96,6 +100,13 @@ const PAYMENT_METHODS = [
   { value: PaymentMethod.CARD, label: 'Card' },
 ];
 
+const getVendorId = (vendor: any): string => {
+  if (!vendor) return '';
+  if (typeof vendor === 'string') return vendor;
+  if (typeof vendor === 'object' && vendor._id) return String(vendor._id);
+  return String(vendor);
+};
+
 export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -118,16 +129,26 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
     purchasePrice: initialData?.purchasePrice || 0,
     currentValue: initialData?.currentValue || 0,
     location: initialData?.location || '',
-    vendorId: initialData?.vendorId ? String(initialData.vendorId) : '',
+    vendorId: getVendorId(initialData?.vendorId),
     status: initialData?.status || AssetStatus.ACTIVE,
+    gstEnabled: initialData?.gstEnabled || false,
+    gstPercentage: initialData?.gstPercentage || 0,
+    gstAmount: initialData?.gstAmount || 0,
+    basePrice: initialData?.purchasePrice
+      ? (initialData.gstEnabled
+        ? initialData.purchasePrice - (initialData.gstAmount || 0)
+        : initialData.purchasePrice)
+      : 0,
   });
 
   const [paymentData, setPaymentData] = useState<PaymentFormData>({
-    recordPayment: false,
-    amount: 0,
-    paymentMethod: PaymentMethod.UPI,
-    paymentDate: new Date(),
-    notes: '',
+    recordPayment: !!initialData?.paymentDetails,
+    amount: initialData?.paymentDetails?.amount || 0,
+    paymentMethod: initialData?.paymentDetails?.paymentMethod || PaymentMethod.UPI,
+    paymentDate: initialData?.paymentDetails?.paymentDate
+      ? new Date(initialData.paymentDetails.paymentDate)
+      : new Date(),
+    notes: initialData?.paymentDetails?.notes || '',
   });
 
   // Reset form when initialData changes
@@ -144,8 +165,26 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
         purchasePrice: initialData.purchasePrice || 0,
         currentValue: initialData.currentValue || 0,
         location: initialData.location || '',
-        vendorId: initialData.vendorId ? String(initialData.vendorId) : '',
+        vendorId: getVendorId(initialData.vendorId),
         status: initialData.status || AssetStatus.ACTIVE,
+        gstEnabled: initialData.gstEnabled || false,
+        gstPercentage: initialData.gstPercentage || 0,
+        gstAmount: initialData.gstAmount || 0,
+        basePrice: initialData.purchasePrice
+          ? (initialData.gstEnabled
+            ? Number(initialData.purchasePrice) - Number(initialData.gstAmount || 0)
+            : Number(initialData.purchasePrice))
+          : 0,
+      });
+
+      setPaymentData({
+        recordPayment: !!initialData.paymentDetails,
+        amount: initialData.paymentDetails?.amount || 0,
+        paymentMethod: initialData.paymentDetails?.paymentMethod || PaymentMethod.UPI,
+        paymentDate: initialData.paymentDetails?.paymentDate
+          ? new Date(initialData.paymentDetails.paymentDate)
+          : new Date(),
+        notes: initialData.paymentDetails?.notes || '',
       });
     }
   }, [initialData]);
@@ -155,7 +194,27 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
     if (mode === 'create' && formData.currentValue === 0 && formData.purchasePrice > 0) {
       setFormData(prev => ({ ...prev, currentValue: prev.purchasePrice }));
     }
-  }, [mode, formData.purchasePrice, formData.currentValue]);
+  }, [mode, formData.purchasePrice, formData.currentValue, formData.gstEnabled]);
+
+  // Update GST calculations
+  useEffect(() => {
+    if (formData.gstEnabled) {
+      const amount = (formData.basePrice * formData.gstPercentage) / 100;
+      const total = formData.basePrice + amount;
+
+      setFormData(prev => ({
+        ...prev,
+        gstAmount: amount,
+        purchasePrice: total
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        gstAmount: 0,
+        purchasePrice: prev.basePrice
+      }));
+    }
+  }, [formData.gstEnabled, formData.basePrice, formData.gstPercentage]);
 
   // Update payment amount when purchase price changes
   useEffect(() => {
@@ -236,10 +295,13 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
         location: formData.location?.trim() || undefined,
         vendorId: formData.vendorId || undefined,
         status: formData.status,
+        gstEnabled: formData.gstEnabled,
+        gstPercentage: formData.gstPercentage,
+        gstAmount: formData.gstAmount,
       };
 
-      // Add payment details if recording payment
-      if (mode === 'create' && paymentData.recordPayment && formData.vendorId) {
+      // Add payment details if recording/viewing payment
+      if (paymentData.recordPayment && formData.vendorId) {
         input.paymentDetails = {
           amount: Number(paymentData.amount),
           paymentMethod: paymentData.paymentMethod,
@@ -553,11 +615,12 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
                         min="0"
                         step="0.01"
                         value={formData.purchasePrice}
-                        onChange={(e) => updateFormField('purchasePrice', parseFloat(e.target.value) || 0)}
+                        onChange={(e) => !formData.gstEnabled && updateFormField('purchasePrice', parseFloat(e.target.value) || 0)}
                         required
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || formData.gstEnabled}
                         className={cn(
                           'h-12 pl-10 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl',
+                          formData.gstEnabled && 'bg-primary/5 font-bold text-primary border-primary/20 cursor-not-allowed',
                           errors.purchasePrice && 'border-destructive/50 focus:border-destructive'
                         )}
                       />
@@ -567,6 +630,96 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
                         <Info className="h-3 w-3" /> {errors.purchasePrice}
                       </motion.p>
                     )}
+                  </div>
+
+                  {/* GST Fields */}
+                  <div className="md:col-span-2 space-y-4 pt-2">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/20 group-hover:border-primary/20 transition-all">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "h-10 w-10 rounded-xl flex items-center justify-center shadow-inner transition-colors",
+                          formData.gstEnabled ? "bg-primary/20" : "bg-muted/50"
+                        )}>
+                          <Percent className={cn("h-5 w-5", formData.gstEnabled ? "text-primary" : "text-muted-foreground")} />
+                        </div>
+                        <div>
+                          <Label htmlFor="gstEnabled" className="text-sm font-bold text-foreground/90">GST Applicable</Label>
+                          <p className="text-xs text-muted-foreground font-medium">Toggle if GST details should be included</p>
+                        </div>
+                      </div>
+                      <Switch
+                        id="gstEnabled"
+                        checked={formData.gstEnabled}
+                        onCheckedChange={(checked) => updateFormField('gstEnabled', checked)}
+                        disabled={isSubmitting}
+                        className="data-[state=checked]:bg-primary"
+                      />
+                    </div>
+
+                    <AnimatePresence>
+                      {formData.gstEnabled && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="grid gap-6 md:grid-cols-2 p-4 rounded-2xl bg-primary/5 border border-primary/10 overflow-hidden"
+                        >
+                          <div className="space-y-2.5">
+                            <Label htmlFor="basePrice" className="text-sm font-semibold text-foreground/80">Base Price</Label>
+                            <div className="relative">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold text-sm">
+                                {'\u20B9'}
+                              </div>
+                              <Input
+                                id="basePrice"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={formData.basePrice}
+                                onChange={(e) => updateFormField('basePrice', parseFloat(e.target.value) || 0)}
+                                disabled={isSubmitting}
+                                className="h-12 pl-10 bg-background border-border/40 focus:border-primary/50 transition-all rounded-xl shadow-inner"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            <Label htmlFor="gstPercentage" className="text-sm font-semibold text-foreground/80">GST Percentage (%)</Label>
+                            <Select
+                              value={String(formData.gstPercentage)}
+                              onValueChange={(value) => updateFormField('gstPercentage', parseFloat(value))}
+                              disabled={isSubmitting}
+                            >
+                              <SelectTrigger id="gstPercentage" className="h-12 bg-background border-border/40 focus:ring-primary/20 transition-all rounded-xl px-4 shadow-inner">
+                                <SelectValue placeholder="Select GST %" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/30 rounded-xl">
+                                {[0, 5, 12, 18, 28].map((pct) => (
+                                  <SelectItem key={pct} value={String(pct)} className="focus:bg-primary/10 transition-colors">
+                                    <span className="font-medium">{pct}%</span>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            <Label className="text-sm font-semibold text-foreground/80">GST Amount</Label>
+                            <div className="h-12 flex items-center px-4 rounded-xl bg-muted/30 border border-border/20 font-bold text-primary/80">
+                              {'\u20B9'} {formData.gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            <Label className="text-sm font-semibold text-foreground/80">Grand Total</Label>
+                            <div className="h-12 flex items-center px-4 rounded-xl bg-primary/10 border border-primary/20 font-extrabold text-primary shadow-inner">
+                              {'\u20B9'} {formData.purchasePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Current Value */}
@@ -652,143 +805,143 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
             </Card>
           </motion.div>
 
-          {/* Payment Recording Section - Only show in create mode */}
-          {mode === 'create' && (
-            <motion.div
-              key="payment-info"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-            >
-              <Card className={cn(
-                "border-border/40 bg-card/60 backdrop-blur-md shadow-xl shadow-primary/5 overflow-hidden group transition-all duration-500",
-                paymentData.recordPayment ? "border-primary/30 hover:border-primary/50" : "hover:border-primary/20"
-              )}>
-                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-border/20 bg-muted/20">
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      "h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner relative overflow-hidden group-hover:scale-110 transition-transform duration-500",
-                      paymentData.recordPayment ? "bg-primary/20" : "bg-primary/10"
-                    )}>
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
-                      <IndianRupee className="h-6 w-6 text-primary relative z-10" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl font-bold tracking-tight text-foreground/90">
-                        Record Payment
-                      </CardTitle>
-                      <CardDescription className="text-sm font-medium text-muted-foreground/70">
-                        Record payment for this asset purchase
-                      </CardDescription>
-                    </div>
+          {/* Payment Recording Section */}
+          <motion.div
+            key="payment-info"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+          >
+            <Card className={cn(
+              "border-border/40 bg-card/60 backdrop-blur-md shadow-xl shadow-primary/5 overflow-hidden group transition-all duration-500",
+              paymentData.recordPayment ? "border-primary/30 hover:border-primary/50" : "hover:border-primary/20"
+            )}>
+              <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-border/20 bg-muted/20">
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner relative overflow-hidden group-hover:scale-110 transition-transform duration-500",
+                    paymentData.recordPayment ? "bg-primary/20" : "bg-primary/10"
+                  )}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
+                    <IndianRupee className="h-6 w-6 text-primary relative z-10" />
                   </div>
-                  <Switch
-                    checked={paymentData.recordPayment}
-                    onCheckedChange={togglePaymentRecording}
-                    disabled={isSubmitting}
-                    className="data-[state=checked]:bg-primary"
-                  />
-                </CardHeader>
+                  <div>
+                    <CardTitle className="text-xl font-bold tracking-tight text-foreground/90">
+                      {mode === 'edit' && initialData?.paymentDetails ? 'Payment Details' : 'Record Payment'}
+                    </CardTitle>
+                    <CardDescription className="text-sm font-medium text-muted-foreground/70">
+                      {mode === 'edit' && initialData?.paymentDetails
+                        ? 'Details of the payment recorded for this asset'
+                        : 'Record payment for this asset purchase'}
+                    </CardDescription>
+                  </div>
+                </div>
+                <Switch
+                  checked={paymentData.recordPayment}
+                  onCheckedChange={togglePaymentRecording}
+                  disabled={isSubmitting}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </CardHeader>
 
-                <AnimatePresence>
-                  {paymentData.recordPayment && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <CardContent className="px-6 py-6">
-                        <div className="grid gap-6 md:grid-cols-2">
-                          {/* Payment Amount */}
-                          <div className="space-y-2.5">
-                            <Label htmlFor="paymentAmount" className="text-sm font-semibold tracking-tight text-foreground/80">
-                              Payment Amount
-                            </Label>
-                            <div className="relative">
-                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold text-sm">
-                                {'\u20B9'}
-                              </div>
-                              <Input
-                                id="paymentAmount"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={paymentData.amount}
-                                onChange={(e) => updatePaymentField('amount', parseFloat(e.target.value) || 0)}
-                                disabled={isSubmitting}
-                                className={cn(
-                                  'h-12 pl-10 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl font-bold',
-                                  errors.paymentAmount && 'border-destructive/50'
-                                )}
-                              />
+              <AnimatePresence>
+                {paymentData.recordPayment && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <CardContent className="px-6 py-6">
+                      <div className="grid gap-6 md:grid-cols-2">
+                        {/* Payment Amount */}
+                        <div className="space-y-2.5">
+                          <Label htmlFor="paymentAmount" className="text-sm font-semibold tracking-tight text-foreground/80">
+                            Payment Amount
+                          </Label>
+                          <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold text-sm">
+                              {'\u20B9'}
                             </div>
-                            {errors.paymentAmount && (
-                              <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-xs font-semibold text-destructive flex items-center gap-1.5 mt-1.5 px-1">
-                                <Info className="h-3 w-3" /> {errors.paymentAmount}
-                              </motion.p>
-                            )}
-                          </div>
-
-                          {/* Payment Method */}
-                          <div className="space-y-2.5">
-                            <Label htmlFor="paymentMethod" className="text-sm font-semibold tracking-tight text-foreground/80">
-                              Payment Method
-                            </Label>
-                            <Select
-                              value={paymentData.paymentMethod}
-                              onValueChange={(value) => updatePaymentField('paymentMethod', value as PaymentMethod)}
-                              disabled={isSubmitting}
-                            >
-                              <SelectTrigger id="paymentMethod" className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:ring-primary/20 transition-all duration-300 shadow-inner rounded-xl px-4">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/30 rounded-xl overflow-hidden">
-                                {PAYMENT_METHODS.map((method) => (
-                                  <SelectItem key={method.value} value={method.value} className="focus:bg-primary/10 transition-colors">
-                                    <span className="font-medium">{method.label}</span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Payment Date */}
-                          <div className="space-y-2.5">
-                            <Label htmlFor="paymentDate" className="text-sm font-semibold tracking-tight text-foreground/80">
-                              Payment Date
-                            </Label>
-                            <DatePicker
-                              id="paymentDate"
-                              date={paymentData.paymentDate}
-                              onDateChange={(date) => updatePaymentField('paymentDate', date)}
-                              placeholder="Select payment date"
-                              disabled={isSubmitting}
-                            />
-                          </div>
-
-                          {/* Payment Notes */}
-                          <div className="space-y-2.5">
-                            <Label htmlFor="paymentNotes" className="text-sm font-semibold tracking-tight text-foreground/80">
-                              Notes (Optional)
-                            </Label>
                             <Input
-                              id="paymentNotes"
-                              value={paymentData.notes}
-                              onChange={(e) => updatePaymentField('notes', e.target.value)}
-                              placeholder="e.g., Invoice #12345"
+                              id="paymentAmount"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={paymentData.amount}
+                              onChange={(e) => updatePaymentField('amount', parseFloat(e.target.value) || 0)}
                               disabled={isSubmitting}
-                              className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl"
+                              className={cn(
+                                'h-12 pl-10 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl font-bold',
+                                errors.paymentAmount && 'border-destructive/50'
+                              )}
                             />
                           </div>
+                          {errors.paymentAmount && (
+                            <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-xs font-semibold text-destructive flex items-center gap-1.5 mt-1.5 px-1">
+                              <Info className="h-3 w-3" /> {errors.paymentAmount}
+                            </motion.p>
+                          )}
                         </div>
-                      </CardContent>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Card>
-            </motion.div>
-          )}
+
+                        {/* Payment Method */}
+                        <div className="space-y-2.5">
+                          <Label htmlFor="paymentMethod" className="text-sm font-semibold tracking-tight text-foreground/80">
+                            Payment Method
+                          </Label>
+                          <Select
+                            value={paymentData.paymentMethod}
+                            onValueChange={(value) => updatePaymentField('paymentMethod', value as PaymentMethod)}
+                            disabled={isSubmitting}
+                          >
+                            <SelectTrigger id="paymentMethod" className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:ring-primary/20 transition-all duration-300 shadow-inner rounded-xl px-4">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/30 rounded-xl overflow-hidden">
+                              {PAYMENT_METHODS.map((method) => (
+                                <SelectItem key={method.value} value={method.value} className="focus:bg-primary/10 transition-colors">
+                                  <span className="font-medium">{method.label}</span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Payment Date */}
+                        <div className="space-y-2.5">
+                          <Label htmlFor="paymentDate" className="text-sm font-semibold tracking-tight text-foreground/80">
+                            Payment Date
+                          </Label>
+                          <DatePicker
+                            id="paymentDate"
+                            date={paymentData.paymentDate}
+                            onDateChange={(date) => updatePaymentField('paymentDate', date)}
+                            placeholder="Select payment date"
+                            disabled={isSubmitting}
+                          />
+                        </div>
+
+                        {/* Payment Notes */}
+                        <div className="space-y-2.5">
+                          <Label htmlFor="paymentNotes" className="text-sm font-semibold tracking-tight text-foreground/80">
+                            Notes (Optional)
+                          </Label>
+                          <Input
+                            id="paymentNotes"
+                            value={paymentData.notes}
+                            onChange={(e) => updatePaymentField('notes', e.target.value)}
+                            placeholder="e.g., Invoice #12345"
+                            disabled={isSubmitting}
+                            className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Card>
+          </motion.div>
         </AnimatePresence>
 
         {/* Submit Error */}

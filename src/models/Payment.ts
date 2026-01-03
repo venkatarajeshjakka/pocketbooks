@@ -61,6 +61,10 @@ const PaymentSchema = new Schema<IPayment>(
     procurementId: {
       type: Schema.Types.ObjectId,
     },
+    assetId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Asset',
+    },
     notes: {
       type: String,
       trim: true,

@@ -8,7 +8,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Mail, Phone, MapPin, IndianRupee } from "lucide-react";
-import { IClient, IVendor, IAsset } from "@/types";
+import { IClient, IVendor, IAsset, IPayment } from "@/types";
 import { GradientCard } from "@/components/shared/ui/gradient-card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,11 +28,11 @@ import { staggerContainer, fadeInUp } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
 import { EntityActionsMenu } from "./entity-actions-menu";
 
-export type EntityType = IClient | IVendor | IAsset;
+export type EntityType = IClient | IVendor | IAsset | IPayment;
 
 export interface EntityGridViewProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment';
   selectedEntities?: Set<string>;
   onToggleSelection?: (id: string) => void;
   onEdit?: (id: string) => void;
@@ -96,23 +96,23 @@ export function EntityGridView<T extends EntityType>({
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => onToggleSelection(entityId)}
-                          aria-label={`Select ${entity.name}`}
+                          aria-label={`Select ${(entity as any).name || (entity as any).notes || 'Payment'}`}
                           className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                       )}
                       {!renderCardContent && (
                         <Badge
                           variant={
-                            entity.status === "active" ? "default" : "secondary"
+                            (entity as any).status === "active" ? "default" : "secondary"
                           }
                           className={cn(
                             "text-xs capitalize transition-colors duration-200",
-                            entity.status === "active"
+                            (entity as any).status === "active"
                               ? "bg-success/10 text-success hover:bg-success/20 border-success/20"
                               : "bg-muted text-muted-foreground hover:bg-muted/80 border-border"
                           )}
                         >
-                          {entity.status}
+                          {(entity as any).status}
                         </Badge>
                       )}
                     </div>
@@ -141,7 +141,7 @@ export function EntityGridView<T extends EntityType>({
                           >
                             <div className="flex-1 min-w-0">
                               <h3 className="text-lg font-semibold group-hover/link:text-primary truncate">
-                                {entity.name}
+                                {(entity as any).name || (entity as any).notes || 'Payment'}
                               </h3>
                               {(entity as any).contactPerson && (
                                 <p className="text-sm text-muted-foreground truncate">
@@ -153,7 +153,7 @@ export function EntityGridView<T extends EntityType>({
                         </HoverCardTrigger>
                         <HoverCardContent className="w-80" align="start">
                           <div className="space-y-2">
-                            <h4 className="text-sm font-semibold">{entity.name}</h4>
+                            <h4 className="text-sm font-semibold">{(entity as any).name || (entity as any).notes || 'Payment'}</h4>
                             {(entity as any).contactPerson && (
                               <p className="text-sm text-muted-foreground">
                                 Contact: {(entity as any).contactPerson}
@@ -163,18 +163,18 @@ export function EntityGridView<T extends EntityType>({
                               <span className="text-muted-foreground">Status:</span>
                               <Badge
                                 variant={
-                                  entity.status === "active"
+                                  (entity as any).status === "active"
                                     ? "default"
                                     : "secondary"
                                 }
                                 className={cn(
                                   "text-xs capitalize transition-colors duration-200",
-                                  entity.status === "active"
+                                  (entity as any).status === "active"
                                     ? "bg-success/10 text-success hover:bg-success/20 border-success/20"
                                     : "bg-muted text-muted-foreground hover:bg-muted/80 border-border"
                                 )}
                               >
-                                {entity.status}
+                                {(entity as any).status}
                               </Badge>
                             </div>
                           </div>

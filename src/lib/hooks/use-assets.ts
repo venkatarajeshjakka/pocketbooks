@@ -34,6 +34,7 @@ export function useAssets(params?: {
             if (!response.ok) throw new Error('Failed to fetch assets');
             return response.json();
         },
+        staleTime: 0,
     });
 }
 
@@ -46,6 +47,7 @@ export function useAsset(id: string) {
             return response.json();
         },
         enabled: !!id,
+        staleTime: 0,
     });
 }
 

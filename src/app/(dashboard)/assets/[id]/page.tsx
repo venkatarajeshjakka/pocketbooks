@@ -174,36 +174,77 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
         </Card>
 
         {/* Financial Information */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="h-5 w-5 text-primary" />
+        <Card className="border-border/50 bg-card/60 backdrop-blur-md shadow-xl shadow-primary/5 overflow-hidden group hover:border-primary/20 transition-all duration-500">
+          <CardHeader className="flex flex-row items-center gap-4 pb-4 border-b border-border/20 bg-muted/20">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
+              <DollarSign className="h-5 w-5 text-primary relative z-10" />
+            </div>
+            <CardTitle className="text-lg font-bold tracking-tight text-foreground/90">
               Financial Details
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Purchase Price</p>
-              <p className="text-2xl font-bold mt-1">
-                {'\u20B9'}{asset.purchasePrice.toLocaleString('en-IN')}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Value</p>
-              <p
-                className={cn(
-                  'text-2xl font-bold mt-1',
-                  asset.currentValue < asset.purchasePrice ? 'text-warning' : 'text-success'
-                )}
-              >
-                {'\u20B9'}{asset.currentValue.toLocaleString('en-IN')}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Depreciation</p>
-              <p className="text-sm font-medium mt-1 text-destructive">
-                {'\u20B9'}{depreciation.toLocaleString('en-IN')} ({depreciationPercentage}%)
-              </p>
+          <CardContent className="px-6 py-6 space-y-5">
+            {asset.gstEnabled ? (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 mb-1">
+                      Base Price
+                    </p>
+                    <p className="text-lg font-bold">
+                      {'\u20B9'}{(asset.purchasePrice - (asset.gstAmount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 mb-1">
+                      GST ({asset.gstPercentage}%)
+                    </p>
+                    <p className="text-lg font-bold text-primary/80">
+                      {'\u20B9'}{(asset.gstAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-border/10">
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1.5 flex items-center justify-between">
+                    <span>Grand Total (Purchase Price)</span>
+                    <Badge variant="outline" className="h-5 bg-primary/10 text-primary border-primary/20 text-[9px] px-1.5">
+                      GST INCLUDED
+                    </Badge>
+                  </p>
+                  <p className="text-3xl font-black text-primary drop-shadow-sm">
+                    {'\u20B9'}{asset.purchasePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Purchase Price</p>
+                <p className="text-3xl font-black text-foreground/90">
+                  {'\u20B9'}{asset.purchasePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Current Value</p>
+                <p
+                  className={cn(
+                    'text-lg font-bold',
+                    asset.currentValue < asset.purchasePrice ? 'text-warning' : 'text-success'
+                  )}
+                >
+                  {'\u20B9'}{asset.currentValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Depreciation</p>
+                <p className="text-lg font-bold text-destructive/80">
+                  {'\u20B9'}{depreciation.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  <span className="text-xs font-medium ml-1.5">({depreciationPercentage}%)</span>
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

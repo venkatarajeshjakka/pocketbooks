@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { IClient, IVendor, IAsset } from "@/types";
+import { IClient, IVendor, IAsset, IPayment } from "@/types";
 import {
   Table,
   TableBody,
@@ -30,11 +30,11 @@ import { fadeInUp, listItem } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
 import { EntityActionsMenu } from "./entity-actions-menu";
 
-export type EntityType = IClient | IVendor | IAsset;
+export type EntityType = IClient | IVendor | IAsset | IPayment;
 
 export interface EntityTableViewProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment';
   selectedEntities?: Set<string>;
   onToggleSelection?: (id: string) => void;
   onToggleAll?: () => void;
@@ -138,7 +138,7 @@ export function EntityTableView<T extends EntityType>({
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => onToggleSelection(entityId)}
-                          aria-label={`Select ${entity.name}`}
+                          aria-label={`Select ${(entity as any).name || (entity as any).notes || 'Payment'}`}
                         />
                       )}
                     </TableCell>
@@ -158,7 +158,7 @@ export function EntityTableView<T extends EntityType>({
                             className="flex items-center gap-3 transition-colors hover:text-primary"
                           >
                             <div>
-                              <div className="font-medium">{entity.name}</div>
+                              <div className="font-medium">{(entity as any).name || (entity as any).notes || 'Payment'}</div>
                               {(entity as any).contactPerson && (
                                 <div className="text-sm text-muted-foreground">
                                   {(entity as any).contactPerson}
@@ -171,15 +171,15 @@ export function EntityTableView<T extends EntityType>({
                         <TableCell className="hidden lg:table-cell">{(entity as any).phone || "-"}</TableCell>
                         <TableCell>
                           <Badge
-                            variant={entity.status === "active" ? "default" : "secondary"}
+                            variant={(entity as any).status === "active" ? "default" : "secondary"}
                             className={cn(
                               "text-xs capitalize transition-colors duration-200",
-                              entity.status === "active"
+                              (entity as any).status === "active"
                                 ? "bg-success/10 text-success hover:bg-success/20 border-success/20"
                                 : "bg-muted text-muted-foreground hover:bg-muted/80 border-border"
                             )}
                           >
-                            {entity.status}
+                            {(entity as any).status}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-medium">₹{balance.toLocaleString("en-IN")}</TableCell>

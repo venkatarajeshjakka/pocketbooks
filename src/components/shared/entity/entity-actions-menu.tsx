@@ -18,7 +18,7 @@ import {
 
 interface EntityActionsMenuProps {
   entityId: string;
-  entityType: 'client' | 'vendor' | 'asset';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment';
   basePath: string;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;

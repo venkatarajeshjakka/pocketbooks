@@ -7,6 +7,9 @@ import { Asset, Vendor, Payment } from '@/models';
 import { handleGetAll, connectToDatabase, errorResponse } from '@/lib/api-helpers';
 import { TransactionType, AccountType, PartyType } from '@/types';
 import mongoose from 'mongoose';
+import { revalidatePath } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
     return handleGetAll(request, Asset, ['name', 'category', 'location']);
@@ -22,6 +25,7 @@ export async function POST(request: NextRequest) {
         if (!paymentDetails || !paymentDetails.amount || !assetData.vendorId) {
             const asset = new Asset(assetData);
             await asset.save();
+            revalidatePath('/assets');
             return NextResponse.json({
                 success: true,
                 data: asset,
@@ -54,9 +58,15 @@ export async function POST(request: NextRequest) {
                 accountType: AccountType.PAYABLE,
                 partyId: assetData.vendorId,
                 partyType: PartyType.VENDOR,
+                assetId: asset._id,
                 notes: paymentDetails.notes || `Payment for asset: ${assetData.name}`
             });
             await payment.save({ session });
+
+            // 3.5 Link payment to asset
+            asset.paymentId = payment._id;
+            asset.paymentDetails = paymentDetails;
+            await asset.save({ session });
 
             // 4. Update vendor balance for payment
             if (vendor) {
@@ -67,6 +77,7 @@ export async function POST(request: NextRequest) {
             await session.commitTransaction();
             session.endSession();
 
+            revalidatePath('/assets');
             return NextResponse.json({
                 success: true,
                 data: asset,

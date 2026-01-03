@@ -19,7 +19,8 @@ export { connectToDatabase };
 export async function handleGetAll<T>(
   request: NextRequest,
   model: Model<T>,
-  searchFields: string[] = ['name']
+  searchFields: string[] = ['name'],
+  populate?: string[]
 ) {
   try {
     await connectToDatabase();
@@ -45,8 +46,16 @@ export async function handleGetAll<T>(
 
     // Execute query with pagination
     const skip = (page - 1) * limit;
+    let queryExec = model.find(query).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit);
+
+    if (populate && populate.length > 0) {
+      populate.forEach((field) => {
+        queryExec = queryExec.populate(field);
+      });
+    }
+
     const [data, total] = await Promise.all([
-      model.find(query).sort({ [sortBy]: sortOrder }).skip(skip).limit(limit).lean(),
+      queryExec.lean(),
       model.countDocuments(query),
     ]);
 

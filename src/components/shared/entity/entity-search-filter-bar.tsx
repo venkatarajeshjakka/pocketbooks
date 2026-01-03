@@ -26,11 +26,12 @@ import { EntityStatus } from '@/types';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 
 export interface EntitySearchFilterBarProps {
-  entityType: 'client' | 'vendor' | 'asset';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment';
   addNewPath: string;
   addNewLabel?: string;
   addNewIcon?: LucideIcon;
   searchPlaceholder?: string;
+  showStatusFilter?: boolean;
   showOutstandingFilter?: boolean;
   outstandingFilterLabel?: string;
 }
@@ -41,14 +42,15 @@ export function EntitySearchFilterBar({
   addNewLabel,
   addNewIcon: AddNewIcon = PlusCircle,
   searchPlaceholder,
+  showStatusFilter = true,
   showOutstandingFilter = true,
   outstandingFilterLabel,
 }: EntitySearchFilterBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const entityLabel = entityType === 'client' ? 'Client' : 'Vendor';
-  const defaultSearchPlaceholder = `Search by name, email, or phone...`;
+  const entityLabel = entityType === 'client' ? 'Client' : entityType === 'vendor' ? 'Vendor' : entityType === 'asset' ? 'Asset' : 'Payment';
+  const defaultSearchPlaceholder = `Search ${entityType}s...`;
   const defaultAddNewLabel = `Add ${entityLabel}`;
   const defaultOutstandingLabel = entityType === 'client' ? 'With outstanding' : 'With payable';
 
@@ -132,21 +134,23 @@ export function EntitySearchFilterBar({
       {/* Center: Filter Dropdowns */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Status Filter */}
-        <Select
-          value={activeFilters.status || 'all'}
-          onValueChange={(value) =>
-            setFilter('status', value === 'all' ? undefined : value)
-          }
-        >
-          <SelectTrigger className="h-11 w-[140px]">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value={EntityStatus.ACTIVE}>Active</SelectItem>
-            <SelectItem value={EntityStatus.INACTIVE}>Inactive</SelectItem>
-          </SelectContent>
-        </Select>
+        {showStatusFilter && (
+          <Select
+            value={activeFilters.status || 'all'}
+            onValueChange={(value) =>
+              setFilter('status', value === 'all' ? undefined : value)
+            }
+          >
+            <SelectTrigger className="h-11 w-[140px]">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value={EntityStatus.ACTIVE}>Active</SelectItem>
+              <SelectItem value={EntityStatus.INACTIVE}>Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
 
         {/* Outstanding/Payable Filter */}
         {showOutstandingFilter && (

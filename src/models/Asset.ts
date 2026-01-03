@@ -56,6 +56,30 @@ const AssetSchema = new Schema<IAsset>(
             enum: Object.values(AssetStatus),
             default: AssetStatus.ACTIVE,
         },
+        gstEnabled: {
+            type: Boolean,
+            default: false,
+        },
+        gstPercentage: {
+            type: Number,
+            min: [0, 'GST percentage cannot be negative'],
+            default: 0,
+        },
+        gstAmount: {
+            type: Number,
+            min: [0, 'GST amount cannot be negative'],
+            default: 0,
+        },
+        paymentId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Payment',
+        },
+        paymentDetails: {
+            amount: Number,
+            paymentMethod: String,
+            paymentDate: Date,
+            notes: String,
+        },
     },
     {
         timestamps: true,
