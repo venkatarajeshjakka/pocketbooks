@@ -511,48 +511,12 @@ export interface IAssetInput {
   location?: string;
   vendorId?: string;
   status?: AssetStatus;
-}
-
-// ============================================================================
-// ASSET PROCUREMENT ENTITY
-// ============================================================================
-
-export interface IAssetProcurement {
-  _id: Types.ObjectId | string;
-  vendorId: Types.ObjectId | string;
-  procurementDate: Date;
-  items: {
-    assetName: string;
-    description?: string;
-    category: AssetCategory;
-    quantity: number;
-    unitPrice: number;
+  paymentDetails?: {
     amount: number;
-  }[];
-  totalAmount: number;
-  gstAmount: number;
-  grandTotal: number;
-  status: ProcurementStatus;
-  invoiceNumber?: string;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface IAssetProcurementInput {
-  vendorId: string;
-  procurementDate: Date;
-  items: {
-    assetName: string;
-    description?: string;
-    category: AssetCategory;
-    quantity: number;
-    unitPrice: number;
-  }[];
-  gstAmount?: number;
-  status?: ProcurementStatus;
-  invoiceNumber?: string;
-  notes?: string;
+    paymentMethod: PaymentMethod;
+    paymentDate: Date;
+    notes?: string;
+  };
 }
 
 // ============================================================================
