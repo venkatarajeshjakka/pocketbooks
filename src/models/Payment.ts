@@ -47,7 +47,6 @@ const PaymentSchema = new Schema<IPayment>(
     partyId: {
       type: Schema.Types.ObjectId,
       required: [true, 'Party is required'],
-      refPath: 'partyType',
     },
     partyType: {
       type: String,

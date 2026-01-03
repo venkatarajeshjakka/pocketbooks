@@ -22,6 +22,18 @@ interface AssetListProps {
     view: 'grid' | 'table';
 }
 
+function getPaymentStatusBadgeStyles(status: string) {
+    switch (status) {
+        case 'fully_paid':
+            return 'bg-success/10 text-success border-success/20';
+        case 'partially_paid':
+            return 'bg-warning/10 text-warning border-warning/20';
+        case 'unpaid':
+            return 'bg-destructive/10 text-destructive border-destructive/20';
+        default:
+            return 'bg-muted text-muted-foreground border-border';
+    }
+}
 function getStatusBadgeStyles(status: AssetStatus) {
     switch (status) {
         case AssetStatus.ACTIVE:
@@ -103,7 +115,7 @@ export function AssetList({ page, search, status, category, view }: AssetListPro
                 <div className="flex flex-col">
                     <span className="font-medium">{asset.name}</span>
                     <span className="text-xs text-muted-foreground capitalize">
-                        {asset.category.replace('_', ' ')}
+                        {asset.category ? asset.category.replace('_', ' ') : 'Unknown'}
                     </span>
                 </div>
             ),
@@ -112,12 +124,20 @@ export function AssetList({ page, search, status, category, view }: AssetListPro
             header: 'Status',
             accessorKey: 'status',
             cell: (asset: IAsset) => (
-                <Badge
-                    variant="outline"
-                    className={cn('text-xs capitalize', getStatusBadgeStyles(asset.status))}
-                >
-                    {asset.status}
-                </Badge>
+                <div className="flex flex-col gap-1">
+                    <Badge
+                        variant="outline"
+                        className={cn('text-xs capitalize w-fit', getStatusBadgeStyles(asset.status || AssetStatus.ACTIVE))}
+                    >
+                        {asset.status || 'active'}
+                    </Badge>
+                    <Badge
+                        variant="outline"
+                        className={cn('text-[10px] capitalize w-fit', getPaymentStatusBadgeStyles(asset.paymentStatus || 'unpaid'))}
+                    >
+                        {asset.paymentStatus ? asset.paymentStatus.replace('_', ' ') : 'unpaid'}
+                    </Badge>
+                </div>
             ),
         },
         {
@@ -135,12 +155,22 @@ export function AssetList({ page, search, status, category, view }: AssetListPro
             cell: (asset: IAsset) => format(new Date(asset.purchaseDate), 'dd MMM yyyy'),
         },
         {
-            header: 'Current Value',
+            header: 'Value & Payment',
             accessorKey: 'currentValue',
             cell: (asset: IAsset) => (
-                <span className="font-semibold">
-                    {'\u20B9'}{asset.currentValue.toLocaleString('en-IN')}
-                </span>
+                <div className="flex flex-col">
+                    <span className="font-semibold">
+                        {'\u20B9'}{(asset.currentValue || 0).toLocaleString('en-IN')}
+                    </span>
+                    <div className="text-xs text-muted-foreground">
+                        <span>Paid: {'\u20B9'}{(asset.totalPaid || 0).toLocaleString('en-IN')}</span>
+                        {(asset.remainingAmount || 0) > 0 && (
+                            <span className="text-destructive ml-1">
+                                (Due: {'\u20B9'}{(asset.remainingAmount || 0).toLocaleString('en-IN')})
+                            </span>
+                        )}
+                    </div>
+                </div>
             ),
         },
     ];
@@ -160,27 +190,45 @@ export function AssetList({ page, search, status, category, view }: AssetListPro
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            {asset.category.replace('_', ' ')}
+                            {asset.category ? asset.category.replace('_', ' ') : 'Unknown'}
                         </span>
-                        <Badge
-                            variant="outline"
-                            className={cn('h-5 text-[10px] capitalize', getStatusBadgeStyles(asset.status))}
-                        >
-                            {asset.status}
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                            <Badge
+                                variant="outline"
+                                className={cn('h-5 text-[10px] capitalize', getStatusBadgeStyles(asset.status || AssetStatus.ACTIVE))}
+                            >
+                                {asset.status || 'active'}
+                            </Badge>
+                            <Badge
+                                variant="outline"
+                                className={cn('h-4 text-[9px] capitalize', getPaymentStatusBadgeStyles(asset.paymentStatus || 'unpaid'))}
+                            >
+                                {asset.paymentStatus ? asset.paymentStatus.replace('_', ' ') : 'unpaid'}
+                            </Badge>
+                        </div>
                     </div>
                     <h3 className="font-semibold text-foreground line-clamp-1">{asset.name}</h3>
                     {asset.location && (
                         <p className="text-xs text-muted-foreground line-clamp-1">{asset.location}</p>
                     )}
                     <div className="flex items-center justify-between pt-1">
-                        <p className="text-sm font-bold text-primary">
-                            {'\u20B9'}{asset.currentValue.toLocaleString('en-IN')}
-                        </p>
+                        <div className="flex flex-col">
+                            <p className="text-sm font-bold text-primary">
+                                {'\u20B9'}{(asset.currentValue || 0).toLocaleString('en-IN')}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                                Paid: {'\u20B9'}{(asset.totalPaid || 0).toLocaleString('en-IN')}
+                            </p>
+                        </div>
                         <p className="text-xs text-muted-foreground">
                             {format(new Date(asset.purchaseDate), 'MMM yyyy')}
                         </p>
                     </div>
+                    {(asset.remainingAmount || 0) > 0 && (
+                        <p className="text-[10px] text-destructive font-medium">
+                            Due: {'\u20B9'}{(asset.remainingAmount || 0).toLocaleString('en-IN')}
+                        </p>
+                    )}
                 </div>
             )}
             columns={columns}

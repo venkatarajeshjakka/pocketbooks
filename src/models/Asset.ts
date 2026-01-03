@@ -80,6 +80,21 @@ const AssetSchema = new Schema<IAsset>(
             paymentDate: Date,
             notes: String,
         },
+        paymentStatus: {
+            type: String,
+            enum: ['unpaid', 'partially_paid', 'fully_paid'],
+            default: 'unpaid',
+        },
+        totalPaid: {
+            type: Number,
+            default: 0,
+            min: [0, 'Total paid cannot be negative'],
+        },
+        remainingAmount: {
+            type: Number,
+            default: 0,
+            min: [0, 'Remaining amount cannot be negative'],
+        },
     },
     {
         timestamps: true,
@@ -93,6 +108,8 @@ AssetSchema.index({ name: 1 });
 AssetSchema.index({ category: 1 });
 AssetSchema.index({ status: 1 });
 AssetSchema.index({ vendorId: 1 });
+AssetSchema.index({ paymentStatus: 1 });
+AssetSchema.index({ purchaseDate: -1 });
 
 // Prevent model recompilation
 const Asset: Model<IAsset> =

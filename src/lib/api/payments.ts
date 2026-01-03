@@ -16,6 +16,10 @@ export async function fetchPayments(params: {
     sortOrder?: 'asc' | 'desc';
     transactionType?: string;
     partyType?: string;
+    assetId?: string;
+    saleId?: string;
+    startDate?: string;
+    endDate?: string;
 } = {}): Promise<PaginatedResponse<IPayment>> {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.set('page', params.page.toString());
@@ -26,6 +30,10 @@ export async function fetchPayments(params: {
     if (params.sortOrder) queryParams.set('sortOrder', params.sortOrder);
     if (params.transactionType) queryParams.set('transactionType', params.transactionType);
     if (params.partyType) queryParams.set('partyType', params.partyType);
+    if (params.assetId) queryParams.set('assetId', params.assetId);
+    if (params.saleId) queryParams.set('saleId', params.saleId);
+    if (params.startDate) queryParams.set('startDate', params.startDate);
+    if (params.endDate) queryParams.set('endDate', params.endDate);
 
     const response = await fetch(`/api/payments?${queryParams.toString()}`);
     if (!response.ok) {

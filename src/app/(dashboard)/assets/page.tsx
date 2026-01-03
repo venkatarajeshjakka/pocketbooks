@@ -10,6 +10,29 @@ import { AssetStatsDashboard } from '@/components/assets/asset-stats-dashboard';
 import { AssetList } from '@/components/assets/asset-list';
 import { EntitySearchFilterBar } from '@/components/shared/entity/entity-search-filter-bar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Asset } from '@/models';
+import { connectToDatabase } from '@/lib/api-helpers';
+
+// Bulk Payment Actions Component
+async function BulkPaymentActions() {
+    try {
+        await connectToDatabase();
+        const assets = await Asset.find({ 
+            paymentStatus: { $ne: 'fully_paid' },
+            remainingAmount: { $gt: 0 }
+        }).limit(1000).lean();
+        
+        if (assets.length === 0) {
+            return null;
+        }
+
+        const { BulkPaymentDialog } = await import('@/components/assets/bulk-payment-dialog');
+        return <BulkPaymentDialog assets={assets as any} />;
+    } catch (error) {
+        console.error('Failed to load assets for bulk payment:', error);
+        return null;
+    }
+}
 
 interface AssetsPageProps {
     searchParams: Promise<{
@@ -74,13 +97,18 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
             </Suspense>
 
             {/* Search, Filters, and Actions Bar */}
-            <EntitySearchFilterBar
-                entityType="asset"
-                addNewPath="/assets/new"
-                addNewLabel="Add Asset"
-                searchPlaceholder="Search assets by name, category..."
-                showOutstandingFilter={false}
-            />
+            <div className="flex items-center justify-between gap-4">
+                <EntitySearchFilterBar
+                    entityType="asset"
+                    addNewPath="/assets/new"
+                    addNewLabel="Add Asset"
+                    searchPlaceholder="Search assets by name, category..."
+                    showOutstandingFilter={false}
+                />
+                <Suspense fallback={null}>
+                    <BulkPaymentActions />
+                </Suspense>
+            </div>
 
             {/* Assets List */}
             <Suspense

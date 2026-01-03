@@ -34,6 +34,35 @@ function getTransactionTypeStyles(type: TransactionType) {
     }
 }
 
+function getTransactionContext(payment: IPayment) {
+    if (payment.assetId) {
+        const asset = payment.assetId as any;
+        return {
+            type: 'Asset',
+            name: asset?.name || 'Unknown Asset',
+            id: typeof payment.assetId === 'string' ? payment.assetId : payment.assetId.toString()
+        };
+    }
+    if (payment.saleId) {
+        return {
+            type: 'Sale',
+            name: `Invoice #${payment.saleId}`,
+            id: typeof payment.saleId === 'string' ? payment.saleId : payment.saleId.toString()
+        };
+    }
+    if (payment.procurementId) {
+        return {
+            type: 'Procurement',
+            name: `Purchase #${payment.procurementId}`,
+            id: typeof payment.procurementId === 'string' ? payment.procurementId : payment.procurementId.toString()
+        };
+    }
+    return {
+        type: 'General',
+        name: 'General Payment',
+        id: ''
+    };
+}
 function getPaymentMethodIcon(method: PaymentMethod) {
     switch (method) {
         case PaymentMethod.CASH:
@@ -118,12 +147,23 @@ export function PaymentList({ page, search, transactionType, partyType }: Paymen
             accessorKey: 'partyId',
             cell: (payment: IPayment) => {
                 const party = payment.partyId as any;
+                const context = getTransactionContext(payment);
                 return (
                     <div className="flex flex-col">
                         <span className="font-medium">{party?.name || 'Unknown Party'}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                            {payment.partyType}
-                        </span>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <span className="uppercase tracking-widest font-bold">
+                                {payment.partyType}
+                            </span>
+                            {context.type !== 'General' && (
+                                <>
+                                    <span>•</span>
+                                    <span className="text-primary font-medium">
+                                        {context.type}: {context.name}
+                                    </span>
+                                </>
+                            )}
+                        </div>
                     </div>
                 );
             },
@@ -205,9 +245,22 @@ export function PaymentList({ page, search, transactionType, partyType }: Paymen
                         <span className="font-semibold text-foreground">
                             {(payment.partyId as any)?.name || 'Unknown Party'}
                         </span>
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold">
-                            {payment.partyType}
-                        </span>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <span className="uppercase font-bold">
+                                {payment.partyType}
+                            </span>
+                            {(() => {
+                                const context = getTransactionContext(payment);
+                                return context.type !== 'General' ? (
+                                    <>
+                                        <span>•</span>
+                                        <span className="text-primary font-medium">
+                                            {context.type}: {context.name}
+                                        </span>
+                                    </>
+                                ) : null;
+                            })()}
+                        </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-1 border-t border-border/10">

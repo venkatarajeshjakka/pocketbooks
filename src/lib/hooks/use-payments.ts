@@ -20,6 +20,10 @@ export function usePayments(params: {
     sortOrder?: 'asc' | 'desc';
     transactionType?: string;
     partyType?: string;
+    assetId?: string;
+    saleId?: string;
+    startDate?: string;
+    endDate?: string;
 } = {}) {
     return useQuery({
         queryKey: [PAYMENTS_QUERY_KEY, params],

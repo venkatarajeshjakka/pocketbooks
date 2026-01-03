@@ -508,6 +508,9 @@ export interface IAsset {
     paymentDate: Date;
     notes?: string;
   };
+  paymentStatus: 'unpaid' | 'partially_paid' | 'fully_paid';
+  totalPaid: number;
+  remainingAmount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -532,6 +535,7 @@ export interface IAssetInput {
     paymentDate: Date;
     notes?: string;
   };
+  paymentStatus?: 'unpaid' | 'partially_paid' | 'fully_paid';
 }
 
 // ============================================================================
@@ -593,6 +597,9 @@ export interface QueryParams {
   sortOrder?: 'asc' | 'desc';
   startDate?: string;
   endDate?: string;
+  assetId?: string;
+  transactionType?: string;
+  partyType?: string;
 }
 
 // ============================================================================
