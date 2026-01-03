@@ -17,11 +17,11 @@ import { connectToDatabase } from '@/lib/api-helpers';
 async function BulkPaymentActions() {
     try {
         await connectToDatabase();
-        const assets = await Asset.find({ 
+        const assets = await Asset.find({
             paymentStatus: { $ne: 'fully_paid' },
             remainingAmount: { $gt: 0 }
         }).limit(1000).lean();
-        
+
         if (assets.length === 0) {
             return null;
         }
@@ -58,7 +58,7 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
     const view = params?.view || 'grid';
 
     return (
-        <div className="flex flex-1 flex-col gap-6 md:gap-8 p-6">
+        <div className="flex flex-1 flex-col gap-6 md:gap-8">
             {/* Page Header */}
             <div className="space-y-1">
                 <div className="flex items-center gap-3">

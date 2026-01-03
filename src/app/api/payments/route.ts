@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') === 'asc' ? 1 : -1;
-    
+
     // Additional filters for payments
     const transactionType = searchParams.get('transactionType') || '';
     const partyType = searchParams.get('partyType') || '';
@@ -59,44 +59,89 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Execute query with pagination
-    const skip = (page - 1) * limit;
-    
-    const [payments, total] = await Promise.all([
-      Payment.find(query)
-        .sort({ [sortBy]: sortOrder })
-        .skip(skip)
-        .limit(limit)
-        .populate('assetId')
-        .populate('saleId')
-        .lean(),
-      Payment.countDocuments(query),
-    ]);
+    // Execute query with pagination using aggregation for better performance
+    const MAX_LIMIT = 100;
+    const safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
+    const skip = (page - 1) * safeLimit;
 
-    // Manually populate partyId based on partyType
-    const populatedPayments = await Promise.all(
-      payments.map(async (payment: any) => {
-        if (payment.partyId && payment.partyType) {
-          if (payment.partyType === 'client') {
-            const client = await Client.findById(payment.partyId).lean();
-            payment.partyId = client;
-          } else if (payment.partyType === 'vendor') {
-            const vendor = await Vendor.findById(payment.partyId).lean();
-            payment.partyId = vendor;
+    // Get total count first
+    const total = await Payment.countDocuments(query);
+
+    // Use aggregation pipeline for efficient data fetching and population
+    const payments = await Payment.aggregate([
+      { $match: query },
+      { $sort: { [sortBy]: sortOrder } },
+      { $skip: skip },
+      { $limit: safeLimit },
+      // Lookup Asset
+      {
+        $lookup: {
+          from: 'assets',
+          localField: 'assetId',
+          foreignField: '_id',
+          as: 'assetData'
+        }
+      },
+      // Lookup Sale
+      {
+        $lookup: {
+          from: 'sales',
+          localField: 'saleId',
+          foreignField: '_id',
+          as: 'saleData'
+        }
+      },
+      // Lookup Vendor
+      {
+        $lookup: {
+          from: 'vendors',
+          localField: 'partyId',
+          foreignField: '_id',
+          as: 'vendorData'
+        }
+      },
+      // Lookup Client
+      {
+        $lookup: {
+          from: 'clients',
+          localField: 'partyId',
+          foreignField: '_id',
+          as: 'clientData'
+        }
+      },
+      // Transform and populate fields
+      {
+        $addFields: {
+          assetId: { $arrayElemAt: ['$assetData', 0] },
+          saleId: { $arrayElemAt: ['$saleData', 0] },
+          partyId: {
+            $cond: {
+              if: { $or: [{ $eq: ['$partyType', 'vendor'] }, { $eq: ['$partyType', 'Vendor'] }] },
+              then: { $arrayElemAt: ['$vendorData', 0] },
+              else: { $arrayElemAt: ['$clientData', 0] }
+            }
           }
         }
-        return payment;
-      })
-    );
+      },
+      // Remove temporary lookup arrays
+      {
+        $project: {
+          assetData: 0,
+          saleData: 0,
+          vendorData: 0,
+          clientData: 0
+        }
+      }
+    ]);
 
     return Response.json({
       success: true,
-      data: populatedPayments,
+      data: payments,
       pagination: {
         page,
-        limit,
+        limit: safeLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / safeLimit),
       },
     });
   } catch (error: any) {
@@ -107,7 +152,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   let session: mongoose.ClientSession | null = null;
-  
+
   try {
     await connectToDatabase();
     const body = await request.json();
@@ -140,7 +185,7 @@ export async function POST(request: NextRequest) {
       }
 
       await session.commitTransaction();
-      
+
       revalidatePath('/payments');
       revalidatePath('/assets');
 

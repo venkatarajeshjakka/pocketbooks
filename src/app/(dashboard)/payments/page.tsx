@@ -9,6 +9,8 @@ import { PaymentList } from '@/components/payments/payment-list';
 import { EntitySearchFilterBar } from '@/components/shared/entity/entity-search-filter-bar';
 import { Skeleton } from '@/components/ui/skeleton';
 
+import { PaymentStatsDashboard } from '@/components/payments/payment-stats-dashboard';
+
 interface PaymentsPageProps {
     searchParams: Promise<{
         page?: string;
@@ -31,7 +33,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
     const partyType = params?.partyType || '';
 
     return (
-        <div className="flex flex-1 flex-col gap-6 md:gap-8 p-6">
+        <div className="flex flex-1 flex-col gap-6 md:gap-8">
             {/* Page Header */}
             <div className="space-y-1">
                 <div className="flex items-center gap-3">
@@ -48,6 +50,9 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
                     </div>
                 </div>
             </div>
+
+            {/* Payment Stats */}
+            <PaymentStatsDashboard />
 
             {/* Search and Filters Bar */}
             <EntitySearchFilterBar

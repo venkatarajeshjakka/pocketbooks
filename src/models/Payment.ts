@@ -78,12 +78,13 @@ const PaymentSchema = new Schema<IPayment>(
 );
 
 // Indexes
+// Indexes
 PaymentSchema.index({ paymentDate: -1 });
-PaymentSchema.index({ partyId: 1 });
-PaymentSchema.index({ partyType: 1 });
-PaymentSchema.index({ accountType: 1 });
+PaymentSchema.index({ partyId: 1, partyType: 1 }); // Compound index for queries by party
+PaymentSchema.index({ assetId: 1 }); // Missing index for asset lookups
 PaymentSchema.index({ saleId: 1 });
 PaymentSchema.index({ transactionType: 1 });
+PaymentSchema.index({ createdAt: -1 }); // Useful for default sort
 
 // Prevent model recompilation
 const Payment: Model<IPayment> =
