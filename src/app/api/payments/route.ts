@@ -43,12 +43,6 @@ export async function GET(request: NextRequest) {
     if (partyType) {
       query.partyType = partyType;
     }
-    if (assetId) {
-      query.assetId = assetId;
-    }
-    if (saleId) {
-      query.saleId = saleId;
-    }
     if (startDate || endDate) {
       query.paymentDate = {};
       if (startDate) {
@@ -57,6 +51,14 @@ export async function GET(request: NextRequest) {
       if (endDate) {
         query.paymentDate.$lte = new Date(endDate);
       }
+    }
+
+    // Fix: Cast ObjectId fields for aggregation matches
+    if (assetId && mongoose.Types.ObjectId.isValid(assetId)) {
+      query.assetId = new mongoose.Types.ObjectId(assetId);
+    }
+    if (saleId && mongoose.Types.ObjectId.isValid(saleId)) {
+      query.saleId = new mongoose.Types.ObjectId(saleId);
     }
 
     // Execute query with pagination using aggregation for better performance
