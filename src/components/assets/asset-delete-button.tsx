@@ -49,9 +49,10 @@ export function AssetDeleteButton({ assetId, assetName }: AssetDeleteButtonProps
                 size="sm"
                 className="text-destructive hover:text-destructive"
                 onClick={() => setShowDeleteDialog(true)}
-                aria-label={`Delete ${assetName}`}
+                aria-label={`Delete asset: ${assetName}`}
+                title={`Delete asset: ${assetName}`}
             >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" />
                 Delete
             </Button>
 

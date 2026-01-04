@@ -149,3 +149,22 @@ export function useDeleteAsset() {
         },
     });
 }
+
+/**
+ * Hook to manually invalidate asset cache
+ *
+ * Useful for forcing a refetch after external changes
+ * Matches the pattern from use-clients.ts
+ */
+export function useInvalidateAssets() {
+    const queryClient = useQueryClient();
+
+    return {
+        invalidateAll: () =>
+            queryClient.invalidateQueries({ queryKey: assetKeys.all }),
+        invalidateLists: () =>
+            queryClient.invalidateQueries({ queryKey: assetKeys.lists() }),
+        invalidateAsset: (id: string) =>
+            queryClient.invalidateQueries({ queryKey: assetKeys.detail(id) }),
+    };
+}

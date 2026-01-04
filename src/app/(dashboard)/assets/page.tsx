@@ -30,7 +30,9 @@ async function BulkPaymentActions() {
         return <BulkPaymentDialog assets={assets as any} />;
     } catch (error) {
         console.error('Failed to load assets for bulk payment:', error);
-        return null;
+        // B8 Fix: Return a visible error indicator instead of silently failing
+        const { BulkPaymentErrorIndicator } = await import('@/components/assets/bulk-payment-error-indicator');
+        return <BulkPaymentErrorIndicator />;
     }
 }
 

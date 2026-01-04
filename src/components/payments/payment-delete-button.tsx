@@ -49,9 +49,10 @@ export function PaymentDeleteButton({ paymentId, paymentDescription }: PaymentDe
                 size="sm"
                 className="text-destructive hover:text-destructive"
                 onClick={() => setShowDeleteDialog(true)}
-                aria-label={`Delete payment`}
+                aria-label={`Delete ${paymentDescription}`}
+                title={`Delete ${paymentDescription}`}
             >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" />
                 Delete
             </Button>
 

@@ -164,12 +164,22 @@ export function useDeletePayment() {
 }
 
 /**
- * Hook to invalidate payment queries
+ * Hook to manually invalidate payment cache
+ *
+ * Useful for forcing a refetch after external changes
+ * Matches the pattern from use-clients.ts
  */
 export function useInvalidatePayments() {
     const queryClient = useQueryClient();
 
-    return () => {
-        queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+    return {
+        invalidateAll: () =>
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all }),
+        invalidateLists: () =>
+            queryClient.invalidateQueries({ queryKey: paymentKeys.lists() }),
+        invalidatePayment: (id: string) =>
+            queryClient.invalidateQueries({ queryKey: paymentKeys.detail(id) }),
+        invalidateStats: () =>
+            queryClient.invalidateQueries({ queryKey: paymentKeys.stats() }),
     };
 }
