@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Asset, Vendor, Payment } from '@/models';
 import { handleGetAll, connectToDatabase, errorResponse } from '@/lib/api-helpers';
 import { TransactionType, AccountType, PartyType } from '@/types';
+import { calculatePaymentStatus } from '@/lib/utils/payment-status-calculator';
 import mongoose from 'mongoose';
 import { revalidatePath } from 'next/cache';
 
@@ -67,16 +68,11 @@ export async function POST(request: NextRequest) {
                 throw new Error('Vendor not found');
             }
 
-            // 2. Calculate payment status
-            assetData.totalPaid = paymentDetails.amount;
-            assetData.remainingAmount = Math.max(0, assetData.purchasePrice - paymentDetails.amount);
-            
-            if (paymentDetails.amount >= assetData.purchasePrice) {
-                assetData.paymentStatus = 'fully_paid';
-                assetData.remainingAmount = 0;
-            } else {
-                assetData.paymentStatus = 'partially_paid';
-            }
+            // 2. Calculate payment status using shared utility (G3 fix - single source of truth)
+            const statusResult = calculatePaymentStatus(assetData.purchasePrice, paymentDetails.amount);
+            assetData.totalPaid = statusResult.totalPaid;
+            assetData.remainingAmount = statusResult.remainingAmount;
+            assetData.paymentStatus = statusResult.paymentStatus;
 
             // 3. Create Asset
             const asset = new Asset(assetData);

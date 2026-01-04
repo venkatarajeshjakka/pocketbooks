@@ -5,14 +5,19 @@
 
 import { Asset, Payment } from '@/models';
 import mongoose from 'mongoose';
+import { calculatePaymentStatus } from './payment-status-calculator';
 
+/**
+ * Update asset payment status based on all associated payments
+ * Uses the shared calculatePaymentStatus function for consistency
+ */
 export async function updateAssetPaymentStatus(assetId: string, session?: mongoose.ClientSession) {
     try {
         // Find the asset
-        const asset = session 
+        const asset = session
             ? await Asset.findById(assetId).session(session)
             : await Asset.findById(assetId);
-            
+
         if (!asset) {
             throw new Error('Asset not found');
         }
@@ -22,30 +27,20 @@ export async function updateAssetPaymentStatus(assetId: string, session?: mongoo
             ? await Payment.find({ assetId }).session(session)
             : await Payment.find({ assetId });
 
-        // Calculate totals
-        const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
-        const remainingAmount = Math.max(0, asset.purchasePrice - totalPaid);
+        // Calculate totals using aggregation
+        const totalPaidFromPayments = payments.reduce((sum, payment) => sum + payment.amount, 0);
 
-        // Determine payment status
-        let paymentStatus: 'unpaid' | 'partially_paid' | 'fully_paid' = 'unpaid';
-        if (totalPaid >= asset.purchasePrice) {
-            paymentStatus = 'fully_paid';
-        } else if (totalPaid > 0) {
-            paymentStatus = 'partially_paid';
-        }
+        // Use shared payment status calculator for consistency (G3 fix)
+        const statusResult = calculatePaymentStatus(asset.purchasePrice, totalPaidFromPayments);
 
-        // Update asset
-        asset.totalPaid = totalPaid;
-        asset.remainingAmount = Math.max(0, remainingAmount);
-        asset.paymentStatus = paymentStatus;
+        // Update asset with calculated values
+        asset.totalPaid = statusResult.totalPaid;
+        asset.remainingAmount = statusResult.remainingAmount;
+        asset.paymentStatus = statusResult.paymentStatus;
 
         await asset.save({ session });
 
-        return {
-            totalPaid,
-            remainingAmount,
-            paymentStatus
-        };
+        return statusResult;
     } catch (error) {
         console.error('Error updating asset payment status:', error);
         throw error;

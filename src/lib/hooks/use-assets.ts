@@ -4,21 +4,19 @@
  * React Query hooks for Asset management
  */
 
+'use client';
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IAsset, IAssetInput, PaginatedResponse, ApiResponse } from '@/types';
-
 import { toast } from 'sonner';
+import {
+    assetKeys,
+    paymentKeys,
+    vendorKeys,
+} from '@/lib/query-keys';
 
-/**
- * Structured query keys for better cache management
- */
-export const assetKeys = {
-    all: ['assets'] as const,
-    lists: () => [...assetKeys.all, 'list'] as const,
-    list: (filters: Record<string, any>) => [...assetKeys.lists(), filters] as const,
-    details: () => [...assetKeys.all, 'detail'] as const,
-    detail: (id: string) => [...assetKeys.details(), id] as const,
-};
+// Re-export for backwards compatibility
+export { assetKeys };
 
 export function useAssets(params?: {
     page?: number;
@@ -46,6 +44,8 @@ export function useAssets(params?: {
             return response.json();
         },
         staleTime: 1000 * 60, // 1 minute - match client pattern
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
 }
 
@@ -59,6 +59,8 @@ export function useAsset(id: string) {
         },
         enabled: !!id,
         staleTime: 1000 * 60, // 1 minute
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
 }
 
@@ -88,14 +90,20 @@ export function useCreateAsset() {
             return { previousAssets };
         },
         onSuccess: () => {
+            // Use structured keys for consistent cross-module cache invalidation (G4 fix)
             queryClient.invalidateQueries({ queryKey: assetKeys.lists() });
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+            queryClient.invalidateQueries({ queryKey: vendorKeys.all });
             toast.success("Asset created successfully");
         },
-        onError: (error, newAsset, context: any) => {
+        onError: (error, _newAsset, context) => {
             if (context?.previousAssets) {
                 queryClient.setQueryData(assetKeys.lists(), context.previousAssets);
             }
             toast.error(error.message || "Failed to create asset");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: assetKeys.lists() });
         },
     });
 }
@@ -116,12 +124,26 @@ export function useUpdateAsset(id: string) {
             }
             return response.json();
         },
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: assetKeys.detail(id) });
+            const previousAsset = queryClient.getQueryData(assetKeys.detail(id));
+            return { previousAsset };
+        },
         onSuccess: () => {
+            // Use structured keys for consistent cross-module cache invalidation (G4 fix)
             queryClient.invalidateQueries({ queryKey: assetKeys.all });
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+            queryClient.invalidateQueries({ queryKey: vendorKeys.all });
             toast.success("Asset updated successfully");
         },
-        onError: (error) => {
+        onError: (error, _asset, context) => {
+            if (context?.previousAsset) {
+                queryClient.setQueryData(assetKeys.detail(id), context.previousAsset);
+            }
             toast.error(error.message || "Failed to update asset");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: assetKeys.detail(id) });
         },
     });
 }
@@ -140,12 +162,26 @@ export function useDeleteAsset() {
             }
             return response.json();
         },
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: assetKeys.lists() });
+            const previousAssets = queryClient.getQueryData(assetKeys.lists());
+            return { previousAssets };
+        },
         onSuccess: () => {
+            // Use structured keys for consistent cross-module cache invalidation (G4 fix)
             queryClient.invalidateQueries({ queryKey: assetKeys.all });
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+            queryClient.invalidateQueries({ queryKey: vendorKeys.all });
             toast.success("Asset deleted successfully");
         },
-        onError: (error) => {
+        onError: (error, _id, context) => {
+            if (context?.previousAssets) {
+                queryClient.setQueryData(assetKeys.lists(), context.previousAssets);
+            }
             toast.error(error.message || "Failed to delete asset");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: assetKeys.lists() });
         },
     });
 }

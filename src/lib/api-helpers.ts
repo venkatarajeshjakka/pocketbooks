@@ -27,7 +27,10 @@ export async function handleGetAll<T>(
 
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    // Apply MAX_LIMIT cap to prevent DoS attacks via large limit values
+    const MAX_LIMIT = 100;
+    const requestedLimit = parseInt(searchParams.get("limit") || "10");
+    const limit = Math.min(Math.max(requestedLimit, 1), MAX_LIMIT);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
