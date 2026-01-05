@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { IClient, IVendor, IAsset, IPayment } from '@/types';
+import { IClient, IVendor, IAsset, IPayment, IExpense } from '@/types';
 import { EntityGridView } from './entity-grid-view';
 import { EntityTableView } from './entity-table-view';
 import { ViewMode } from './view-toggle';
@@ -16,11 +16,11 @@ import { BulkActionsBar } from './bulk-actions-bar';
 import { DeleteEntityDialog } from './delete-entity-dialog';
 import { toast } from 'sonner';
 
-export type EntityType = IClient | IVendor | IAsset | IPayment;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense;
 
 export interface EntityListContainerProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset' | 'payment';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense';
   initialView?: ViewMode;
   basePath: string;
   onDelete: (id: string) => Promise<void>;
@@ -102,7 +102,7 @@ export function EntityListContainer<T extends EntityType>({
   };
 
   const allSelected = isAllSelected(entities, (entity) => entity._id.toString());
-  const entityLabel = entityType === 'client' ? 'client' : entityType === 'vendor' ? 'vendor' : 'asset';
+  const entityLabel = entityType === 'client' ? 'client' : entityType === 'vendor' ? 'vendor' : entityType === 'expense' ? 'expense' : entityType === 'payment' ? 'payment' : 'asset';
 
   return (
     <div className="space-y-4">

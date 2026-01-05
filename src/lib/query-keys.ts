@@ -12,6 +12,7 @@ export const ASSETS_QUERY_KEY = 'assets';
 export const PAYMENTS_QUERY_KEY = 'payments';
 export const VENDORS_QUERY_KEY = 'vendors';
 export const CLIENTS_QUERY_KEY = 'clients';
+export const EXPENSES_QUERY_KEY = 'expenses';
 
 /**
  * Structured query keys for Assets
@@ -56,4 +57,16 @@ export const clientKeys = {
     list: (filters: Record<string, unknown>) => [...clientKeys.lists(), filters] as const,
     details: () => [...clientKeys.all, 'detail'] as const,
     detail: (id: string) => [...clientKeys.details(), id] as const,
+};
+
+/**
+ * Structured query keys for Expenses
+ */
+export const expenseKeys = {
+    all: [EXPENSES_QUERY_KEY] as const,
+    lists: () => [...expenseKeys.all, 'list'] as const,
+    list: (filters: Record<string, unknown>) => [...expenseKeys.lists(), filters] as const,
+    details: () => [...expenseKeys.all, 'detail'] as const,
+    detail: (id: string) => [...expenseKeys.details(), id] as const,
+    stats: () => [...expenseKeys.all, 'stats'] as const,
 };

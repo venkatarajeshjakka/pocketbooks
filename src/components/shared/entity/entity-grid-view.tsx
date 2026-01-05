@@ -32,7 +32,7 @@ export type EntityType = IClient | IVendor | IAsset | IPayment;
 
 export interface EntityGridViewProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset' | 'payment';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense';
   selectedEntities?: Set<string>;
   onToggleSelection?: (id: string) => void;
   onEdit?: (id: string) => void;

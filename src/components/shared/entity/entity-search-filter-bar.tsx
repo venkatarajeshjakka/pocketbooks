@@ -26,7 +26,7 @@ import { EntityStatus } from '@/types';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 
 export interface EntitySearchFilterBarProps {
-  entityType: 'client' | 'vendor' | 'asset' | 'payment';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense';
   addNewPath: string;
   addNewLabel?: string;
   addNewIcon?: LucideIcon;
@@ -49,7 +49,7 @@ export function EntitySearchFilterBar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const entityLabel = entityType === 'client' ? 'Client' : entityType === 'vendor' ? 'Vendor' : entityType === 'asset' ? 'Asset' : 'Payment';
+  const entityLabel = entityType === 'client' ? 'Client' : entityType === 'vendor' ? 'Vendor' : entityType === 'asset' ? 'Asset' : entityType === 'expense' ? 'Expense' : 'Payment';
   const defaultSearchPlaceholder = `Search ${entityType}s...`;
   const defaultAddNewLabel = `Add ${entityLabel}`;
   const defaultOutstandingLabel = entityType === 'client' ? 'With outstanding' : 'With payable';
