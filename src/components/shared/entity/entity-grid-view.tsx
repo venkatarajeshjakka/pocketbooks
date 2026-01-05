@@ -8,7 +8,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Mail, Phone, MapPin, IndianRupee } from "lucide-react";
-import { IClient, IVendor, IAsset, IPayment } from "@/types";
+import { IClient, IVendor, IAsset, IPayment, IExpense } from "@/types";
 import { GradientCard } from "@/components/shared/ui/gradient-card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,7 +28,7 @@ import { staggerContainer, fadeInUp } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
 import { EntityActionsMenu } from "./entity-actions-menu";
 
-export type EntityType = IClient | IVendor | IAsset | IPayment;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense;
 
 export interface EntityGridViewProps<T extends EntityType> {
   entities: T[];

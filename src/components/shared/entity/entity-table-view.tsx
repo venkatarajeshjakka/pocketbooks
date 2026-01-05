@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { IClient, IVendor, IAsset, IPayment } from "@/types";
+import { IClient, IVendor, IAsset, IPayment, IExpense } from "@/types";
 import {
   Table,
   TableBody,
@@ -30,7 +30,7 @@ import { fadeInUp, listItem } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
 import { EntityActionsMenu } from "./entity-actions-menu";
 
-export type EntityType = IClient | IVendor | IAsset | IPayment;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense;
 
 export interface EntityTableViewProps<T extends EntityType> {
   entities: T[];
