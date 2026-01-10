@@ -5,7 +5,7 @@
  */
 
 import { Suspense } from 'react';
-import { Monitor } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { AssetStatsDashboard } from '@/components/assets/asset-stats-dashboard';
 import { AssetList } from '@/components/assets/asset-list';
 import { EntitySearchFilterBar } from '@/components/shared/entity/entity-search-filter-bar';
@@ -62,17 +62,17 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
     return (
         <div className="flex flex-1 flex-col gap-6 md:gap-8">
             {/* Page Header */}
-            <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 ring-1 ring-indigo-500/20">
-                        <Monitor className="h-6 w-6 text-indigo-500" />
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 text-primary border border-primary/20 backdrop-blur-md shadow-lg shadow-primary/5">
+                        <Package className="h-7 w-7" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                            Assets
+                        <h1 className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
+                            Asset Registry
                         </h1>
-                        <p className="text-sm text-muted-foreground">
-                            Manage industrial assets, machinery, and office equipment
+                        <p className="text-sm font-medium text-muted-foreground/60">
+                            Enterprise resource and asset management
                         </p>
                     </div>
                 </div>

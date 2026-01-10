@@ -17,10 +17,10 @@ export interface GradientCardProps {
     interactive?: boolean;
 }
 
-const gradientClasses = {
-    subtle: 'bg-gradient-to-br from-background via-background to-muted/20',
-    primary: 'bg-gradient-to-br from-primary/5 via-background to-background',
-    accent: 'bg-gradient-to-br from-accent/5 via-background to-background',
+const glassClasses = {
+    subtle: 'bg-background/40 border-border/50',
+    primary: 'bg-primary/5 border-primary/20',
+    accent: 'bg-accent/5 border-accent/20',
 };
 
 export function GradientCard({
@@ -42,20 +42,17 @@ export function GradientCard({
             })}
             onClick={onClick}
             className={cn(
-                'relative overflow-hidden rounded-lg border border-border/50 backdrop-blur-sm transition-colors duration-200',
-                gradientClasses[gradient],
-                interactive && 'cursor-pointer transition-shadow hover:shadow-lg',
+                'relative overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-300',
+                glassClasses[gradient],
+                interactive && 'cursor-pointer hover:shadow-2xl hover:shadow-foreground/5',
                 className
             )}
         >
-            {/* Glass effect overlay */}
-            <div className="absolute inset-0 bg-card/50 backdrop-blur-sm" />
+            {/* Glossy overlay effect */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent dark:from-white/2" />
 
             {/* Content */}
-            <div className="relative">{children}</div>
-
-            {/* Subtle gradient overlay */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-white/10" />
+            <div className="relative z-10">{children}</div>
         </Component>
     );
 }

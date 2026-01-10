@@ -80,11 +80,11 @@ export function EntitySearchFilterBar({
       variants={fadeInUp}
       initial="hidden"
       animate="visible"
-      className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
+      className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-accent/5 backdrop-blur-md p-4 rounded-2xl border border-border/10"
     >
       {/* Left: Search Bar */}
       <div className="relative flex-1 lg:max-w-md">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2">
+        <div className="absolute left-3.5 top-1/2 -translate-y-1/2">
           <AnimatePresence mode="wait">
             {isSearching ? (
               <motion.div
@@ -93,7 +93,7 @@ export function EntitySearchFilterBar({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
               >
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <Loader2 className="h-4 w-4 animate-spin text-primary/60" />
               </motion.div>
             ) : (
               <motion.div
@@ -102,7 +102,7 @@ export function EntitySearchFilterBar({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
               >
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-4 w-4 text-muted-foreground/60" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -113,7 +113,7 @@ export function EntitySearchFilterBar({
           placeholder={searchPlaceholder || defaultSearchPlaceholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="h-11 pl-10 pr-10 transition-all focus:ring-2 focus:ring-primary/20"
+          className="h-11 pl-11 pr-10 bg-background/50 border-border/50 rounded-xl transition-all focus:ring-2 focus:ring-primary/10 hover:bg-background/80"
           aria-label={`Search ${entityType}s`}
         />
 
@@ -123,13 +123,13 @@ export function EntitySearchFilterBar({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="absolute right-1 top-1/2 -translate-y-1/2"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2"
             >
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-md hover:bg-muted"
+                className="h-8 w-8 rounded-lg hover:bg-muted"
                 onClick={clearSearch}
                 aria-label="Clear search"
               >
@@ -150,11 +150,11 @@ export function EntitySearchFilterBar({
               setFilter('status', value === 'all' ? undefined : value)
             }
           >
-            <SelectTrigger className="h-11 w-[140px]">
-              <SelectValue placeholder="All statuses" />
+            <SelectTrigger className="h-11 w-[150px] bg-background/50 border-border/50 rounded-xl hover:bg-background/80 transition-all">
+              <SelectValue placeholder="All Status" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
+            <SelectContent className="rounded-xl border-border/50">
+              <SelectItem value="all">All Status</SelectItem>
               {statusOptions ? (
                 statusOptions.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
@@ -179,10 +179,10 @@ export function EntitySearchFilterBar({
               setFilter('hasOutstanding', value === 'true' ? true : undefined)
             }
           >
-            <SelectTrigger className="h-11 w-[180px]">
-              <SelectValue placeholder={`All ${entityType}s`} />
+            <SelectTrigger className="h-11 w-[190px] bg-background/50 border-border/50 rounded-xl hover:bg-background/80 transition-all">
+              <SelectValue placeholder="All Entities" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl border-border/50">
               <SelectItem value="all">All {entityType}s</SelectItem>
               <SelectItem value="true">{outstandingFilterLabel || defaultOutstandingLabel}</SelectItem>
             </SelectContent>
@@ -191,13 +191,13 @@ export function EntitySearchFilterBar({
       </div>
 
       {/* Right: View Toggle & Add Button */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <ViewToggle view={viewMode} onViewChange={handleViewChange} />
 
         <Button
           asChild
           size="default"
-          className="h-11 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+          className="h-11 rounded-xl px-5 font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all"
         >
           <Link href={addNewPath}>
             <AddNewIcon className="mr-2 h-5 w-5" />

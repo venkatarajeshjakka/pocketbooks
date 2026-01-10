@@ -19,6 +19,7 @@ interface PaymentListProps {
     search: string;
     transactionType: string;
     partyType: string;
+    view?: 'grid' | 'table';
 }
 
 function getTransactionTypeStyles(type: TransactionType) {
@@ -79,7 +80,7 @@ function getPaymentMethodIcon(method: PaymentMethod) {
     }
 }
 
-export function PaymentList({ page, search, transactionType, partyType }: PaymentListProps) {
+export function PaymentList({ page, search, transactionType, partyType, view }: PaymentListProps) {
     const { data, isLoading, error } = usePayments({
         page,
         search,
@@ -223,7 +224,7 @@ export function PaymentList({ page, search, transactionType, partyType }: Paymen
         <EntityListContainer
             entityType="payment"
             entities={payments}
-            initialView="table"
+            initialView={view || 'table'}
             basePath="/payments"
             onDelete={async () => { }} // Payments usually shouldn't be deleted easily
             columns={columns}

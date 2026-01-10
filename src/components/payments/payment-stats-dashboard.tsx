@@ -1,121 +1,104 @@
 /**
- * Payment Stats Dashboard Component
+ * PaymentStatsDashboard Component
+ * Server Component that displays aggregated payment metrics
+ * Synchronized with AssetStatsDashboard design
  */
 
-'use client';
+import { StatCard } from '@/components/shared/stats/stat-card';
+import Payment from '@/models/Payment';
+import { connectToDatabase } from '@/lib/api-helpers';
 
-import { usePaymentStats } from '@/lib/hooks/use-payments';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { IndianRupee, TrendingUp, CreditCard, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+export async function PaymentStatsDashboard() {
+    try {
+        await connectToDatabase();
 
-export function PaymentStatsDashboard() {
-    const { data: stats, isLoading } = usePaymentStats();
+        // Aggregations to get useful statistics (matching API logic)
+        const statsResult = await Payment.aggregate([
+            {
+                $facet: {
+                    totalStats: [
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: { $sum: '$amount' },
+                                totalCount: { $sum: 1 },
+                                avgAmount: { $avg: '$amount' }
+                            }
+                        }
+                    ],
+                    byTransactionType: [
+                        {
+                            $group: {
+                                _id: '$transactionType',
+                                totalAmount: { $sum: '$amount' },
+                                count: { $sum: 1 }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
 
-    if (isLoading) {
-        return <StatsSkeleton />;
+        const result = statsResult[0];
+        const totalAmount = result.totalStats[0]?.totalAmount || 0;
+        const totalCount = result.totalStats[0]?.totalCount || 0;
+        const avgAmount = result.totalStats[0]?.avgAmount || 0;
+
+        const byType = result.byTransactionType.reduce((acc: any, item: any) => {
+            acc[item._id] = { amount: item.totalAmount, count: item.count };
+            return acc;
+        }, {});
+
+        const incomeAmount = byType?.income?.amount || 0;
+        const expenseAmount = byType?.expense?.amount || 0;
+        const purchaseAmount = byType?.purchase?.amount || 0;
+        const outflowAmount = expenseAmount + purchaseAmount;
+
+        return (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                    title="Total Volume"
+                    value={`₹${totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                    subtitle={`${totalCount} Total transactions`}
+                    icon="IndianRupee"
+                    gradient="primary"
+                    delay={0}
+                />
+                <StatCard
+                    title="Total Income"
+                    value={`₹${incomeAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                    subtitle="Revenue & Sales"
+                    icon="TrendingUp"
+                    gradient="success"
+                    delay={0.1}
+                />
+                <StatCard
+                    title="Total Expenses"
+                    value={`₹${outflowAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                    subtitle="Exp. & Purchases"
+                    icon="CreditCard"
+                    gradient="secondary"
+                    delay={0.2}
+                />
+                <StatCard
+                    title="Avg. Transaction"
+                    value={`₹${avgAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                    subtitle="Per single record"
+                    icon="PiggyBank"
+                    gradient="warning"
+                    delay={0.3}
+                />
+            </div>
+        );
+    } catch (error) {
+        console.error('Failed to load payment stats:', error);
+        return (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard title="Total Volume" value="₹0" icon="IndianRupee" gradient="primary" />
+                <StatCard title="Total Income" value="₹0" icon="TrendingUp" gradient="success" />
+                <StatCard title="Total Expenses" value="₹0" icon="CreditCard" gradient="secondary" />
+                <StatCard title="Avg. Transaction" value="₹0" icon="PiggyBank" gradient="warning" />
+            </div>
+        );
     }
-
-    if (!stats) {
-        return null;
-    }
-
-    const { totalAmount, totalCount, byTransactionType } = stats;
-
-    // Calculate percentages or defaults
-    const incomeAmount = byTransactionType?.income?.amount || 0;
-    const expenseAmount = byTransactionType?.expense?.amount || 0;
-    const purchaseAmount = byTransactionType?.purchase?.amount || 0;
-
-    // Total outflow (expense + purchase)
-    const outflowAmount = expenseAmount + purchaseAmount;
-
-    return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <StatsCard
-                title="Total Volume"
-                value={totalAmount}
-                icon={IndianRupee}
-                description={`${totalCount} transactions`}
-                trend="neutral"
-            />
-            <StatsCard
-                title="Total Income"
-                value={incomeAmount}
-                icon={TrendingUp}
-                description="Revenue & Sales"
-                trend="up"
-                className="text-success"
-            />
-            <StatsCard
-                title="Total Expenses"
-                value={outflowAmount}
-                icon={ArrowDownRight}
-                description="Expenses & Purchases"
-                trend="down"
-                className="text-destructive"
-            />
-            <StatsCard
-                title="Avg. Transaction"
-                value={stats.avgAmount || 0}
-                icon={CreditCard}
-                description="Per transaction"
-                trend="neutral"
-            />
-        </div>
-    );
-}
-
-function StatsCard({
-    title,
-    value,
-    icon: Icon,
-    description,
-    trend,
-    className
-}: {
-    title: string;
-    value: number;
-    icon: any;
-    description: string;
-    trend: 'up' | 'down' | 'neutral';
-    className?: string;
-}) {
-    return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                    {title}
-                </CardTitle>
-                <Icon className={`h-4 w-4 text-muted-foreground ${className}`} />
-            </CardHeader>
-            <CardContent>
-                <div className={`text-2xl font-bold ${className}`}>
-                    ₹{value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                    {description}
-                </p>
-            </CardContent>
-        </Card>
-    );
-}
-
-function StatsSkeleton() {
-    return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <Skeleton className="h-4 w-[100px]" />
-                        <Skeleton className="h-4 w-4 rounded-full" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-8 w-[120px] mb-2" />
-                        <Skeleton className="h-3 w-[80px]" />
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
-    );
 }

@@ -37,17 +37,17 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   return (
     <div className="flex flex-1 flex-col gap-6 md:gap-8">
       {/* Page Header */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 ring-1 ring-primary/20">
-            <Users className="h-6 w-6 text-primary" />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 text-primary border border-primary/20 backdrop-blur-md shadow-lg shadow-primary/5">
+            <Users className="h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Clients
+            <h1 className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
+              Client Studio
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your clients and customer relationships
+            <p className="text-sm font-medium text-muted-foreground/60">
+              Strategic customer relationship management
             </p>
           </div>
         </div>

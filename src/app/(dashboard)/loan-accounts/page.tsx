@@ -4,7 +4,7 @@
  */
 
 import { Suspense } from 'react';
-import { Landmark } from 'lucide-react';
+import { PiggyBank } from 'lucide-react';
 import { LoanAccountList } from '@/components/loans/loan-account-list';
 import { EntitySearchFilterBar } from '@/components/shared/entity/entity-search-filter-bar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,17 +31,17 @@ export default async function LoanAccountsPage({ searchParams }: LoanAccountsPag
     return (
         <div className="flex flex-1 flex-col gap-6 md:gap-8">
             {/* Page Header */}
-            <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/10 ring-1 ring-indigo-500/20 shadow-lg shadow-indigo-500/10">
-                        <Landmark className="h-6 w-6 text-indigo-500" />
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/5 text-warning border border-warning/20 backdrop-blur-md shadow-lg shadow-warning/5">
+                        <PiggyBank className="h-7 w-7" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                            Loan Accounts
+                        <h1 className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
+                            Capital Management
                         </h1>
-                        <p className="text-sm text-muted-foreground font-medium">
-                            Track your business liabilities and interest outgo
+                        <p className="text-sm font-medium text-muted-foreground/60">
+                            Loan accounts, interest tracking, and capital oversight
                         </p>
                     </div>
                 </div>

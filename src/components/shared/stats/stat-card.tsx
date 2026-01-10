@@ -6,7 +6,18 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Users, UserCheck, UserX, IndianRupee, Package, CheckCircle, TrendingUp, Monitor } from 'lucide-react';
+import {
+    Users,
+    UserCheck,
+    UserX,
+    IndianRupee,
+    Package,
+    CheckCircle,
+    TrendingUp,
+    Monitor,
+    CreditCard,
+    PiggyBank
+} from 'lucide-react';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +25,7 @@ export interface StatCardProps {
     title: string;
     value: string | number;
     subtitle?: string;
-    icon: 'Users' | 'UserCheck' | 'UserX' | 'IndianRupee' | 'Package' | 'CheckCircle' | 'TrendingUp' | 'Monitor';
+    icon: 'Users' | 'UserCheck' | 'UserX' | 'IndianRupee' | 'Package' | 'CheckCircle' | 'TrendingUp' | 'Monitor' | 'CreditCard' | 'PiggyBank';
     trend?: {
         value: number;
         isPositive: boolean;
@@ -23,18 +34,11 @@ export interface StatCardProps {
     delay?: number;
 }
 
-const gradientClasses = {
-    primary: 'from-primary/20 via-primary/10 to-transparent',
-    secondary: 'from-secondary/30 via-secondary/15 to-transparent',
-    warning: 'from-warning/30 via-warning/15 to-transparent',
-    success: 'from-success/20 via-success/10 to-transparent',
-};
-
-const iconBgClasses = {
-    primary: 'bg-primary/15 text-primary',
-    secondary: 'bg-secondary/15 text-secondary',
-    warning: 'bg-warning/15 text-warning',
-    success: 'bg-success/15 text-success',
+const iconAccentClasses = {
+    primary: 'text-primary bg-primary/10 border-primary/20',
+    secondary: 'text-secondary bg-secondary/10 border-secondary/20',
+    warning: 'text-warning bg-warning/10 border-warning/20',
+    success: 'text-success bg-success/10 border-success/20',
 };
 
 const iconMap = {
@@ -46,6 +50,8 @@ const iconMap = {
     CheckCircle,
     TrendingUp,
     Monitor,
+    CreditCard,
+    PiggyBank,
 };
 
 export function StatCard({
@@ -64,65 +70,46 @@ export function StatCard({
             initial="hidden"
             animate="visible"
             transition={{ delay }}
-            className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-200 hover:border-border hover:shadow-lg"
+            className="group relative overflow-hidden rounded-2xl border border-border/50 bg-background/40 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl hover:shadow-foreground/5"
         >
-            {/* Gradient Background */}
-            <div
-                className={cn(
-                    'absolute inset-0 bg-gradient-to-br opacity-50 transition-opacity group-hover:opacity-100',
-                    gradientClasses[gradient]
-                )}
-            />
-
             {/* Content */}
-            <div className="relative p-6">
+            <div className="relative p-6 px-7">
                 <div className="flex items-start justify-between">
                     <div className="flex-1">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">{title}</p>
-                        <div className="mt-3 flex items-baseline gap-2">
-                            <h3 className="text-4xl font-extrabold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">{value}</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{title}</p>
+                        <div className="mt-4 flex items-baseline gap-2">
+                            <h3 className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
+                                {value}
+                            </h3>
                             {trend && (
-                                <span
+                                <div
                                     className={cn(
-                                        'text-sm font-bold',
-                                        trend.isPositive ? 'text-success' : 'text-destructive'
+                                        'flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider',
+                                        trend.isPositive ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
                                     )}
                                 >
-                                    {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
-                                </span>
+                                    <span>{trend.isPositive ? '↑' : '↓'}</span>
+                                    <span>{Math.abs(trend.value)}%</span>
+                                </div>
                             )}
                         </div>
-                        {subtitle && <p className="mt-2 text-xs font-medium text-muted-foreground/70">{subtitle}</p>}
+                        {subtitle && <p className="mt-2 text-xs font-semibold text-muted-foreground/40">{subtitle}</p>}
                     </div>
 
-                    {/* Icon */}
+                    {/* Icon Container */}
                     <div
                         className={cn(
-                            'flex h-14 w-14 items-center justify-center rounded-xl shadow-lg transition-all group-hover:scale-110 group-hover:shadow-xl',
-                            iconBgClasses[gradient]
+                            'flex h-12 w-12 items-center justify-center rounded-xl border transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm',
+                            iconAccentClasses[gradient]
                         )}
                     >
-                        <Icon className="h-7 w-7" />
+                        <Icon className="h-6 w-6" />
                     </div>
                 </div>
             </div>
 
-            {/* Shine effect on hover */}
-            <motion.div
-                className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
-                style={{
-                    background:
-                        'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
-                }}
-                animate={{
-                    x: ['-100%', '200%'],
-                }}
-                transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatDelay: 1,
-                }}
-            />
+            {/* Subtle Inner Glow */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent dark:from-white/2" />
         </motion.div>
     );
 }
