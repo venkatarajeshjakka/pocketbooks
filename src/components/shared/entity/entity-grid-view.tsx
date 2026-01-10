@@ -69,7 +69,7 @@ export function EntityGridView<T extends EntityType>({
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         {entities.map((entity) => {
           const entityId = entity._id.toString();
@@ -82,32 +82,30 @@ export function EntityGridView<T extends EntityType>({
           return (
             <motion.div key={entityId} variants={fadeInUp} className="relative">
               <GradientCard
+                interactive
                 className={cn(
-                  "group h-full transition-all duration-300",
-                  isSelected &&
-                  "ring-2 ring-primary ring-offset-4 ring-offset-background"
+                  "group h-full border-border/40 bg-card/40 backdrop-blur-xl transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5",
+                  isSelected && "ring-2 ring-primary ring-offset-4 ring-offset-background"
                 )}
               >
                 <div className="p-6">
                   {/* Header with selection and actions */}
-                  <div className="mb-5 flex items-start justify-between">
+                  <div className="mb-6 flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       {onToggleSelection && (
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => onToggleSelection(entityId)}
-                          aria-label={`Select ${(entity as any).name || (entity as any).notes || 'Payment'}`}
-                          className="h-5 w-5 rounded-md border-muted-foreground/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-200"
+                          className="h-5 w-5 rounded-md border-muted-foreground/30 data-[state=checked]:bg-primary transition-all duration-300"
                         />
                       )}
                       {!renderCardContent && (
                         <Badge
-                          variant="secondary"
                           className={cn(
-                            "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md transition-all duration-300",
+                            "text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border-0",
                             (entity as any).status === "active"
-                              ? "bg-success/10 text-success border-success/20 group-hover:bg-success/20"
-                              : "bg-muted/50 text-muted-foreground border-border/50"
+                              ? "bg-success/10 text-success shadow-[0_0_12px_-2px_rgba(34,197,94,0.3)]"
+                              : "bg-muted text-muted-foreground"
                           )}
                         >
                           {(entity as any).status}
@@ -115,79 +113,91 @@ export function EntityGridView<T extends EntityType>({
                       )}
                     </div>
 
-                    {onDelete && (
-                      <EntityActionsMenu
-                        entityId={entityId}
-                        entityType={entityType}
-                        basePath={basePath}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                      />
-                    )}
+                    <EntityActionsMenu
+                      entityId={entityId}
+                      entityType={entityType}
+                      basePath={basePath}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
                   </div>
 
                   {renderCardContent ? (
                     renderCardContent(entity)
                   ) : (
                     <>
-                      {/* Entity Name and Info */}
+                      {/* Name and Basic Info */}
                       <Link
                         href={`${basePath}/${entityId}`}
-                        className="group/link block mb-4"
+                        className="group/link block mb-5"
                       >
-                        <h3 className="text-xl font-bold tracking-tight text-foreground transition-colors group-hover/link:text-primary mb-1">
-                          {(entity as any).name || (entity as any).notes || 'Payment'}
-                        </h3>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xs ring-1 ring-primary/20 group-hover/link:scale-110 transition-transform">
+                            {((entity as any).name?.[0] || 'E').toUpperCase()}
+                          </div>
+                          <h3 className="text-lg font-bold tracking-tight text-foreground transition-all duration-300 group-hover/link:text-primary">
+                            {(entity as any).name || (entity as any).notes || 'Payment'}
+                          </h3>
+                        </div>
                         {(entity as any).contactPerson && (
-                          <p className="text-xs font-medium text-muted-foreground/60 transition-colors group-hover/link:text-muted-foreground">
+                          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.1em] ml-13">
                             {(entity as any).contactPerson}
                           </p>
                         )}
                       </Link>
 
-                      <div className="space-y-3 mb-6">
+                      {/* Contact Channels */}
+                      <div className="space-y-3 mb-8">
                         {(entity as any).email && (
-                          <div className="flex items-center gap-2.5 text-muted-foreground/70">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/50">
-                              <Mail className="h-3.5 w-3.5" />
-                            </div>
-                            <span className="text-xs font-semibold truncate">{(entity as any).email}</span>
+                          <div className="flex items-center gap-3 text-muted-foreground/80 group-hover:text-foreground/90 transition-colors">
+                            <Mail className="h-3.5 w-3.5 text-primary/40" />
+                            <span className="text-xs font-medium truncate">{(entity as any).email}</span>
+                          </div>
+                        )}
+                        {(entity as any).phone && (
+                          <div className="flex items-center gap-3 text-muted-foreground/80 group-hover:text-foreground/90 transition-colors">
+                            <Phone className="h-3.5 w-3.5 text-primary/40" />
+                            <span className="text-xs font-medium truncate">{(entity as any).phone}</span>
                           </div>
                         )}
                       </div>
 
-                      {/* Balance section for Client/Vendor */}
+                      {/* Financial Status */}
                       {(isClient(entity) || isVendor(entity)) && (
-                        <div className="mt-auto flex items-end justify-between border-t border-border/10 pt-5">
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                              {balanceLabel}
-                            </span>
-                            <div className="flex items-center text-foreground/90">
-                              <span className="text-sm font-bold opacity-60 mr-0.5">{'\u20B9'}</span>
-                              <span className={cn(
-                                "text-lg font-black tracking-tight",
-                                balance > 0
-                                  ? entityType === 'client' ? "text-warning" : "text-destructive"
-                                  : "text-success"
-                              )}>
-                                {balance.toLocaleString("en-IN")}
+                        <div className="mt-auto pt-5 border-t border-border/10">
+                          <div className="flex items-end justify-between">
+                            <div className="space-y-1">
+                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">
+                                {balanceLabel}
                               </span>
+                              <div className="flex items-baseline text-foreground">
+                                <span className="text-xs font-black opacity-40 mr-1">₹</span>
+                                <span className={cn(
+                                  "text-2xl font-black tracking-tighter",
+                                  balance > 0
+                                    ? entityType === 'client' ? "text-warning" : "text-destructive"
+                                    : "text-success"
+                                )}>
+                                  {balance.toLocaleString("en-IN")}
+                                </span>
+                              </div>
                             </div>
+                            <div className={cn(
+                              "h-1.5 w-1.5 rounded-full animate-pulse",
+                              balance > 0 ? "bg-warning" : "bg-success"
+                            )} />
                           </div>
-
-                          <div className="h-2 w-2 rounded-full bg-primary/20" />
                         </div>
                       )}
                     </>
                   )}
+                </div>
 
-                  {/* Last Updated */}
-                  <div className="mt-4 flex items-center justify-between">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">
-                      Sync {formatDistanceToNow(new Date(entity.updatedAt), { addSuffix: true })}
-                    </p>
-                  </div>
+                {/* Footer Sync Status */}
+                <div className="px-6 py-3 bg-muted/20 border-t border-border/5">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/30">
+                    Sync • {formatDistanceToNow(new Date(entity.updatedAt), { addSuffix: true })}
+                  </p>
                 </div>
               </GradientCard>
             </motion.div>

@@ -8,10 +8,14 @@ import {
   CreditCard,
   PiggyBank,
   AlertCircle,
-  Package
+  Package,
+  Search,
+  Building2,
+  HandCoins
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 export default function DashboardPage() {
   // Mock data - replace with actual data fetching
@@ -24,6 +28,10 @@ export default function DashboardPage() {
     arChange: -5.2,
     apChange: 8.3,
     profitChange: 15.8,
+    totalAssets: 1250000.0,
+    outstandingLoans: 450000.0,
+    assetsChange: 4.2,
+    loansChange: -2.1,
   };
 
   const recentSales = [
@@ -74,11 +82,20 @@ export default function DashboardPage() {
             Real-time business intelligence and operations overview
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" className="h-9 rounded-xl px-4 font-bold shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            Generate Report
-          </Button>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
+            <Input
+              placeholder="Search everything..."
+              className="h-9 rounded-xl pl-9 pr-4 font-medium transition-all focus:ring-primary/20"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" className="h-9 rounded-xl px-4 font-bold shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Generate Report
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -115,6 +132,22 @@ export default function DashboardPage() {
           icon="PiggyBank"
           gradient="success"
           delay={0.4}
+        />
+        <StatCard
+          title="Total Assets"
+          value={`\u20B9${metrics.totalAssets.toLocaleString()}`}
+          trend={{ value: metrics.assetsChange, isPositive: true }}
+          icon="Monitor"
+          gradient="primary"
+          delay={0.5}
+        />
+        <StatCard
+          title="Outstanding Loans"
+          value={`\u20B9${metrics.outstandingLoans.toLocaleString()}`}
+          trend={{ value: Math.abs(metrics.loansChange), isPositive: false }}
+          icon="CreditCard"
+          gradient="warning"
+          delay={0.6}
         />
       </div>
 

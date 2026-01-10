@@ -79,36 +79,36 @@ export function EntityTableView<T extends EntityType>({
         variants={fadeInUp}
         initial="hidden"
         animate="visible"
-        className="overflow-hidden rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm"
+        className="overflow-hidden rounded-2xl border border-border/40 bg-card/40 backdrop-blur-xl shadow-xl shadow-foreground/5"
       >
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-12">
+              <TableRow className="hover:bg-transparent border-b border-border/20 bg-muted/20">
+                <TableHead className="w-12 px-6">
                   {onToggleAll && (
                     <Checkbox
                       checked={isAllSelected}
                       onCheckedChange={onToggleAll}
-                      aria-label={`Select all ${entityType}s`}
+                      className="rounded-md border-muted-foreground/30"
                     />
                   )}
                 </TableHead>
                 {columns ? (
                   columns.map((col, i) => (
-                    <TableHead key={i} className={i === columns.length - 1 ? "text-right" : ""}>{col.header}</TableHead>
+                    <TableHead key={i} className={cn("text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 py-5", i === columns.length - 1 ? "text-right" : "")}>
+                      {col.header}
+                    </TableHead>
                   ))
                 ) : (
                   <>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="hidden md:table-cell">Email</TableHead>
-                    <TableHead className="hidden lg:table-cell">Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">{balanceLabel}</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 py-5">Name</TableHead>
+                    <TableHead className="hidden md:table-cell text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 py-5">Contact Details</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 py-5">Status</TableHead>
+                    <TableHead className="text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 py-5 px-6">{balanceLabel}</TableHead>
                   </>
                 )}
-                {onEdit && <TableHead className="hidden xl:table-cell">Last Updated</TableHead>}
-                <TableHead className="w-12"></TableHead>
+                <TableHead className="w-12 px-6"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -128,86 +128,86 @@ export function EntityTableView<T extends EntityType>({
                     initial="hidden"
                     animate="visible"
                     className={cn(
-                      "group border-b border-border/50 transition-colors hover:bg-muted/30",
+                      "group border-b border-border/10 transition-all duration-300 hover:bg-muted/30",
                       isSelected && "bg-primary/5"
                     )}
                   >
-                    {/* Selection Checkbox */}
-                    <TableCell>
+                    <TableCell className="px-6">
                       {onToggleSelection && (
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => onToggleSelection(entityId)}
-                          aria-label={`Select ${(entity as any).name || (entity as any).notes || 'Payment'}`}
+                          className="rounded-md border-muted-foreground/30 data-[state=checked]:bg-primary"
                         />
                       )}
                     </TableCell>
 
                     {columns ? (
                       columns.map((col, i) => (
-                        <TableCell key={i} className={i === columns.length - 1 ? "text-right" : ""}>
+                        <TableCell key={i} className={cn("py-4", i === columns.length - 1 ? "text-right" : "")}>
                           {col.cell ? col.cell(entity) : (entity as any)[col.accessorKey || ""]}
                         </TableCell>
                       ))
                     ) : (
                       <>
-                        {/* Default view */}
-                        <TableCell>
+                        <TableCell className="py-4">
                           <Link
                             href={`${basePath}/${entityId}`}
-                            className="flex items-center gap-3 transition-colors hover:text-primary"
+                            className="flex items-center gap-3 transition-colors hover:text-primary group/link"
                           >
+                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xs ring-1 ring-primary/20 group-hover/link:scale-110 transition-transform">
+                              {((entity as any).name?.[0] || 'E').toUpperCase()}
+                            </div>
                             <div>
-                              <div className="font-medium">{(entity as any).name || (entity as any).notes || 'Payment'}</div>
+                              <div className="font-bold tracking-tight text-foreground/90">{(entity as any).name || (entity as any).notes || 'Payment'}</div>
                               {(entity as any).contactPerson && (
-                                <div className="text-sm text-muted-foreground">
+                                <div className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-0.5">
                                   {(entity as any).contactPerson}
                                 </div>
                               )}
                             </div>
                           </Link>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">{(entity as any).email || "-"}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{(entity as any).phone || "-"}</TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell py-4">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-medium text-muted-foreground/80">{(entity as any).email || "-"}</span>
+                            <span className="text-[10px] font-bold text-muted-foreground/40">{(entity as any).phone || "-"}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
                           <Badge
-                            variant={(entity as any).status === "active" ? "default" : "secondary"}
                             className={cn(
-                              "text-xs capitalize transition-colors duration-200",
+                              "text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border-0",
                               (entity as any).status === "active"
-                                ? "bg-success/10 text-success hover:bg-success/20 border-success/20"
-                                : "bg-muted text-muted-foreground hover:bg-muted/80 border-border"
+                                ? "bg-success/10 text-success shadow-[0_0_12px_-2px_rgba(34,197,94,0.3)]"
+                                : "bg-muted text-muted-foreground"
                             )}
                           >
                             {(entity as any).status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-medium">₹{balance.toLocaleString("en-IN")}</TableCell>
+                        <TableCell className="text-right py-4 px-6">
+                          <div className="flex flex-col items-end">
+                            <span className={cn(
+                              "text-base font-black tracking-tighter",
+                              balance > 0 ? "text-foreground" : "text-success"
+                            )}>
+                              ₹{balance.toLocaleString("en-IN")}
+                            </span>
+                            <span className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-tight">Current</span>
+                          </div>
+                        </TableCell>
                       </>
                     )}
 
-                    {/* Last Updated */}
-                    {onEdit && (
-                      <TableCell className="hidden xl:table-cell">
-                        <span className="text-sm text-muted-foreground">
-                          {formatDistanceToNow(new Date(entity.updatedAt), {
-                            addSuffix: true,
-                          })}
-                        </span>
-                      </TableCell>
-                    )}
-
-                    {/* Actions */}
-                    <TableCell>
-                      {onDelete && (
-                        <EntityActionsMenu
-                          entityId={entityId}
-                          entityType={entityType}
-                          basePath={basePath}
-                          onEdit={onEdit}
-                          onDelete={onDelete}
-                        />
-                      )}
+                    <TableCell className="px-6">
+                      <EntityActionsMenu
+                        entityId={entityId}
+                        entityType={entityType}
+                        basePath={basePath}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                      />
                     </TableCell>
                   </motion.tr>
                 );
