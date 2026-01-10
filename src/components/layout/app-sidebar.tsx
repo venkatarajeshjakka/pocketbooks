@@ -109,9 +109,12 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
-    title: "Interest Payments",
-    url: "/interest-payments",
+    title: "Loans",
     icon: Landmark,
+    items: [
+      { title: "Loan Accounts", url: "/loan-accounts" },
+      { title: "Interest Payments", url: "/interest-payments" },
+    ],
   },
   {
     title: "Analytics",
@@ -158,27 +161,27 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r border-border/50 bg-background/60 backdrop-blur-xl">
+      <SidebarHeader className="border-b border-border/50 bg-transparent py-4">
         <SidebarMenuButton
           size="lg"
           asChild
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-colors duration-200"
+          className="transition-all duration-300 hover:bg-accent/50 data-[state=open]:bg-accent/50"
         >
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-sm transition-transform duration-200 hover:scale-105">
-              <TrendingUp className="size-4" />
+            <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 group-hover:scale-105">
+              <TrendingUp className="size-5" />
             </div>
-            <div className="flex flex-col gap-0.5 leading-none">
-              <span className="font-semibold text-sidebar-foreground">Pocket Books</span>
-              <span className="text-xs text-sidebar-foreground/70">Business Management</span>
+            <div className="flex flex-col gap-0.5 leading-none px-1">
+              <span className="font-bold tracking-tight text-foreground">Pocket Books</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">Business Studio</span>
             </div>
           </Link>
         </SidebarMenuButton>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-2 py-4">
         <SidebarGroup>
-          <SidebarMenu>
+          <SidebarMenu className="gap-1.5">
             {menuItems.map((item) =>
               item.items ? (
                 <Collapsible
@@ -191,22 +194,24 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         tooltip={item.title}
                         isActive={isMenuItemActive(item)}
+                        className="h-10 transition-all duration-200 hover:bg-accent/50 active:scale-[0.98]"
                       >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                        <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                        <item.icon className="h-4.5 w-4.5" />
+                        <span className="font-medium">{item.title}</span>
+                        <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-180" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <SidebarMenuSub>
+                      <SidebarMenuSub className="ml-4 border-l border-border/50 py-1.5 transition-all">
                         {item.items.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.title}>
                             <SidebarMenuSubButton
                               asChild
                               isActive={isSubItemActive(subItem.url)}
+                              className="h-8 transition-all duration-200 hover:bg-accent/40 active:scale-[0.98] data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                             >
                               <Link href={subItem.url}>
-                                <span>{subItem.title}</span>
+                                <span className="text-xs font-medium">{subItem.title}</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -221,10 +226,11 @@ export function AppSidebar() {
                     asChild
                     tooltip={item.title}
                     isActive={isMenuItemActive(item)}
+                    className="h-10 transition-all duration-200 hover:bg-accent/50 active:scale-[0.98] data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                   >
                     <Link href={item.url!}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <item.icon className="h-4.5 w-4.5" />
+                      <span className="font-medium">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -233,8 +239,11 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-4">
-        <p className="text-xs text-sidebar-foreground/60 transition-colors duration-200">Version 1.0.0</p>
+      <SidebarFooter className="border-t border-border/50 bg-transparent p-4">
+        <div className="flex items-center justify-between px-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Version 1.2.0</p>
+          <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 interface DeleteEntityDialogProps {
   entityId: string | string[];
   entityName: string;
-  entityType: 'client' | 'vendor' | 'asset';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
   open: boolean;
   basePath: string;
   onOpenChange: (open: boolean) => void;
@@ -41,7 +41,7 @@ export function DeleteEntityDialog({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const entityLabel = entityType === 'client' ? 'Client' : 'Vendor';
+  const entityLabel = entityType === 'client' ? 'Client' : entityType === 'vendor' ? 'Vendor' : entityType === 'asset' ? 'Asset' : entityType === 'loan' ? 'Loan Account' : entityType === 'interest-payment' ? 'Interest Payment' : 'Payment';
 
   const handleDelete = async () => {
     setIsDeleting(true);

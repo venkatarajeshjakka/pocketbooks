@@ -1,49 +1,18 @@
+import { StatCard } from "@/components/shared/stats/stat-card";
+import { GradientCard } from "@/components/shared/ui/gradient-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   CreditCard,
   PiggyBank,
   AlertCircle,
-  Package,
-  ArrowUpRight,
-  ArrowDownRight,
+  Package
 } from "lucide-react";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-/**
- * Business Tracker Dashboard Page
- *
- * This is the main landing page for Business Tracker users.
- * It provides an overview of key business metrics and recent activity.
- *
- * Features:
- * - Key metrics cards (Sales, AR, AP, Net Profit)
- * - Recent sales transactions table
- * - Pending payments requiring attention
- * - Low stock alerts for inventory management
- * - Quick action buttons for common tasks
- *
- * Metrics Displayed:
- * - Total Sales (current month)
- * - Pending Receivables (AR)
- * - Pending Payables (AP)
- * - Net Profit (current month)
- *
- * Accessibility:
- * - Semantic HTML structure
- * - Proper heading hierarchy
- * - ARIA labels for icon-only elements
- * - Color-coded indicators with text labels
- * - Keyboard accessible interactive elements
- */
 export default function DashboardPage() {
   // Mock data - replace with actual data fetching
   const metrics = {
@@ -62,232 +31,202 @@ export default function DashboardPage() {
       id: "S-001",
       client: "Acme Corporation",
       amount: 2500.0,
-      date: "2024-12-01",
+      date: "2 min ago",
       status: "Paid",
     },
     {
       id: "S-002",
       client: "TechStart Inc.",
       amount: 1850.0,
-      date: "2024-12-02",
+      date: "15 min ago",
       status: "Pending",
     },
     {
       id: "S-003",
       client: "Global Solutions",
       amount: 3200.0,
-      date: "2024-12-03",
+      date: "1 hour ago",
       status: "Paid",
     },
   ];
 
   const pendingPayments = [
-    { client: "Acme Corporation", amount: 2500.0, dueDate: "2024-12-10" },
-    { client: "TechStart Inc.", amount: 1850.0, dueDate: "2024-12-05" },
+    { client: "Acme Corporation", amount: 2500.0, dueDate: "Dec 10, 2024" },
+    { client: "TechStart Inc.", amount: 1850.0, dueDate: "Dec 05, 2024" },
+    { client: "Beta Labs", amount: 950.0, dueDate: "Dec 12, 2024" },
   ];
 
   const lowStockItems = [
     { name: "Raw Material A", quantity: 5, unit: "kg" },
     { name: "Trading Product B", quantity: 12, unit: "units" },
+    { name: "Packaging Box", quantity: 45, unit: "pcs" },
   ];
 
   return (
-    <div className="flex flex-1 flex-col gap-6">
+    <div className="flex flex-1 flex-col gap-8 p-1 sm:p-2">
       {/* Page Header */}
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
-          Overview of your business performance and activities
-        </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
+            Command Center
+          </h2>
+          <p className="text-sm font-medium text-muted-foreground/60">
+            Real-time business intelligence and operations overview
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" className="h-9 rounded-xl px-4 font-bold shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30">
+            <TrendingUp className="mr-2 h-4 w-4" />
+            Generate Report
+          </Button>
+        </div>
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Total Sales */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${metrics.totalSales.toLocaleString()}
-            </div>
-            <p className="flex items-center text-xs text-muted-foreground">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-primary" />
-              <span className="text-primary">+{metrics.salesChange}%</span>
-              <span className="ml-1">from last month</span>
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Pending Receivables */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pending Receivables
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${metrics.pendingReceivables.toLocaleString()}
-            </div>
-            <p className="flex items-center text-xs text-muted-foreground">
-              <ArrowDownRight className="mr-1 h-3 w-3 text-primary" />
-              <span className="text-primary">{metrics.arChange}%</span>
-              <span className="ml-1">from last month</span>
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Pending Payables */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pending Payables
-            </CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${metrics.pendingPayables.toLocaleString()}
-            </div>
-            <p className="flex items-center text-xs text-muted-foreground">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-accent-foreground" />
-              <span className="text-accent-foreground">+{metrics.apChange}%</span>
-              <span className="ml-1">from last month</span>
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Net Profit */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-            <PiggyBank className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${metrics.netProfit.toLocaleString()}
-            </div>
-            <p className="flex items-center text-xs text-muted-foreground">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-primary" />
-              <span className="text-primary">+{metrics.profitChange}%</span>
-              <span className="ml-1">from last month</span>
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Total Sales"
+          value={`\u20B9${metrics.totalSales.toLocaleString()}`}
+          trend={{ value: metrics.salesChange, isPositive: true }}
+          icon="TrendingUp"
+          gradient="primary"
+          delay={0.1}
+        />
+        <StatCard
+          title="Pending Receivables"
+          value={`\u20B9${metrics.pendingReceivables.toLocaleString()}`}
+          trend={{ value: Math.abs(metrics.arChange), isPositive: false }}
+          icon="IndianRupee"
+          gradient="warning"
+          delay={0.2}
+        />
+        <StatCard
+          title="Pending Payables"
+          value={`\u20B9${metrics.pendingPayables.toLocaleString()}`}
+          trend={{ value: metrics.apChange, isPositive: false }}
+          icon="CreditCard"
+          gradient="secondary"
+          delay={0.3}
+        />
+        <StatCard
+          title="Net Profit"
+          value={`\u20B9${metrics.netProfit.toLocaleString()}`}
+          trend={{ value: metrics.profitChange, isPositive: true }}
+          icon="PiggyBank"
+          gradient="success"
+          delay={0.4}
+        />
       </div>
 
-      {/* Recent Activity Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Recent Sales */}
-        <Card className="col-span-full lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+      {/* Main Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Recent Sales Section */}
+        <GradientCard className="lg:col-span-2">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between border-b border-border/10 p-6 px-7">
               <div>
-                <CardTitle>Recent Sales</CardTitle>
-                <CardDescription>
-                  Latest sales transactions from the past week
-                </CardDescription>
+                <h3 className="text-lg font-bold tracking-tight">Recent Velocity</h3>
+                <p className="text-xs font-medium text-muted-foreground/50">Latest transactions in the last 24h</p>
               </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/sales">View All</Link>
+              <Button asChild variant="ghost" size="sm" className="rounded-xl font-bold text-primary hover:bg-primary/5">
+                <Link href="/sales">Explore All</Link>
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+
+            <div className="flex-1 space-y-1 p-4">
               {recentSales.map((sale) => (
                 <div
                   key={sale.id}
-                  className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
+                  className="group flex items-center justify-between rounded-xl px-4 py-3 transition-all hover:bg-accent/30"
                 >
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {sale.client}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {sale.id} • {sale.date}
-                    </p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/50 text-accent-foreground font-bold text-[10px]">
+                      {sale.id.split('-')[1]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold tracking-tight text-foreground/90">{sale.client}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">{sale.date}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
-                      ${sale.amount.toLocaleString()}
-                    </span>
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs transition-colors duration-200 ${
-                        sale.status === "Paid"
-                          ? "bg-primary/10 text-primary"
-                          : "bg-accent text-accent-foreground"
-                      }`}
-                    >
-                      {sale.status}
-                    </span>
+                  <div className="flex items-center gap-4 text-right">
+                    <div>
+                      <p className="text-sm font-black tracking-tight text-foreground">{`\u20B9`}{sale.amount.toLocaleString()}</p>
+                      <Badge variant="secondary" className={cn(
+                        "rounded-full px-2 py-0 text-[10px] font-black uppercase tracking-widest transition-all",
+                        sale.status === "Paid" ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning border-warning/20"
+                      )}>
+                        {sale.status}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GradientCard>
 
-        {/* Pending Payments */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-accent-foreground" />
-              Pending Payments
-            </CardTitle>
-            <CardDescription>Payments requiring attention</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendingPayments.map((payment, index) => (
-                <div key={index} className="space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {payment.client}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    ${payment.amount.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-accent-foreground">
-                    Due: {payment.dueDate}
-                  </p>
+        <div className="space-y-6">
+          {/* Pending Alerts */}
+          <GradientCard gradient="accent" className="h-fit">
+            <div className="p-6 px-7">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
+                    <AlertCircle className="h-4 w-4" />
+                  </div>
+                  <h3 className="font-bold tracking-tight">Urgent Payables</h3>
                 </div>
-              ))}
-              <Button asChild variant="outline" size="sm" className="w-full">
-                <Link href="/payments">View All Payments</Link>
+              </div>
+
+              <div className="space-y-4">
+                {pendingPayments.map((payment, index) => (
+                  <div key={index} className="flex items-start justify-between border-b border-border/10 pb-4 last:border-0 last:pb-0">
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-bold text-foreground/90">{payment.client}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/40">Due {payment.dueDate}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-black text-foreground">{`\u20B9`}{payment.amount.toLocaleString()}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Button asChild variant="outline" size="sm" className="mt-6 w-full rounded-xl font-bold border-border/50 hover:bg-accent/50">
+                <Link href="/payments">Operations Desk</Link>
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </GradientCard>
 
-        {/* Low Stock Alerts */}
-        <Card className="col-span-full lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-destructive" />
-              Low Stock Alerts
-            </CardTitle>
-            <CardDescription>Items requiring reorder</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {lowStockItems.map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <p className="text-sm font-medium">{item.name}</p>
-                  <span className="rounded-full bg-destructive/10 px-2 py-1 text-xs text-destructive transition-colors duration-200">
-                    {item.quantity} {item.unit}
-                  </span>
+          {/* Logistics Health */}
+          <GradientCard gradient="subtle" className="h-fit">
+            <div className="p-6 px-7">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                    <Package className="h-4 w-4" />
+                  </div>
+                  <h3 className="font-bold tracking-tight">Stock Warnings</h3>
                 </div>
-              ))}
-              <Button asChild variant="outline" size="sm" className="w-full">
-                <Link href="/inventory/raw-materials">View Inventory</Link>
+              </div>
+
+              <div className="space-y-4">
+                {lowStockItems.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-foreground/80">{item.name}</p>
+                    <Badge variant="destructive" className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-widest bg-destructive/10 text-destructive border-destructive/20">
+                      {item.quantity} {item.unit}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+
+              <Button asChild variant="ghost" size="sm" className="mt-6 w-full rounded-xl font-bold hover:bg-destructive/5 hover:text-destructive transition-all">
+                <Link href="/inventory/raw-materials">Manage Logistics</Link>
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </GradientCard>
+        </div>
       </div>
     </div>
   );

@@ -56,6 +56,45 @@ const AssetSchema = new Schema<IAsset>(
             enum: Object.values(AssetStatus),
             default: AssetStatus.ACTIVE,
         },
+        gstEnabled: {
+            type: Boolean,
+            default: false,
+        },
+        gstPercentage: {
+            type: Number,
+            min: [0, 'GST percentage cannot be negative'],
+            default: 0,
+        },
+        gstAmount: {
+            type: Number,
+            min: [0, 'GST amount cannot be negative'],
+            default: 0,
+        },
+        paymentId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Payment',
+        },
+        paymentDetails: {
+            amount: Number,
+            paymentMethod: String,
+            paymentDate: Date,
+            notes: String,
+        },
+        paymentStatus: {
+            type: String,
+            enum: ['unpaid', 'partially_paid', 'fully_paid'],
+            default: 'unpaid',
+        },
+        totalPaid: {
+            type: Number,
+            default: 0,
+            min: [0, 'Total paid cannot be negative'],
+        },
+        remainingAmount: {
+            type: Number,
+            default: 0,
+            min: [0, 'Remaining amount cannot be negative'],
+        },
     },
     {
         timestamps: true,
@@ -69,6 +108,8 @@ AssetSchema.index({ name: 1 });
 AssetSchema.index({ category: 1 });
 AssetSchema.index({ status: 1 });
 AssetSchema.index({ vendorId: 1 });
+AssetSchema.index({ paymentStatus: 1 });
+AssetSchema.index({ purchaseDate: -1 });
 
 // Prevent model recompilation
 const Asset: Model<IAsset> =

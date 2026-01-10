@@ -430,10 +430,12 @@ export interface IPayment {
   transactionType: TransactionType;
   transactionId?: string;
   accountType: AccountType;
-  partyId: Types.ObjectId | string;
-  partyType: PartyType;
+  partyId?: Types.ObjectId | string;
+  partyType?: PartyType;
   saleId?: Types.ObjectId | string;
   procurementId?: Types.ObjectId | string;
+  assetId?: Types.ObjectId | string;
+  expenseId?: Types.ObjectId | string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -446,10 +448,12 @@ export interface IPaymentInput {
   transactionType: TransactionType;
   transactionId?: string;
   accountType: AccountType;
-  partyId: string;
-  partyType: PartyType;
+  partyId?: string;
+  partyType?: PartyType;
   saleId?: string;
   procurementId?: string;
+  assetId?: string;
+  expenseId?: string;
   notes?: string;
 }
 
@@ -466,6 +470,7 @@ export interface IExpense {
   paymentMethod: PaymentMethod;
   receiptNumber?: string;
   notes?: string;
+  paymentId?: Types.ObjectId | string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -496,6 +501,19 @@ export interface IAsset {
   location?: string;
   vendorId?: Types.ObjectId | string;
   status: AssetStatus;
+  gstEnabled?: boolean;
+  gstPercentage?: number;
+  gstAmount?: number;
+  paymentId?: Types.ObjectId | string;
+  paymentDetails?: {
+    amount: number;
+    paymentMethod: PaymentMethod;
+    paymentDate: Date;
+    notes?: string;
+  };
+  paymentStatus: 'unpaid' | 'partially_paid' | 'fully_paid';
+  totalPaid: number;
+  remainingAmount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -511,47 +529,57 @@ export interface IAssetInput {
   location?: string;
   vendorId?: string;
   status?: AssetStatus;
+  gstEnabled?: boolean;
+  gstPercentage?: number;
+  gstAmount?: number;
+  paymentDetails?: {
+    amount: number;
+    paymentMethod: PaymentMethod;
+    paymentDate: Date;
+    notes?: string;
+  };
+  paymentStatus?: 'unpaid' | 'partially_paid' | 'fully_paid';
 }
 
 // ============================================================================
-// ASSET PROCUREMENT ENTITY
+// LOAN ACCOUNT ENTITY
 // ============================================================================
 
-export interface IAssetProcurement {
+export enum LoanAccountStatus {
+  ACTIVE = 'active',
+  CLOSED = 'closed',
+  DEFAULTED = 'defaulted',
+}
+
+export interface ILoanAccount {
   _id: Types.ObjectId | string;
-  vendorId: Types.ObjectId | string;
-  procurementDate: Date;
-  items: {
-    assetName: string;
-    description?: string;
-    category: AssetCategory;
-    quantity: number;
-    unitPrice: number;
-    amount: number;
-  }[];
-  totalAmount: number;
-  gstAmount: number;
-  grandTotal: number;
-  status: ProcurementStatus;
-  invoiceNumber?: string;
+  bankName: string;
+  accountNumber: string;
+  loanType: string;
+  principalAmount: number;
+  interestRate: number;
+  startDate: Date;
+  endDate?: Date;
+  emiAmount?: number;
+  totalInterestPaid: number;
+  totalPrincipalPaid: number;
+  outstandingAmount: number;
+  status: LoanAccountStatus;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IAssetProcurementInput {
-  vendorId: string;
-  procurementDate: Date;
-  items: {
-    assetName: string;
-    description?: string;
-    category: AssetCategory;
-    quantity: number;
-    unitPrice: number;
-  }[];
-  gstAmount?: number;
-  status?: ProcurementStatus;
-  invoiceNumber?: string;
+export interface ILoanAccountInput {
+  bankName: string;
+  accountNumber: string;
+  loanType: string;
+  principalAmount: number;
+  interestRate: number;
+  startDate: Date;
+  endDate?: Date;
+  emiAmount?: number;
+  status?: LoanAccountStatus;
   notes?: string;
 }
 
@@ -561,22 +589,22 @@ export interface IAssetProcurementInput {
 
 export interface IInterestPayment {
   _id: Types.ObjectId | string;
+  loanAccountId: Types.ObjectId | string;
   date: Date;
-  bankName: string;
-  loanAccountNumber: string;
   principalAmount: number;
   interestAmount: number;
   totalAmount: number;
   paymentMethod: PaymentMethod;
+  expenseId?: Types.ObjectId | string;
+  paymentId?: Types.ObjectId | string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface IInterestPaymentInput {
+  loanAccountId: string;
   date: Date;
-  bankName: string;
-  loanAccountNumber: string;
   principalAmount: number;
   interestAmount: number;
   paymentMethod: PaymentMethod;
@@ -614,6 +642,10 @@ export interface QueryParams {
   sortOrder?: 'asc' | 'desc';
   startDate?: string;
   endDate?: string;
+  assetId?: string;
+  transactionType?: string;
+  partyType?: string;
+  loanAccountId?: string;
 }
 
 // ============================================================================

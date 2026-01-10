@@ -44,6 +44,11 @@ const ExpenseSchema = new Schema<IExpense>(
       trim: true,
       maxlength: [500, 'Notes cannot exceed 500 characters'],
     },
+    // Link to corresponding payment record
+    paymentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Payment',
+    },
   },
   {
     timestamps: true,

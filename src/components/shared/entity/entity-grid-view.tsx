@@ -8,7 +8,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Mail, Phone, MapPin, IndianRupee } from "lucide-react";
-import { IClient, IVendor, IAsset } from "@/types";
+import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment } from "@/types";
 import { GradientCard } from "@/components/shared/ui/gradient-card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,11 +28,11 @@ import { staggerContainer, fadeInUp } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
 import { EntityActionsMenu } from "./entity-actions-menu";
 
-export type EntityType = IClient | IVendor | IAsset;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment;
 
 export interface EntityGridViewProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
   selectedEntities?: Set<string>;
   onToggleSelection?: (id: string) => void;
   onEdit?: (id: string) => void;
@@ -83,41 +83,39 @@ export function EntityGridView<T extends EntityType>({
             <motion.div key={entityId} variants={fadeInUp} className="relative">
               <GradientCard
                 className={cn(
-                  "group transition-all hover:shadow-xl",
+                  "group h-full transition-all duration-300",
                   isSelected &&
-                  "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                  "ring-2 ring-primary ring-offset-4 ring-offset-background"
                 )}
               >
-                <div className="p-5">
+                <div className="p-6">
                   {/* Header with selection and actions */}
-                  <div className="mb-4 flex items-start justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="mb-5 flex items-start justify-between">
+                    <div className="flex items-center gap-3">
                       {onToggleSelection && (
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => onToggleSelection(entityId)}
-                          aria-label={`Select ${entity.name}`}
-                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          aria-label={`Select ${(entity as any).name || (entity as any).notes || 'Payment'}`}
+                          className="h-5 w-5 rounded-md border-muted-foreground/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-200"
                         />
                       )}
                       {!renderCardContent && (
                         <Badge
-                          variant={
-                            entity.status === "active" ? "default" : "secondary"
-                          }
+                          variant="secondary"
                           className={cn(
-                            "text-xs capitalize transition-colors duration-200",
-                            entity.status === "active"
-                              ? "bg-success/10 text-success hover:bg-success/20 border-success/20"
-                              : "bg-muted text-muted-foreground hover:bg-muted/80 border-border"
+                            "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md transition-all duration-300",
+                            (entity as any).status === "active"
+                              ? "bg-success/10 text-success border-success/20 group-hover:bg-success/20"
+                              : "bg-muted/50 text-muted-foreground border-border/50"
                           )}
                         >
-                          {entity.status}
+                          {(entity as any).status}
                         </Badge>
                       )}
                     </div>
 
-                    {onEdit && onDelete && (
+                    {onDelete && (
                       <EntityActionsMenu
                         entityId={entityId}
                         entityType={entityType}
@@ -133,94 +131,63 @@ export function EntityGridView<T extends EntityType>({
                   ) : (
                     <>
                       {/* Entity Name and Info */}
-                      <HoverCard>
-                        <HoverCardTrigger asChild>
-                          <Link
-                            href={`${basePath}/${entityId}`}
-                            className="group/link mb-3 flex items-center gap-3 transition-colors"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-lg font-semibold group-hover/link:text-primary truncate">
-                                {entity.name}
-                              </h3>
-                              {(entity as any).contactPerson && (
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {(entity as any).contactPerson}
-                                </p>
-                              )}
-                            </div>
-                          </Link>
-                        </HoverCardTrigger>
-                        <HoverCardContent className="w-80" align="start">
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-semibold">{entity.name}</h4>
-                            {(entity as any).contactPerson && (
-                              <p className="text-sm text-muted-foreground">
-                                Contact: {(entity as any).contactPerson}
-                              </p>
-                            )}
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">Status:</span>
-                              <Badge
-                                variant={
-                                  entity.status === "active"
-                                    ? "default"
-                                    : "secondary"
-                                }
-                                className={cn(
-                                  "text-xs capitalize transition-colors duration-200",
-                                  entity.status === "active"
-                                    ? "bg-success/10 text-success hover:bg-success/20 border-success/20"
-                                    : "bg-muted text-muted-foreground hover:bg-muted/80 border-border"
-                                )}
-                              >
-                                {entity.status}
-                              </Badge>
-                            </div>
-                          </div>
-                        </HoverCardContent>
-                      </HoverCard>
+                      <Link
+                        href={`${basePath}/${entityId}`}
+                        className="group/link block mb-4"
+                      >
+                        <h3 className="text-xl font-bold tracking-tight text-foreground transition-colors group-hover/link:text-primary mb-1">
+                          {(entity as any).name || (entity as any).notes || 'Payment'}
+                        </h3>
+                        {(entity as any).contactPerson && (
+                          <p className="text-xs font-medium text-muted-foreground/60 transition-colors group-hover/link:text-muted-foreground">
+                            {(entity as any).contactPerson}
+                          </p>
+                        )}
+                      </Link>
 
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-3 mb-6">
                         {(entity as any).email && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Mail className="h-3.5 w-3.5 flex-shrink-0" />
-                            <span className="truncate">{(entity as any).email}</span>
+                          <div className="flex items-center gap-2.5 text-muted-foreground/70">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/50">
+                              <Mail className="h-3.5 w-3.5" />
+                            </div>
+                            <span className="text-xs font-semibold truncate">{(entity as any).email}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Balance section for Client/Vendor */}
                       {(isClient(entity) || isVendor(entity)) && (
-                        <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-4">
-                          <div className="flex items-center gap-1.5">
-                            <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-xs font-medium text-muted-foreground">
+                        <div className="mt-auto flex items-end justify-between border-t border-border/10 pt-5">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
                               {balanceLabel}
                             </span>
+                            <div className="flex items-center text-foreground/90">
+                              <span className="text-sm font-bold opacity-60 mr-0.5">{'\u20B9'}</span>
+                              <span className={cn(
+                                "text-lg font-black tracking-tight",
+                                balance > 0
+                                  ? entityType === 'client' ? "text-warning" : "text-destructive"
+                                  : "text-success"
+                              )}>
+                                {balance.toLocaleString("en-IN")}
+                              </span>
+                            </div>
                           </div>
-                          <span
-                            className={cn(
-                              "text-xl font-bold transition-colors duration-200",
-                              balance > 0
-                                ? entityType === 'client' ? "text-warning" : "text-destructive"
-                                : "text-success"
-                            )}
-                          >
-                            {'\u20B9'}{balance.toLocaleString("en-IN")}
-                          </span>
+
+                          <div className="h-2 w-2 rounded-full bg-primary/20" />
                         </div>
                       )}
                     </>
                   )}
 
                   {/* Last Updated */}
-                  <p className="mt-3 text-[10px] text-muted-foreground/60">
-                    Updated{" "}
-                    {formatDistanceToNow(new Date(entity.updatedAt), {
-                      addSuffix: true,
-                    })}
-                  </p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/30">
+                      Sync {formatDistanceToNow(new Date(entity.updatedAt), { addSuffix: true })}
+                    </p>
+                  </div>
                 </div>
               </GradientCard>
             </motion.div>
