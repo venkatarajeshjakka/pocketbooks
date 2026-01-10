@@ -1,6 +1,6 @@
 /**
  * GradientCard Component
- * Card with glassmorphism effect and gradient background
+ * Card with refined financial styling and subtle effects
  */
 
 'use client';
@@ -13,14 +13,16 @@ export interface GradientCardProps {
     children: React.ReactNode;
     className?: string;
     onClick?: () => void;
-    gradient?: 'subtle' | 'primary' | 'accent';
+    gradient?: 'subtle' | 'primary' | 'accent' | 'success' | 'warning';
     interactive?: boolean;
 }
 
-const glassClasses = {
-    subtle: 'bg-background/40 border-border/50',
-    primary: 'bg-primary/5 border-primary/20',
-    accent: 'bg-accent/5 border-accent/20',
+const variantClasses = {
+    subtle: 'bg-card border-border/50',
+    primary: 'bg-card border-primary/20',
+    accent: 'bg-card border-accent/30',
+    success: 'bg-card border-success/20',
+    warning: 'bg-card border-warning/20',
 };
 
 export function GradientCard({
@@ -42,15 +44,12 @@ export function GradientCard({
             })}
             onClick={onClick}
             className={cn(
-                'relative overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-300',
-                glassClasses[gradient],
-                interactive && 'cursor-pointer hover:shadow-2xl hover:shadow-foreground/5',
+                'relative overflow-hidden rounded-xl border shadow-sm transition-all duration-200',
+                variantClasses[gradient],
+                interactive && 'cursor-pointer hover:shadow-md hover:border-border',
                 className
             )}
         >
-            {/* Glossy overlay effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent dark:from-white/2" />
-
             {/* Content */}
             <div className="relative z-10">{children}</div>
         </Component>
