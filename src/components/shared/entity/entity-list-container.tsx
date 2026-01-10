@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { IClient, IVendor, IAsset, IPayment, IExpense } from '@/types';
+import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment } from '@/types';
 import { EntityGridView } from './entity-grid-view';
 import { EntityTableView } from './entity-table-view';
 import { ViewMode } from './view-toggle';
@@ -16,11 +16,11 @@ import { BulkActionsBar } from './bulk-actions-bar';
 import { DeleteEntityDialog } from './delete-entity-dialog';
 import { toast } from 'sonner';
 
-export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment;
 
 export interface EntityListContainerProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
   initialView?: ViewMode;
   basePath: string;
   onDelete: (id: string) => Promise<void>;
@@ -31,6 +31,7 @@ export interface EntityListContainerProps<T extends EntityType> {
     accessorKey?: string;
     cell?: (entity: T) => React.ReactNode;
   }>;
+  canEdit?: boolean;
 }
 
 export function EntityListContainer<T extends EntityType>({
@@ -41,6 +42,7 @@ export function EntityListContainer<T extends EntityType>({
   onDelete,
   renderCardContent,
   columns,
+  canEdit = true,
 }: EntityListContainerProps<T>) {
   const router = useRouter();
   const viewMode = initialView;
@@ -102,7 +104,7 @@ export function EntityListContainer<T extends EntityType>({
   };
 
   const allSelected = isAllSelected(entities, (entity) => entity._id.toString());
-  const entityLabel = entityType === 'client' ? 'client' : entityType === 'vendor' ? 'vendor' : entityType === 'expense' ? 'expense' : entityType === 'payment' ? 'payment' : 'asset';
+  const entityLabel = entityType === 'client' ? 'client' : entityType === 'vendor' ? 'vendor' : entityType === 'expense' ? 'expense' : entityType === 'payment' ? 'payment' : entityType === 'loan' ? 'loan account' : entityType === 'interest-payment' ? 'interest payment' : 'asset';
 
   return (
     <div className="space-y-4">
@@ -128,7 +130,7 @@ export function EntityListContainer<T extends EntityType>({
           entityType={entityType}
           selectedEntities={selectedItems}
           onToggleSelection={toggleSelection}
-          onEdit={handleEdit}
+          onEdit={canEdit ? handleEdit : undefined}
           onDelete={handleDelete}
           basePath={basePath}
           renderCardContent={renderCardContent}
@@ -141,7 +143,7 @@ export function EntityListContainer<T extends EntityType>({
           onToggleSelection={toggleSelection}
           onToggleAll={handleToggleAll}
           isAllSelected={allSelected}
-          onEdit={handleEdit}
+          onEdit={canEdit ? handleEdit : undefined}
           onDelete={handleDelete}
           basePath={basePath}
           columns={columns}

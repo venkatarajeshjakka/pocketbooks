@@ -18,10 +18,10 @@ import {
 
 interface EntityActionsMenuProps {
   entityId: string;
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
   entityName?: string;
   basePath: string;
-  onEdit: (id: string) => void;
+  onEdit?: (id: string) => void;
   onDelete: (id: string) => void;
   variant?: "ghost" | "default";
 }
@@ -62,14 +62,17 @@ export function EntityActionsMenu({
             View details
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onEdit(entityId)}
-          className="flex items-center gap-2 cursor-pointer"
-          aria-label={`Edit ${entityLabel}`}
-        >
-          <Pencil className="h-4 w-4" aria-hidden="true" />
-          Edit
-        </DropdownMenuItem>
+
+        {onEdit && (
+          <DropdownMenuItem
+            onClick={() => onEdit(entityId)}
+            className="flex items-center gap-2 cursor-pointer"
+            aria-label={`Edit ${entityLabel}`}
+          >
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+            Edit
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => onDelete(entityId)}

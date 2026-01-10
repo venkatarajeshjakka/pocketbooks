@@ -542,27 +542,69 @@ export interface IAssetInput {
 }
 
 // ============================================================================
+// LOAN ACCOUNT ENTITY
+// ============================================================================
+
+export enum LoanAccountStatus {
+  ACTIVE = 'active',
+  CLOSED = 'closed',
+  DEFAULTED = 'defaulted',
+}
+
+export interface ILoanAccount {
+  _id: Types.ObjectId | string;
+  bankName: string;
+  accountNumber: string;
+  loanType: string;
+  principalAmount: number;
+  interestRate: number;
+  startDate: Date;
+  endDate?: Date;
+  emiAmount?: number;
+  totalInterestPaid: number;
+  totalPrincipalPaid: number;
+  outstandingAmount: number;
+  status: LoanAccountStatus;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ILoanAccountInput {
+  bankName: string;
+  accountNumber: string;
+  loanType: string;
+  principalAmount: number;
+  interestRate: number;
+  startDate: Date;
+  endDate?: Date;
+  emiAmount?: number;
+  status?: LoanAccountStatus;
+  notes?: string;
+}
+
+// ============================================================================
 // INTEREST PAYMENT ENTITY
 // ============================================================================
 
 export interface IInterestPayment {
   _id: Types.ObjectId | string;
+  loanAccountId: Types.ObjectId | string;
   date: Date;
-  bankName: string;
-  loanAccountNumber: string;
   principalAmount: number;
   interestAmount: number;
   totalAmount: number;
   paymentMethod: PaymentMethod;
+  expenseId?: Types.ObjectId | string;
+  paymentId?: Types.ObjectId | string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface IInterestPaymentInput {
+  loanAccountId: string;
   date: Date;
-  bankName: string;
-  loanAccountNumber: string;
   principalAmount: number;
   interestAmount: number;
   paymentMethod: PaymentMethod;
@@ -603,6 +645,7 @@ export interface QueryParams {
   assetId?: string;
   transactionType?: string;
   partyType?: string;
+  loanAccountId?: string;
 }
 
 // ============================================================================

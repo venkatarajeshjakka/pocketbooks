@@ -13,6 +13,8 @@ export const PAYMENTS_QUERY_KEY = 'payments';
 export const VENDORS_QUERY_KEY = 'vendors';
 export const CLIENTS_QUERY_KEY = 'clients';
 export const EXPENSES_QUERY_KEY = 'expenses';
+export const LOANS_QUERY_KEY = 'loans';
+export const INTEREST_PAYMENTS_QUERY_KEY = 'interest-payments';
 
 /**
  * Structured query keys for Assets
@@ -69,4 +71,26 @@ export const expenseKeys = {
     details: () => [...expenseKeys.all, 'detail'] as const,
     detail: (id: string) => [...expenseKeys.details(), id] as const,
     stats: () => [...expenseKeys.all, 'stats'] as const,
+};
+
+/**
+ * Structured query keys for Loan Accounts
+ */
+export const loanKeys = {
+    all: [LOANS_QUERY_KEY] as const,
+    lists: () => [...loanKeys.all, 'list'] as const,
+    list: (filters: Record<string, unknown>) => [...loanKeys.lists(), filters] as const,
+    details: () => [...loanKeys.all, 'detail'] as const,
+    detail: (id: string) => [...loanKeys.details(), id] as const,
+};
+
+/**
+ * Structured query keys for Interest Payments
+ */
+export const interestPaymentKeys = {
+    all: [INTEREST_PAYMENTS_QUERY_KEY] as const,
+    lists: () => [...interestPaymentKeys.all, 'list'] as const,
+    list: (filters: Record<string, unknown>) => [...interestPaymentKeys.lists(), filters] as const,
+    details: () => [...interestPaymentKeys.all, 'detail'] as const,
+    detail: (id: string) => [...interestPaymentKeys.details(), id] as const,
 };

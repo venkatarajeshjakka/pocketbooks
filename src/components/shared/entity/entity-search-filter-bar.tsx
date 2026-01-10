@@ -26,7 +26,7 @@ import { EntityStatus } from '@/types';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 
 export interface EntitySearchFilterBarProps {
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
   addNewPath: string;
   addNewLabel?: string;
   addNewIcon?: LucideIcon;
@@ -34,6 +34,7 @@ export interface EntitySearchFilterBarProps {
   showStatusFilter?: boolean;
   showOutstandingFilter?: boolean;
   outstandingFilterLabel?: string;
+  statusOptions?: { label: string; value: string }[];
 }
 
 export function EntitySearchFilterBar({
@@ -45,11 +46,19 @@ export function EntitySearchFilterBar({
   showStatusFilter = true,
   showOutstandingFilter = true,
   outstandingFilterLabel,
+  statusOptions,
 }: EntitySearchFilterBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const entityLabel = entityType === 'client' ? 'Client' : entityType === 'vendor' ? 'Vendor' : entityType === 'asset' ? 'Asset' : entityType === 'expense' ? 'Expense' : 'Payment';
+  const entityLabel =
+    entityType === 'client' ? 'Client' :
+      entityType === 'vendor' ? 'Vendor' :
+        entityType === 'asset' ? 'Asset' :
+          entityType === 'expense' ? 'Expense' :
+            entityType === 'loan' ? 'Loan Account' :
+              entityType === 'interest-payment' ? 'Interest Payment' :
+                'Payment';
   const defaultSearchPlaceholder = `Search ${entityType}s...`;
   const defaultAddNewLabel = `Add ${entityLabel}`;
   const defaultOutstandingLabel = entityType === 'client' ? 'With outstanding' : 'With payable';
@@ -146,8 +155,18 @@ export function EntitySearchFilterBar({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value={EntityStatus.ACTIVE}>Active</SelectItem>
-              <SelectItem value={EntityStatus.INACTIVE}>Inactive</SelectItem>
+              {statusOptions ? (
+                statusOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))
+              ) : (
+                <>
+                  <SelectItem value={EntityStatus.ACTIVE}>Active</SelectItem>
+                  <SelectItem value={EntityStatus.INACTIVE}>Inactive</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         )}

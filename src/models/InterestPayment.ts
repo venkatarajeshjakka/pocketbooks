@@ -2,6 +2,7 @@
  * Interest Payment Model
  *
  * Mongoose schema for Interest Payment tracking
+ * Links to LoanAccount, Expense, and Payment for integration
  */
 
 import mongoose, { Schema, Model } from 'mongoose';
@@ -9,21 +10,15 @@ import { IInterestPayment, PaymentMethod } from '@/types';
 
 const InterestPaymentSchema = new Schema<IInterestPayment>(
   {
+    loanAccountId: {
+      type: Schema.Types.ObjectId,
+      ref: 'LoanAccount',
+      required: [true, 'Loan account is required'],
+    },
     date: {
       type: Date,
       required: [true, 'Payment date is required'],
       default: Date.now,
-    },
-    bankName: {
-      type: String,
-      required: [true, 'Bank name is required'],
-      trim: true,
-      maxlength: [100, 'Bank name cannot exceed 100 characters'],
-    },
-    loanAccountNumber: {
-      type: String,
-      required: [true, 'Loan account number is required'],
-      trim: true,
     },
     principalAmount: {
       type: Number,
@@ -45,6 +40,14 @@ const InterestPaymentSchema = new Schema<IInterestPayment>(
       required: [true, 'Payment method is required'],
       enum: Object.values(PaymentMethod),
     },
+    expenseId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Expense',
+    },
+    paymentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Payment',
+    },
     notes: {
       type: String,
       trim: true,
@@ -60,11 +63,12 @@ const InterestPaymentSchema = new Schema<IInterestPayment>(
 
 // Indexes
 InterestPaymentSchema.index({ date: -1 });
-InterestPaymentSchema.index({ bankName: 1 });
-InterestPaymentSchema.index({ loanAccountNumber: 1 });
+InterestPaymentSchema.index({ loanAccountId: 1 });
+InterestPaymentSchema.index({ expenseId: 1 });
+InterestPaymentSchema.index({ paymentId: 1 });
 
-// Calculate total amount before saving
-InterestPaymentSchema.pre('save', async function () {
+// Calculate total amount before validation
+InterestPaymentSchema.pre('validate', async function () {
   this.totalAmount = this.principalAmount + this.interestAmount;
 });
 

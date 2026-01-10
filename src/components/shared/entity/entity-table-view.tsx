@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { IClient, IVendor, IAsset, IPayment, IExpense } from "@/types";
+import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment } from "@/types";
 import {
   Table,
   TableBody,
@@ -30,11 +30,11 @@ import { fadeInUp, listItem } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
 import { EntityActionsMenu } from "./entity-actions-menu";
 
-export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment;
 
 export interface EntityTableViewProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
   selectedEntities?: Set<string>;
   onToggleSelection?: (id: string) => void;
   onToggleAll?: () => void;
@@ -199,7 +199,7 @@ export function EntityTableView<T extends EntityType>({
 
                     {/* Actions */}
                     <TableCell>
-                      {onEdit && onDelete && (
+                      {onDelete && (
                         <EntityActionsMenu
                           entityId={entityId}
                           entityType={entityType}

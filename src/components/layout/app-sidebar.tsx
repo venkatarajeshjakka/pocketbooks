@@ -109,9 +109,12 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
-    title: "Interest Payments",
-    url: "/interest-payments",
+    title: "Loans",
     icon: Landmark,
+    items: [
+      { title: "Loan Accounts", url: "/loan-accounts" },
+      { title: "Interest Payments", url: "/interest-payments" },
+    ],
   },
   {
     title: "Analytics",
