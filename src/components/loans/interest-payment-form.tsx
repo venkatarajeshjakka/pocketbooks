@@ -72,7 +72,9 @@ export function InterestPaymentForm({ mode = 'create', id, initialData: propsIni
     const isLoading = isLoadingInitial && mode === 'edit';
 
     const [formData, setFormData] = useState<IInterestPaymentInput>({
-        loanAccountId: initialData?.loanAccountId ? (typeof initialData.loanAccountId === 'object' ? (initialData.loanAccountId as any)._id : initialData.loanAccountId) : '',
+        loanAccountId: initialData?.loanAccountId
+            ? (typeof initialData.loanAccountId === 'object' ? (initialData.loanAccountId as any)._id?.toString() : initialData.loanAccountId.toString())
+            : '',
         date: initialData?.date ? new Date(initialData.date) : new Date(),
         interestAmount: initialData?.interestAmount || 0,
         principalAmount: initialData?.principalAmount || 0,
@@ -84,7 +86,9 @@ export function InterestPaymentForm({ mode = 'create', id, initialData: propsIni
     useEffect(() => {
         if (initialData) {
             setFormData({
-                loanAccountId: typeof initialData.loanAccountId === 'object' ? (initialData.loanAccountId as any)._id : initialData.loanAccountId,
+                loanAccountId: typeof initialData.loanAccountId === 'object'
+                    ? (initialData.loanAccountId as any)._id?.toString()
+                    : initialData.loanAccountId.toString(),
                 date: new Date(initialData.date),
                 interestAmount: initialData.interestAmount,
                 principalAmount: initialData.principalAmount,
