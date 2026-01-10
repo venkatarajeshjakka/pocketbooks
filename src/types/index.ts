@@ -430,11 +430,12 @@ export interface IPayment {
   transactionType: TransactionType;
   transactionId?: string;
   accountType: AccountType;
-  partyId: Types.ObjectId | string;
-  partyType: PartyType;
+  partyId?: Types.ObjectId | string;
+  partyType?: PartyType;
   saleId?: Types.ObjectId | string;
   procurementId?: Types.ObjectId | string;
   assetId?: Types.ObjectId | string;
+  expenseId?: Types.ObjectId | string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -447,11 +448,12 @@ export interface IPaymentInput {
   transactionType: TransactionType;
   transactionId?: string;
   accountType: AccountType;
-  partyId: string;
-  partyType: PartyType;
+  partyId?: string;
+  partyType?: PartyType;
   saleId?: string;
   procurementId?: string;
   assetId?: string;
+  expenseId?: string;
   notes?: string;
 }
 
@@ -468,6 +470,7 @@ export interface IExpense {
   paymentMethod: PaymentMethod;
   receiptNumber?: string;
   notes?: string;
+  paymentId?: Types.ObjectId | string;
   createdAt: Date;
   updatedAt: Date;
 }

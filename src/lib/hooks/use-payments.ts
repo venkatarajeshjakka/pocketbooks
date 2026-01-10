@@ -107,7 +107,6 @@ export function useCreatePayment() {
             queryClient.invalidateQueries({ queryKey: paymentKeys.all });
             queryClient.invalidateQueries({ queryKey: assetKeys.all });
             queryClient.invalidateQueries({ queryKey: vendorKeys.all });
-            toast.success('Payment created successfully');
         },
         onError: (error: Error, _newPayment, context) => {
             // Rollback on error
@@ -169,7 +168,6 @@ export function useUpdatePayment() {
             queryClient.invalidateQueries({ queryKey: paymentKeys.all });
             queryClient.invalidateQueries({ queryKey: assetKeys.all });
             queryClient.invalidateQueries({ queryKey: vendorKeys.all });
-            toast.success('Payment updated successfully');
         },
         onError: (error: Error, { id }, context) => {
             // Rollback on error
@@ -222,7 +220,6 @@ export function useDeletePayment() {
             queryClient.invalidateQueries({ queryKey: paymentKeys.all });
             queryClient.invalidateQueries({ queryKey: assetKeys.all });
             queryClient.invalidateQueries({ queryKey: vendorKeys.all });
-            toast.success('Payment deleted successfully');
         },
         onError: (error: Error, _id, context) => {
             // Rollback on error

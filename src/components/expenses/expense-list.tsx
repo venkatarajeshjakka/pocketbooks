@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useExpenses } from '@/lib/hooks/use-expenses';
+import { useExpenses, useDeleteExpense } from '@/lib/hooks/use-expenses';
 import { EntityListContainer } from '@/components/shared/entity/entity-list-container';
 import { EmptyState } from '@/components/shared/ui/empty-state';
 import { IExpense, ExpenseCategory, PaymentMethod } from '@/types';
@@ -81,6 +81,11 @@ export function ExpenseList({ page, search, category }: ExpenseListProps) {
         sortBy: 'date',
         sortOrder: 'desc',
     });
+    const deleteExpenseMutation = useDeleteExpense();
+
+    const handleDelete = async (id: string) => {
+        await deleteExpenseMutation.mutateAsync(id);
+    };
 
     if (isLoading) {
         return (
@@ -196,7 +201,7 @@ export function ExpenseList({ page, search, category }: ExpenseListProps) {
             entities={expenses}
             initialView="table"
             basePath="/expenses"
-            onDelete={async () => { }}
+            onDelete={handleDelete}
             columns={columns}
             renderCardContent={(expense: IExpense) => (
                 <div className="space-y-3">

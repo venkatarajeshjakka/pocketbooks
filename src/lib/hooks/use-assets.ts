@@ -94,7 +94,6 @@ export function useCreateAsset() {
             queryClient.invalidateQueries({ queryKey: assetKeys.lists() });
             queryClient.invalidateQueries({ queryKey: paymentKeys.all });
             queryClient.invalidateQueries({ queryKey: vendorKeys.all });
-            toast.success("Asset created successfully");
         },
         onError: (error, _newAsset, context) => {
             if (context?.previousAssets) {
@@ -134,7 +133,6 @@ export function useUpdateAsset(id: string) {
             queryClient.invalidateQueries({ queryKey: assetKeys.all });
             queryClient.invalidateQueries({ queryKey: paymentKeys.all });
             queryClient.invalidateQueries({ queryKey: vendorKeys.all });
-            toast.success("Asset updated successfully");
         },
         onError: (error, _asset, context) => {
             if (context?.previousAsset) {
@@ -172,7 +170,6 @@ export function useDeleteAsset() {
             queryClient.invalidateQueries({ queryKey: assetKeys.all });
             queryClient.invalidateQueries({ queryKey: paymentKeys.all });
             queryClient.invalidateQueries({ queryKey: vendorKeys.all });
-            toast.success("Asset deleted successfully");
         },
         onError: (error, _id, context) => {
             if (context?.previousAssets) {

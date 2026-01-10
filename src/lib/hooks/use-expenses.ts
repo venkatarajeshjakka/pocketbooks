@@ -10,6 +10,7 @@ import { IExpenseInput } from '@/types';
 import { toast } from 'sonner';
 import {
     expenseKeys,
+    paymentKeys,
     EXPENSES_QUERY_KEY,
 } from '@/lib/query-keys';
 
@@ -96,8 +97,9 @@ export function useCreateExpense() {
             return { previousExpenses };
         },
         onSuccess: () => {
+            // Invalidate both expense and payment caches since expenses create payment records
             queryClient.invalidateQueries({ queryKey: expenseKeys.all });
-            toast.success('Expense recorded successfully');
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
         },
         onError: (error: Error, _newExpense, context) => {
             // Rollback on error
@@ -108,6 +110,7 @@ export function useCreateExpense() {
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
+            queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
         },
     });
 }
@@ -150,8 +153,9 @@ export function useUpdateExpense() {
             return { previousExpense, previousExpenses };
         },
         onSuccess: () => {
+            // Invalidate both expense and payment caches since expenses update payment records
             queryClient.invalidateQueries({ queryKey: expenseKeys.all });
-            toast.success('Expense updated successfully');
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
         },
         onError: (error: Error, { id }, context) => {
             if (context?.previousExpense) {
@@ -165,6 +169,7 @@ export function useUpdateExpense() {
         onSettled: (_data, _error, { id }) => {
             queryClient.invalidateQueries({ queryKey: expenseKeys.detail(id) });
             queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
+            queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
         },
     });
 }
@@ -196,7 +201,9 @@ export function useDeleteExpense() {
             return { previousExpenses };
         },
         onSuccess: () => {
+            // Invalidate both expense and payment caches since deleting expense also deletes payment
             queryClient.invalidateQueries({ queryKey: expenseKeys.all });
+            queryClient.invalidateQueries({ queryKey: paymentKeys.all });
             toast.success('Expense deleted successfully');
         },
         onError: (error: Error, _id, context) => {
@@ -207,6 +214,7 @@ export function useDeleteExpense() {
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: expenseKeys.lists() });
+            queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });
         },
     });
 }

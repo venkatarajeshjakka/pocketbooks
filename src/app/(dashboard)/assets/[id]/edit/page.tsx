@@ -17,10 +17,15 @@ interface EditAssetPageProps {
 export async function generateMetadata({ params }: EditAssetPageProps) {
   const { id } = await params;
   try {
-    const asset = await fetchAsset(id);
+    const response = await fetchAsset(id);
+    if (response.success && response.data) {
+      return {
+        title: `Edit ${response.data.name} | Assets | PocketBooks`,
+        description: `Edit asset ${response.data.name}`,
+      };
+    }
     return {
-      title: `Edit ${asset.name} | Assets | PocketBooks`,
-      description: `Edit asset ${asset.name}`,
+      title: 'Asset Not Found | PocketBooks',
     };
   } catch {
     return {
@@ -34,7 +39,11 @@ export default async function EditAssetPage({ params }: EditAssetPageProps) {
 
   let asset;
   try {
-    asset = await fetchAsset(id);
+    const response = await fetchAsset(id);
+    if (!response.success || !response.data) {
+      notFound();
+    }
+    asset = response.data;
   } catch (error) {
     console.error('Error fetching asset:', error);
     notFound();

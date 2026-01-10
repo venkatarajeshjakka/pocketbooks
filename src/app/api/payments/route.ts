@@ -160,8 +160,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    if (!body.amount || !body.paymentMethod || !body.transactionType || !body.partyId || !body.partyType) {
+    // partyId and partyType are not required for expense transactions
+    if (!body.amount || !body.paymentMethod || !body.transactionType) {
       return errorResponse('Missing required payment fields', 400);
+    }
+
+    // For non-expense transactions, partyId and partyType are required
+    if (body.transactionType !== 'expense' && (!body.partyId || !body.partyType)) {
+      return errorResponse('Party ID and Party Type are required for non-expense transactions', 400);
     }
 
     session = await mongoose.startSession();
