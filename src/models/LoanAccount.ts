@@ -85,7 +85,7 @@ const LoanAccountSchema = new Schema<ILoanAccount>(
 
 // Indexes
 LoanAccountSchema.index({ bankName: 1 });
-LoanAccountSchema.index({ accountNumber: 1 });
+// Removed duplicate index for accountNumber (unique field already indexed)
 LoanAccountSchema.index({ status: 1 });
 LoanAccountSchema.index({ startDate: -1 });
 

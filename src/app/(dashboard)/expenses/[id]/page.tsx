@@ -9,12 +9,11 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Expense from '@/models/Expense';
-import { connectToDatabase } from '@/lib/api-helpers';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ExpenseDeleteButton } from '@/components/expenses/expense-delete-button';
 import { ExpenseCategory, PaymentMethod } from '@/types';
+import { fetchExpense } from '@/lib/api/expenses';
 
 interface ExpenseDetailPageProps {
     params: Promise<{ id: string }>;
@@ -78,12 +77,7 @@ export default async function ExpenseDetailPage({ params }: ExpenseDetailPagePro
 
     let expense;
     try {
-        await connectToDatabase();
-        expense = await Expense.findById(id).lean();
-
-        if (!expense) {
-            notFound();
-        }
+        expense = await fetchExpense(id);
     } catch (error) {
         console.error('Failed to fetch expense:', error);
         notFound();
@@ -251,8 +245,7 @@ export async function generateMetadata({ params }: ExpenseDetailPageProps) {
     const { id } = await params;
 
     try {
-        await connectToDatabase();
-        const expense = await Expense.findById(id).lean();
+        const expense = await fetchExpense(id);
 
         if (expense) {
             return {

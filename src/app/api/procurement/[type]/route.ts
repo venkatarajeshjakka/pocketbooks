@@ -20,7 +20,7 @@ export async function GET(
 ) {
     const { type } = await params;
 
-    if (type !== 'raw-material' && type !== 'trading-good') {
+    if (!['raw-material', 'raw-materials', 'trading-good', 'trading-goods'].includes(type)) {
         return errorResponse('Invalid procurement type', 400);
     }
 

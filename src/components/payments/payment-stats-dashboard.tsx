@@ -5,49 +5,16 @@
  */
 
 import { StatCard } from '@/components/shared/stats/stat-card';
-import Payment from '@/models/Payment';
-import { connectToDatabase } from '@/lib/api-helpers';
+import { fetchPaymentStats } from '@/lib/api/payments';
 
 export async function PaymentStatsDashboard() {
     try {
-        await connectToDatabase();
+        const stats = await fetchPaymentStats();
 
-        // Aggregations to get useful statistics (matching API logic)
-        const statsResult = await Payment.aggregate([
-            {
-                $facet: {
-                    totalStats: [
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: { $sum: '$amount' },
-                                totalCount: { $sum: 1 },
-                                avgAmount: { $avg: '$amount' }
-                            }
-                        }
-                    ],
-                    byTransactionType: [
-                        {
-                            $group: {
-                                _id: '$transactionType',
-                                totalAmount: { $sum: '$amount' },
-                                count: { $sum: 1 }
-                            }
-                        }
-                    ]
-                }
-            }
-        ]);
-
-        const result = statsResult[0];
-        const totalAmount = result.totalStats[0]?.totalAmount || 0;
-        const totalCount = result.totalStats[0]?.totalCount || 0;
-        const avgAmount = result.totalStats[0]?.avgAmount || 0;
-
-        const byType = result.byTransactionType.reduce((acc: any, item: any) => {
-            acc[item._id] = { amount: item.totalAmount, count: item.count };
-            return acc;
-        }, {});
+        const totalAmount = stats.totalAmount;
+        const totalCount = stats.totalCount;
+        const avgAmount = stats.avgAmount;
+        const byType = stats.byTransactionType;
 
         const incomeAmount = byType?.income?.amount || 0;
         const expenseAmount = byType?.expense?.amount || 0;
