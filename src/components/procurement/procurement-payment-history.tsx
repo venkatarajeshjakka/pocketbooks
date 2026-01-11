@@ -118,11 +118,19 @@ export function ProcurementPaymentHistory({ procurementId }: ProcurementPaymentH
                                         <span className="capitalize">
                                             {payment.paymentMethod.replace('_', ' ')}
                                         </span>
-                                        {payment.transactionId && (
+                                        {payment.trancheNumber && payment.totalTranches && (
+                                            <>
+                                                <span>•</span>
+                                                <Badge variant="secondary" className="text-xs px-2 py-0">
+                                                    Tranche {payment.trancheNumber}/{payment.totalTranches}
+                                                </Badge>
+                                            </>
+                                        )}
+                                        {(payment.transactionId || payment.referenceNumber) && (
                                             <>
                                                 <span>•</span>
                                                 <span className="font-mono text-xs">
-                                                    {payment.transactionId}
+                                                    {payment.referenceNumber || payment.transactionId}
                                                 </span>
                                             </>
                                         )}

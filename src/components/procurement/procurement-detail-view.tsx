@@ -2,8 +2,7 @@
 
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit, Calendar, FileText, User, ShoppingCart, IndianRupee } from 'lucide-react';
+import { ArrowLeft, Edit, Calendar, FileText, ShoppingCart, IndianRupee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,6 +18,7 @@ import {
 } from '@/components/ui/table';
 import { ProcurementPaymentHistory } from '@/components/procurement/procurement-payment-history';
 import { ProcurementDeleteButton } from '@/components/procurement/procurement-delete-button';
+import { AddPaymentDialog } from '@/components/procurement/add-payment-dialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ProcurementStatus } from '@/types';
@@ -29,17 +29,17 @@ interface ProcurementDetailViewProps {
 }
 
 function StatusBadge({ status }: { status: ProcurementStatus }) {
-    const styles = {
-        [ProcurementStatus.DRAFT]: 'bg-gray-100 text-gray-800 border-gray-200',
+    const styles: Record<ProcurementStatus, string> = {
         [ProcurementStatus.ORDERED]: 'bg-blue-100 text-blue-800 border-blue-200',
         [ProcurementStatus.RECEIVED]: 'bg-green-100 text-green-800 border-green-200',
         [ProcurementStatus.PARTIALLY_RECEIVED]: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         [ProcurementStatus.CANCELLED]: 'bg-red-100 text-red-800 border-red-200',
         [ProcurementStatus.RETURNED]: 'bg-orange-100 text-orange-800 border-orange-200',
+        [ProcurementStatus.COMPLETED]: 'bg-green-100 text-green-800 border-green-200',
     };
 
     return (
-        <Badge variant="outline" className={cn("capitalize px-3 py-1", styles[status])}>
+        <Badge variant="outline" className={cn("capitalize px-3 py-1", styles[status] || 'bg-gray-100 text-gray-800 border-gray-200')}>
             {status.replace('_', ' ')}
         </Badge>
     );
@@ -186,11 +186,22 @@ export function ProcurementDetailView({ procurement, type }: ProcurementDetailVi
                 <div className="space-y-6">
                     {/* Financial Summary */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                <IndianRupee className="h-5 w-5 text-muted-foreground" />
-                                Financials
-                            </CardTitle>
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <IndianRupee className="h-5 w-5 text-muted-foreground" />
+                                    Financials
+                                </CardTitle>
+                                {procurement.remainingAmount > 0 && (
+                                    <AddPaymentDialog
+                                        procurementId={procurement._id}
+                                        procurementType={type}
+                                        vendorId={procurement.vendorId?._id || procurement.vendorId}
+                                        remainingAmount={procurement.remainingAmount || 0}
+                                        currentTranche={procurement.payments?.length || 0}
+                                    />
+                                )}
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex justify-between items-center">
@@ -207,12 +218,12 @@ export function ProcurementDetailView({ procurement, type }: ProcurementDetailVi
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">Payment Status</span>
-                                <Badge variant={procurement.paymentStatus === 'paid' ? 'default' : 'secondary'} className={cn(
+                                <Badge variant={procurement.paymentStatus === 'fully_paid' ? 'default' : 'secondary'} className={cn(
                                     "capitalize",
-                                    procurement.paymentStatus === 'paid' ? "bg-success hover:bg-success/90" :
-                                        procurement.paymentStatus === 'partial' ? "bg-yellow-500 hover:bg-yellow-600" : ""
+                                    procurement.paymentStatus === 'fully_paid' ? "bg-success hover:bg-success/90" :
+                                        procurement.paymentStatus === 'partially_paid' ? "bg-yellow-500 hover:bg-yellow-600" : ""
                                 )}>
-                                    {procurement.paymentStatus}
+                                    {procurement.paymentStatus?.replace('_', ' ') || 'Unpaid'}
                                 </Badge>
                             </div>
                         </CardContent>

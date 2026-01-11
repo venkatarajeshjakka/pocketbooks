@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Save, Info, Plus, Trash2, Calculator, IndianRupee, Calendar as CalendarIcon, FileText } from 'lucide-react';
+import { Loader2, Save, Info, Plus, Trash2, Calculator, IndianRupee, Calendar as CalendarIcon, FileText, ShoppingCart, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,11 +43,10 @@ import { useCreateProcurement, useUpdateProcurement } from '@/lib/hooks/use-proc
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-// import axios from 'axios'; // Removed axios
 
 interface ProcurementItem {
     itemId: string;
-    name: string; // For display
+    name: string;
     quantity: number;
     unitPrice: number;
     amount: number;
@@ -61,14 +60,10 @@ interface ProcurementFormData {
     paymentTerms: string;
     notes: string;
     items: ProcurementItem[];
-
-    // Financials
     gstPercentage: number;
-    // Calculated fields (not directly edited, but stored for reference/display)
     totalAmount: number;
     gstAmount: number;
     grandTotal: number;
-
     status: ProcurementStatus;
 }
 
@@ -84,7 +79,7 @@ interface PaymentFormData {
 interface ProcurementFormProps {
     type: 'raw_material' | 'trading_good';
     mode: 'create' | 'edit';
-    initialData?: any; // strict typing can be added later if needed
+    initialData?: any;
     procurementId?: string;
 }
 
@@ -95,8 +90,6 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
     const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
 
     const { data: vendorsData, isLoading: vendorsLoading } = useVendors({ limit: 100 });
-
-    // Dynamic inventory hook based on type
     const inventoryHook = type === 'raw_material' ? useRawMaterials : useTradingGoods;
     const { data: inventoryData, isLoading: inventoryLoading } = inventoryHook({ limit: 100 });
 
@@ -109,7 +102,7 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
         notes: initialData?.notes || '',
         items: initialData?.items?.map((item: any) => ({
             itemId: type === 'raw_material' ? item.rawMaterialId : item.tradingGoodId,
-            name: item.name || 'Unknown Item', // We might need to fetch names if not populated
+            name: item.name || 'Unknown Item',
             quantity: item.quantity || 1,
             unitPrice: item.unitPrice || 0,
             amount: item.amount || 0
@@ -130,7 +123,7 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
         tranches: 1,
     });
 
-    // Calculate totals whenever items or GST % changes
+    // Calculate totals
     useEffect(() => {
         const totalAmount = formData.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
         const gstAmount = (totalAmount * formData.gstPercentage) / 100;
@@ -143,20 +136,19 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
             grandTotal
         }));
 
-        // Auto-update payment amount if recording payment and currently covers full amount
-        if (paymentData.recordPayment && mode === 'create') {
-            // Default to full amount? Or maybe keep user input? 
-            // Let's set it to Grand Total initially, but let user edit.
-            // Actually, better to only set it if it was 0 or matches previous total.
-            // For simplicity, let's just default it to grandTotal if it's 0.
-            if (paymentData.amount === 0) {
-                setPaymentData(prev => ({ ...prev, amount: grandTotal }));
-            }
+        if (paymentData.recordPayment && mode === 'create' && paymentData.amount === 0) {
+            setPaymentData(prev => ({ ...prev, amount: grandTotal }));
         }
     }, [formData.items, formData.gstPercentage, mode, paymentData.recordPayment]);
 
+    const updateFormField = <K extends keyof ProcurementFormData>(field: K, value: ProcurementFormData[K]) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: undefined }));
+        }
+    };
+
     const handleAddItem = (itemId: string, name: string) => {
-        // Check if item already exists
         if (formData.items.some(i => i.itemId === itemId)) {
             toast.error('Item already added');
             return;
@@ -238,8 +230,6 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
                 originalPrice: formData.totalAmount,
                 gstBillPrice: formData.grandTotal,
                 gstAmount: formData.gstAmount,
-
-                // Payment info
                 initialPayment: paymentData.recordPayment ? {
                     amount: paymentData.amount,
                     paymentMethod: paymentData.paymentMethod,
@@ -251,10 +241,8 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
 
             if (mode === 'create') {
                 await createMutation.mutateAsync(payload);
-                // Hook handles toast
             } else {
                 await updateMutation.mutateAsync({ id: procurementId!, input: payload });
-                // Hook handles toast
             }
 
             const endpointType = type === 'raw_material' ? 'raw-materials' : 'trading-goods';
@@ -262,7 +250,6 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
             router.refresh();
         } catch (error: any) {
             console.error(error);
-            // Hook handles error toast, but maybe we want to keep it simple here
         } finally {
             setIsSubmitting(false);
         }
@@ -270,301 +257,558 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
 
     return (
         <TooltipProvider>
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-8 pb-32">
-                {/* Basic Info */}
-                <Card className="border-border/40 bg-card/60 backdrop-blur-md shadow-sm">
-                    <CardHeader className="pb-4 border-b border-border/10">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-primary" />
-                            Basic Details
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid gap-6 md:grid-cols-2 pt-6">
-                        <div className="space-y-2">
-                            <Label>Vendor *</Label>
-                            <Select
-                                value={formData.vendorId}
-                                onValueChange={v => setFormData(prev => ({ ...prev, vendorId: v }))}
-                                disabled={mode === 'edit'}
-                            >
-                                <SelectTrigger className={cn(errors.vendorId && "border-destructive")}>
-                                    <SelectValue placeholder="Select Vendor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {vendorsData?.data.map((v: any) => (
-                                        <SelectItem key={v._id} value={v._id}>{v.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.vendorId && <span className="text-xs text-destructive">{errors.vendorId}</span>}
-                        </div>
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-12 pb-32">
+                <AnimatePresence mode="popLayout">
+                    {/* Basic Information Section */}
+                    <motion.div
+                        key="basic-info"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.1 }}
+                        className="relative"
+                    >
+                        <Card className="border-border/40 bg-card/60 backdrop-blur-md shadow-xl shadow-primary/5 overflow-hidden group hover:border-primary/20 transition-all duration-500">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
 
-                        <div className="space-y-2">
-                            <Label>Procurement Date *</Label>
-                            <DatePicker
-                                date={formData.procurementDate}
-                                onDateChange={d => d && setFormData(prev => ({ ...prev, procurementDate: d }))}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Invoice Number</Label>
-                            <Input
-                                value={formData.invoiceNumber}
-                                onChange={e => setFormData(prev => ({ ...prev, invoiceNumber: e.target.value }))}
-                                placeholder="e.g. INV-001"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Status</Label>
-                            <Select
-                                value={formData.status}
-                                onValueChange={s => setFormData(prev => ({ ...prev, status: s as ProcurementStatus }))}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.values(ProcurementStatus).map(s => (
-                                        <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Items Section */}
-                <Card className="border-border/40 bg-card/60 backdrop-blur-md shadow-sm">
-                    <CardHeader className="pb-4 border-b border-border/10 flex flex-row justify-between items-center">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Calculator className="h-5 w-5 text-primary" />
-                            Items & Pricing
-                        </CardTitle>
-
-                        <Select
-                            value=""
-                            onValueChange={(val) => {
-                                const item = inventoryData?.data.find((i: any) => i._id === val);
-                                if (item) handleAddItem(item._id, item.name);
-                            }}
-                        >
-                            <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Add Item..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {inventoryData?.data.map((item: any) => (
-                                    <SelectItem key={item._id} value={item._id}>
-                                        {item.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </CardHeader>
-                    <CardContent className="pt-6 space-y-6">
-                        <div className="rounded-md border border-border/40 overflow-hidden">
-                            <Table>
-                                <TableHeader className="bg-muted/30">
-                                    <TableRow>
-                                        <TableHead className="w-[40%]">Item</TableHead>
-                                        <TableHead className="w-[20%] text-right">Qty</TableHead>
-                                        <TableHead className="w-[20%] text-right">Unit Price</TableHead>
-                                        <TableHead className="w-[15%] text-right">Total</TableHead>
-                                        <TableHead className="w-[5%]"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {formData.items.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                                No items added. Add items to calculate costs.
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        formData.items.map((item, index) => (
-                                            <TableRow key={item.itemId}>
-                                                <TableCell className="font-medium">{item.name}</TableCell>
-                                                <TableCell>
-                                                    <Input
-                                                        type="number"
-                                                        min="0.01"
-                                                        step="0.01"
-                                                        className="text-right h-8"
-                                                        value={item.quantity}
-                                                        onChange={e => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Input
-                                                        type="number"
-                                                        min="0"
-                                                        step="0.01"
-                                                        className="text-right h-8"
-                                                        value={item.unitPrice}
-                                                        onChange={e => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="text-right font-mono">
-                                                    {item.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                        onClick={() => handleRemoveItem(index)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <div className="w-[300px] space-y-4">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground">Subtotal:</span>
-                                    <span className="font-mono font-medium">
-                                        {formData.totalAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                                    </span>
+                            <CardHeader className="flex flex-row items-center gap-4 pb-4 border-b border-border/20 bg-muted/20">
+                                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner relative overflow-hidden group-hover:scale-110 transition-transform duration-500">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
+                                    <FileText className="h-6 w-6 text-primary relative z-10" />
                                 </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-muted-foreground">GST (%):</span>
+                                <div>
+                                    <CardTitle className="text-xl font-bold tracking-tight text-foreground/90">
+                                        Basic Details
+                                    </CardTitle>
+                                    <CardDescription className="text-sm font-medium text-muted-foreground/70">
+                                        Essential procurement information
+                                    </CardDescription>
+                                </div>
+                            </CardHeader>
+
+                            <CardContent className="px-6 py-6">
+                                <div className="grid gap-6 md:grid-cols-2">
+                                    {/* Vendor */}
+                                    <div className="space-y-2.5">
+                                        <Label htmlFor="vendor" className="text-sm font-semibold tracking-tight text-foreground/80 flex justify-between">
+                                            Vendor
+                                            <span className="text-destructive/80 text-[10px] items-center flex gap-1 uppercase font-bold tracking-widest">
+                                                <div className="h-1 w-1 rounded-full bg-destructive" /> Required
+                                            </span>
+                                        </Label>
                                         <Select
-                                            value={formData.gstPercentage.toString()}
-                                            onValueChange={v => setFormData(prev => ({ ...prev, gstPercentage: parseFloat(v) }))}
+                                            value={formData.vendorId}
+                                            onValueChange={v => updateFormField('vendorId', v)}
+                                            disabled={mode === 'edit' || isSubmitting}
                                         >
-                                            <SelectTrigger className="h-8 w-[70px]">
+                                            <SelectTrigger id="vendor" className={cn(
+                                                "h-12 bg-muted/30 border-border/40 focus:bg-background focus:ring-primary/20 transition-all duration-300 shadow-inner rounded-xl px-4",
+                                                errors.vendorId && "border-destructive/50"
+                                            )}>
+                                                <SelectValue placeholder="Select vendor" />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/30 rounded-xl overflow-hidden">
+                                                {vendorsData?.data.map((v: any) => (
+                                                    <SelectItem key={v._id} value={v._id} className="focus:bg-primary/10 transition-colors">
+                                                        <span className="font-medium">{v.name}</span>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.vendorId && (
+                                            <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-xs font-semibold text-destructive flex items-center gap-1.5 mt-1.5 px-1">
+                                                <Info className="h-3 w-3" /> {errors.vendorId}
+                                            </motion.p>
+                                        )}
+                                    </div>
+
+                                    {/* Procurement Date */}
+                                    <div className="space-y-2.5">
+                                        <Label className="text-sm font-semibold tracking-tight text-foreground/80 flex justify-between">
+                                            Procurement Date
+                                            <span className="text-destructive/80 text-[10px] items-center flex gap-1 uppercase font-bold tracking-widest">
+                                                <div className="h-1 w-1 rounded-full bg-destructive" /> Required
+                                            </span>
+                                        </Label>
+                                        <DatePicker
+                                            date={formData.procurementDate}
+                                            onDateChange={d => d && updateFormField('procurementDate', d)}
+                                        />
+                                    </div>
+
+                                    {/* Invoice Number */}
+                                    <div className="space-y-2.5">
+                                        <Label htmlFor="invoiceNumber" className="text-sm font-semibold tracking-tight text-foreground/80">
+                                            Invoice Number
+                                        </Label>
+                                        <Input
+                                            id="invoiceNumber"
+                                            value={formData.invoiceNumber}
+                                            onChange={e => updateFormField('invoiceNumber', e.target.value)}
+                                            placeholder="e.g., INV-001"
+                                            disabled={isSubmitting}
+                                            className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl"
+                                        />
+                                    </div>
+
+                                    {/* Status */}
+                                    <div className="space-y-2.5">
+                                        <Label htmlFor="status" className="text-sm font-semibold tracking-tight text-foreground/80">
+                                            Status
+                                        </Label>
+                                        <Select
+                                            value={formData.status}
+                                            onValueChange={s => updateFormField('status', s as ProcurementStatus)}
+                                            disabled={isSubmitting}
+                                        >
+                                            <SelectTrigger id="status" className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:ring-primary/20 transition-all duration-300 shadow-inner rounded-xl px-4">
                                                 <SelectValue />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                                {[0, 5, 12, 18, 28].map(p => (
-                                                    <SelectItem key={p} value={p.toString()}>{p}%</SelectItem>
+                                            <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/30 rounded-xl overflow-hidden">
+                                                {Object.values(ProcurementStatus).map(s => (
+                                                    <SelectItem key={s} value={s} className="focus:bg-primary/10 transition-colors">
+                                                        <span className="capitalize font-medium">{s.replace('_', ' ')}</span>
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <span className="font-mono font-medium">
-                                        {formData.gstAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                                    </span>
+
+                                    {/* Expected Delivery Date */}
+                                    <div className="space-y-2.5">
+                                        <Label className="text-sm font-semibold tracking-tight text-foreground/80">
+                                            Expected Delivery Date
+                                        </Label>
+                                        <DatePicker
+                                            date={formData.expectedDeliveryDate}
+                                            onDateChange={d => updateFormField('expectedDeliveryDate', d)}
+                                        />
+                                    </div>
+
+                                    {/* Payment Terms */}
+                                    <div className="space-y-2.5">
+                                        <Label htmlFor="paymentTerms" className="text-sm font-semibold tracking-tight text-foreground/80">
+                                            Payment Terms
+                                        </Label>
+                                        <Input
+                                            id="paymentTerms"
+                                            value={formData.paymentTerms}
+                                            onChange={e => updateFormField('paymentTerms', e.target.value)}
+                                            placeholder="e.g., Net 30"
+                                            disabled={isSubmitting}
+                                            className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl"
+                                        />
+                                    </div>
+
+                                    {/* Notes */}
+                                    <div className="space-y-2.5 md:col-span-2">
+                                        <Label htmlFor="notes" className="text-sm font-semibold tracking-tight text-foreground/80">
+                                            Notes
+                                        </Label>
+                                        <Textarea
+                                            id="notes"
+                                            value={formData.notes}
+                                            onChange={e => updateFormField('notes', e.target.value)}
+                                            placeholder="Additional notes about this procurement..."
+                                            rows={3}
+                                            disabled={isSubmitting}
+                                            className="bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-500 shadow-inner rounded-2xl resize-none p-4"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="border-t border-border/40 pt-4 flex justify-between items-center font-bold text-lg text-primary">
-                                    <span>Grand Total:</span>
-                                    <span>
-                                        {formData.grandTotal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                                    </span>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+
+                    {/* Items & Pricing Section */}
+                    <motion.div
+                        key="items-pricing"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.2 }}
+                        className="relative"
+                    >
+                        <Card className="border-border/40 bg-card/60 backdrop-blur-md shadow-xl shadow-success/5 overflow-hidden group hover:border-success/20 transition-all duration-500">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-success/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-success/10 transition-colors" />
+
+                            <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-border/20 bg-muted/20">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-2xl bg-success/10 flex items-center justify-center shadow-inner relative overflow-hidden group-hover:scale-110 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-success/20 to-transparent opacity-50" />
+                                        <ShoppingCart className="h-6 w-6 text-success relative z-10" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-xl font-bold tracking-tight text-foreground/90">
+                                            Items & Pricing
+                                        </CardTitle>
+                                        <CardDescription className="text-sm font-medium text-muted-foreground/70">
+                                            Add items and calculate costs
+                                        </CardDescription>
+                                    </div>
                                 </div>
+
+                                <Select
+                                    value=""
+                                    onValueChange={(val) => {
+                                        const item = inventoryData?.data.find((i: any) => i._id === val);
+                                        if (item) handleAddItem(item._id, item.name);
+                                    }}
+                                    disabled={inventoryLoading || !inventoryData?.data || inventoryData.data.length === 0}
+                                >
+                                    <SelectTrigger className="w-[220px] h-10 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors rounded-xl disabled:opacity-50">
+                                        <div className="flex items-center gap-2">
+                                            {inventoryLoading ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                                                    <span className="text-sm font-semibold">Loading...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Plus className="h-4 w-4 text-primary" />
+                                                    <span className="text-sm font-semibold">Add Item</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/30 rounded-xl">
+                                        {inventoryLoading ? (
+                                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                                <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+                                                Loading items...
+                                            </div>
+                                        ) : !inventoryData?.data || inventoryData.data.length === 0 ? (
+                                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                                <p className="mb-2">No items available</p>
+                                                <p className="text-xs">
+                                                    Create {type === 'raw_material' ? 'raw materials' : 'trading goods'} first
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            inventoryData.data.map((item: any) => (
+                                                <SelectItem key={item._id} value={item._id} className="focus:bg-primary/10 transition-colors">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">{item.name}</span>
+                                                        {item.sku && <span className="text-xs text-muted-foreground">SKU: {item.sku}</span>}
+                                                    </div>
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </CardHeader>
+
+                            <CardContent className="px-6 py-6 space-y-6">
+                                {/* Items Table */}
+                                <div className="rounded-xl border border-border/40 overflow-hidden shadow-inner bg-muted/10">
+                                    <Table>
+                                        <TableHeader className="bg-muted/30">
+                                            <TableRow className="hover:bg-transparent border-border/20">
+                                                <TableHead className="font-bold text-foreground/70">Item</TableHead>
+                                                <TableHead className="text-right font-bold text-foreground/70">Quantity</TableHead>
+                                                <TableHead className="text-right font-bold text-foreground/70">Unit Price</TableHead>
+                                                <TableHead className="text-right font-bold text-foreground/70">Total</TableHead>
+                                                <TableHead className="w-[50px]"></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {formData.items.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                                                        <div className="flex flex-col items-center gap-3">
+                                                            <ShoppingCart className="h-12 w-12 text-muted-foreground/30" />
+                                                            <p className="font-medium">No items added yet</p>
+                                                            <p className="text-xs">Click "Add Item" to start building your procurement</p>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                formData.items.map((item, index) => (
+                                                    <TableRow key={item.itemId} className="hover:bg-muted/20 transition-colors">
+                                                        <TableCell className="font-semibold text-foreground">{item.name}</TableCell>
+                                                        <TableCell className="w-[120px]">
+                                                            <Input
+                                                                type="number"
+                                                                min="0.01"
+                                                                step="0.01"
+                                                                className="text-right h-10 bg-background/50 border-border/30 focus:border-primary/50 rounded-lg"
+                                                                value={item.quantity}
+                                                                onChange={e => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="w-[120px]">
+                                                            <Input
+                                                                type="number"
+                                                                min="0"
+                                                                step="0.01"
+                                                                className="text-right h-10 bg-background/50 border-border/30 focus:border-primary/50 rounded-lg"
+                                                                value={item.unitPrice}
+                                                                onChange={e => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-bold text-success font-mono">
+                                                            ₹{item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                                                                onClick={() => handleRemoveItem(index)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+
+                                {/* Financial Summary */}
+                                <div className="flex justify-end">
+                                    <div className="w-full max-w-md space-y-4 bg-muted/20 p-6 rounded-2xl border border-border/20">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-muted-foreground font-medium">Subtotal</span>
+                                            <span className="font-mono font-bold text-foreground">
+                                                ₹{formData.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex justify-between items-center text-sm">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-muted-foreground font-medium">GST</span>
+                                                <Select
+                                                    value={formData.gstPercentage.toString()}
+                                                    onValueChange={v => updateFormField('gstPercentage', parseFloat(v))}
+                                                >
+                                                    <SelectTrigger className="h-8 w-[80px] text-xs bg-background/50 border-border/30 rounded-lg">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/30 rounded-lg">
+                                                        {[0, 5, 12, 18, 28].map(p => (
+                                                            <SelectItem key={p} value={p.toString()} className="text-xs focus:bg-primary/10">
+                                                                {p}%
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <span className="font-mono font-bold text-foreground">
+                                                ₹{formData.gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+
+                                        <div className="h-px bg-border/40" />
+
+                                        <div className="flex justify-between items-center pt-2">
+                                            <span className="text-base font-bold text-foreground">Grand Total</span>
+                                            <span className="text-2xl font-black text-primary font-mono">
+                                                ₹{formData.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+
+                    {/* Payment Section */}
+                    {mode === 'create' && (
+                        <motion.div
+                            key="payment-section"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.3 }}
+                            className="relative"
+                        >
+                            <Card className={cn(
+                                "border-border/40 bg-card/60 backdrop-blur-md shadow-xl overflow-hidden group transition-all duration-500",
+                                paymentData.recordPayment ? "ring-2 ring-primary/30 shadow-primary/10" : "hover:border-warning/20 shadow-warning/5"
+                            )}>
+                                <div className={cn(
+                                    "absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16 blur-3xl transition-colors",
+                                    paymentData.recordPayment ? "bg-primary/10" : "bg-warning/5 group-hover:bg-warning/10"
+                                )} />
+
+                                <CardHeader
+                                    className="flex flex-row items-center justify-between pb-4 border-b border-border/20 bg-muted/20 cursor-pointer hover:bg-muted/30 transition-colors"
+                                    onClick={() => setPaymentData(prev => ({ ...prev, recordPayment: !prev.recordPayment }))}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={cn(
+                                            "h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner relative overflow-hidden group-hover:scale-110 transition-transform duration-500",
+                                            paymentData.recordPayment ? "bg-primary/10" : "bg-warning/10"
+                                        )}>
+                                            <div className={cn(
+                                                "absolute inset-0 bg-gradient-to-br to-transparent opacity-50",
+                                                paymentData.recordPayment ? "from-primary/20" : "from-warning/20"
+                                            )} />
+                                            <Wallet className={cn(
+                                                "h-6 w-6 relative z-10",
+                                                paymentData.recordPayment ? "text-primary" : "text-warning"
+                                            )} />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-xl font-bold tracking-tight text-foreground/90">
+                                                Payment Details
+                                            </CardTitle>
+                                            <CardDescription className="text-sm font-medium text-muted-foreground/70">
+                                                {paymentData.recordPayment ? 'Recording initial payment' : 'Click to record initial payment'}
+                                            </CardDescription>
+                                        </div>
+                                    </div>
+
+                                    <div className={cn(
+                                        "h-7 w-14 rounded-full p-1 transition-all duration-300",
+                                        paymentData.recordPayment ? "bg-primary shadow-inner shadow-primary/20" : "bg-muted"
+                                    )}>
+                                        <div className={cn(
+                                            "h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-300",
+                                            paymentData.recordPayment ? "translate-x-7" : "translate-x-0"
+                                        )} />
+                                    </div>
+                                </CardHeader>
+
+                                <AnimatePresence>
+                                    {paymentData.recordPayment && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <CardContent className="px-6 py-6">
+                                                <div className="grid gap-6 md:grid-cols-2">
+                                                    <div className="space-y-2.5">
+                                                        <Label htmlFor="paymentAmount" className="text-sm font-semibold tracking-tight text-foreground/80">
+                                                            Paid Amount
+                                                        </Label>
+                                                        <Input
+                                                            id="paymentAmount"
+                                                            type="number"
+                                                            min="0"
+                                                            step="0.01"
+                                                            value={paymentData.amount}
+                                                            onChange={e => setPaymentData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
+                                                            className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-2.5">
+                                                        <Label htmlFor="paymentMethod" className="text-sm font-semibold tracking-tight text-foreground/80">
+                                                            Payment Method
+                                                        </Label>
+                                                        <Select
+                                                            value={paymentData.paymentMethod}
+                                                            onValueChange={m => setPaymentData(prev => ({ ...prev, paymentMethod: m as PaymentMethod }))}
+                                                        >
+                                                            <SelectTrigger id="paymentMethod" className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:ring-primary/20 transition-all duration-300 shadow-inner rounded-xl px-4">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="bg-popover/95 backdrop-blur-xl border-border/30 rounded-xl">
+                                                                {Object.values(PaymentMethod).map(m => (
+                                                                    <SelectItem key={m} value={m} className="focus:bg-primary/10 transition-colors">
+                                                                        <span className="capitalize font-medium">{m.replace('_', ' ')}</span>
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+
+                                                    <div className="space-y-2.5">
+                                                        <Label className="text-sm font-semibold tracking-tight text-foreground/80">
+                                                            Payment Date
+                                                        </Label>
+                                                        <DatePicker
+                                                            date={paymentData.paymentDate}
+                                                            onDateChange={d => d && setPaymentData(prev => ({ ...prev, paymentDate: d }))}
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-2.5">
+                                                        <Label htmlFor="tranches" className="text-sm font-semibold tracking-tight text-foreground/80">
+                                                            Total Tranches
+                                                        </Label>
+                                                        <Input
+                                                            id="tranches"
+                                                            type="number"
+                                                            min="1"
+                                                            value={paymentData.tranches}
+                                                            onChange={e => setPaymentData(prev => ({ ...prev, tranches: parseInt(e.target.value) || 1 }))}
+                                                            className="h-12 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-300 shadow-inner rounded-xl"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-2.5 md:col-span-2">
+                                                        <Label htmlFor="paymentNotes" className="text-sm font-semibold tracking-tight text-foreground/80">
+                                                            Payment Notes
+                                                        </Label>
+                                                        <Textarea
+                                                            id="paymentNotes"
+                                                            value={paymentData.notes}
+                                                            onChange={e => setPaymentData(prev => ({ ...prev, notes: e.target.value }))}
+                                                            placeholder="UPI reference, check number, or other payment details..."
+                                                            rows={3}
+                                                            className="bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 transition-all duration-500 shadow-inner rounded-2xl resize-none p-4"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </Card>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Fixed Footer with Actions */}
+                <div className="fixed bottom-0 left-0 right-0 p-6 bg-background/40 backdrop-blur-2xl border-t border-border/30 z-50 shadow-[0_-12px_40px_rgba(0,0,0,0.1)]">
+                    <div className="mx-auto max-w-4xl px-8 md:px-12">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
+                                <kbd className="px-2 py-1 bg-background rounded border border-border/40 font-mono">Ctrl</kbd>
+                                <span>+</span>
+                                <kbd className="px-2 py-1 bg-background rounded border border-border/40 font-mono">S</kbd>
+                                <span className="ml-2">to save</span>
+                            </div>
+
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => router.back()}
+                                    disabled={isSubmitting}
+                                    className="h-12 px-8 font-bold rounded-2xl w-full sm:w-auto border-border/40 hover:bg-muted/50 transition-all"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="h-12 px-10 font-bold rounded-2xl w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all group"
+                                >
+                                    {isSubmitting ? (
+                                        <div className="flex items-center gap-2.5">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span className="tracking-tight uppercase text-xs">
+                                                {mode === 'create' ? 'Creating...' : 'Updating...'}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2.5">
+                                            <Save className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                            <span className="tracking-tight uppercase text-xs">
+                                                {mode === 'create' ? 'Create Procurement' : 'Save Changes'}
+                                            </span>
+                                        </div>
+                                    )}
+                                </Button>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-
-                {/* Payment Section (only create mode) */}
-                {mode === 'create' && (
-                    <Card className={cn(
-                        "border-border/40 bg-card/60 backdrop-blur-md shadow-sm transition-all duration-300",
-                        paymentData.recordPayment ? "ring-2 ring-primary/20" : ""
-                    )}>
-                        <CardHeader className="pb-4 border-b border-border/10 cursor-pointer" onClick={() => setPaymentData(prev => ({ ...prev, recordPayment: !prev.recordPayment }))}>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <IndianRupee className="h-5 w-5 text-primary" />
-                                    Payment Details
-                                </CardTitle>
-                                <div className={cn(
-                                    "h-6 w-12 rounded-full p-1 transition-colors",
-                                    paymentData.recordPayment ? "bg-primary" : "bg-muted"
-                                )}>
-                                    <div className={cn(
-                                        "h-4 w-4 rounded-full bg-white transition-transform",
-                                        paymentData.recordPayment ? "translate-x-6" : "translate-x-0"
-                                    )} />
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <AnimatePresence>
-                            {paymentData.recordPayment && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden"
-                                >
-                                    <CardContent className="grid gap-6 md:grid-cols-2 pt-6">
-                                        <div className="space-y-2">
-                                            <Label>Paid Amount</Label>
-                                            <Input
-                                                type="number"
-                                                value={paymentData.amount}
-                                                onChange={e => setPaymentData(prev => ({ ...prev, amount: parseFloat(e.target.value) }))}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Payment Method</Label>
-                                            <Select
-                                                value={paymentData.paymentMethod}
-                                                onValueChange={m => setPaymentData(prev => ({ ...prev, paymentMethod: m as PaymentMethod }))}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {Object.values(PaymentMethod).map(m => (
-                                                        <SelectItem key={m} value={m}>{m.replace('_', ' ')}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Payment Date</Label>
-                                            <DatePicker
-                                                date={paymentData.paymentDate}
-                                                onDateChange={d => d && setPaymentData(prev => ({ ...prev, paymentDate: d }))}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Tranches (Installments)</Label>
-                                            <Input
-                                                type="number"
-                                                min="1"
-                                                value={paymentData.tranches}
-                                                onChange={e => setPaymentData(prev => ({ ...prev, tranches: parseInt(e.target.value) || 1 }))}
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2 space-y-2">
-                                            <Label>Notes</Label>
-                                            <Textarea
-                                                value={paymentData.notes}
-                                                onChange={e => setPaymentData(prev => ({ ...prev, notes: e.target.value }))}
-                                                placeholder="Payment reference (e.g. UPI Ref, Check No.)"
-                                            />
-                                        </div>
-                                    </CardContent>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </Card>
-                )}
-
-                {/* Footer Actions */}
-                <div className="fixed bottom-0 left-0 right-0 p-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-50 flex items-center justify-end gap-4 shadow-2xl">
-                    <Button variant="outline" type="button" onClick={() => router.back()} className="rounded-xl px-8">
-                        Cancel
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting} className="rounded-xl px-10 shadow-lg shadow-primary/20">
-                        {isSubmitting ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                            <Save className="h-4 w-4 mr-2" />
-                        )}
-                        {mode === 'create' ? 'Create Procurement' : 'Save Changes'}
-                    </Button>
+                    </div>
                 </div>
             </form>
         </TooltipProvider>

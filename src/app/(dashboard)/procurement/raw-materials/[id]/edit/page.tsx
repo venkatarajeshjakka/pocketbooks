@@ -1,60 +1,72 @@
-import { notFound } from 'next/navigation';
-import { ProcurementForm } from '@/components/procurement/procurement-form';
-import { fetchProcurement } from '@/lib/api/procurements';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { notFound } from "next/navigation";
+import { ProcurementForm } from "@/components/procurement/procurement-form";
+import { fetchProcurement } from "@/lib/api/procurements";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 interface PageProps {
-    params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
 }
 
-export default async function EditRawMaterialProcurementPage({ params }: PageProps) {
-    const { id } = await params;
+export default async function EditRawMaterialProcurementPage({
+  params,
+}: PageProps) {
+  const { id } = await params;
 
-    let procurement;
-    try {
-        procurement = await fetchProcurement('raw_material', id);
-    } catch (error) {
-        console.error('Failed to fetch procurement:', error);
-        notFound();
-    }
+  let procurement;
+  try {
+    procurement = await fetchProcurement("raw_material", id);
+  } catch (error) {
+    console.error("Failed to fetch procurement:", error);
+    notFound();
+  }
 
-    // The API returns serialization safe JSON (dates as strings)
-    // We need to transform items for the form to understand them
-    const serializedProcurement = procurement as any;
+  // The API returns serialization safe JSON (dates as strings)
+  // We need to transform items for the form to understand them
+  const serializedProcurement = procurement as any;
 
-    const transformedItems = serializedProcurement.items.map((item: any) => ({
-        ...item,
-        // Ensure rawMaterialId is just the ID string
-        rawMaterialId: item.rawMaterialId?._id || item.rawMaterialId,
-        // Add name for display
-        name: item.rawMaterialId?.name || 'Unknown Item',
-    }));
+  const transformedItems = serializedProcurement.items.map((item: any) => ({
+    ...item,
+    // Ensure rawMaterialId is just the ID string
+    rawMaterialId: item.rawMaterialId?._id || item.rawMaterialId,
+    // Add name for display
+    name: item.rawMaterialId?.name || "Unknown Item",
+  }));
 
-    serializedProcurement.items = transformedItems;
+  serializedProcurement.items = transformedItems;
 
-    return (
-        <div className="flex flex-col gap-6 max-w-5xl mx-auto py-6">
-            <div className="flex items-center gap-4">
-                <Link href={`/procurement/raw-materials/${id}`}>
-                    <Button variant="ghost" size="icon">
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                </Link>
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Edit Procurement</h1>
-                    <p className="text-muted-foreground">
-                        Update procurement details.
-                    </p>
-                </div>
-            </div>
-            <ProcurementForm
-                type="raw_material"
-                mode="edit"
-                initialData={serializedProcurement}
-                procurementId={id}
-            />
+  return (
+    <div className="flex-1 p-6 md:p-10 min-h-screen">
+      <div className="mx-auto w-full max-w-4xl">
+        {/* Back Button */}
+        <Link
+          href={`/procurement/raw-materials/${id}`}
+          className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all duration-300 mb-6"
+        >
+          <div className="h-8 w-8 rounded-full border border-border/40 flex items-center justify-center group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
+            <ChevronLeft className="h-4 w-4" />
+          </div>
+          Back to Details
+        </Link>
+
+        {/* Page Title */}
+        <div className="relative mb-12">
+          <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary/20 rounded-full" />
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground/90 sm:text-5xl">
+            Edit Raw Material Procurement
+          </h1>
+          <p className="text-base text-muted-foreground mt-3 font-medium max-w-2xl leading-relaxed">
+            Update procurement details, items, and payment information.
+          </p>
         </div>
-    );
+
+        <ProcurementForm
+          type="raw_material"
+          mode="edit"
+          initialData={serializedProcurement}
+          procurementId={id}
+        />
+      </div>
+    </div>
+  );
 }
