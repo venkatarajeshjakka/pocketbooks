@@ -5,7 +5,7 @@
  */
 
 import mongoose, { Schema, Model } from 'mongoose';
-import { ITradingGoodsProcurement, ProcurementStatus } from '@/types';
+import { ITradingGoodsProcurement, ProcurementStatus, PaymentStatus } from '@/types';
 
 const TradingGoodsProcurementSchema = new Schema<ITradingGoodsProcurement>(
   {
@@ -76,6 +76,53 @@ const TradingGoodsProcurementSchema = new Schema<ITradingGoodsProcurement>(
     receivedDate: {
       type: Date,
     },
+    // Enhanced pricing fields
+    originalPrice: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: [0, 'Original price cannot be negative'],
+    },
+    gstBillPrice: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: [0, 'GST bill price cannot be negative'],
+    },
+    gstPercentage: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: [0, 'GST percentage cannot be negative'],
+      max: [100, 'GST percentage cannot exceed 100'],
+    },
+    // Payment tracking fields
+    paymentStatus: {
+      type: String,
+      enum: Object.values(PaymentStatus),
+      default: PaymentStatus.UNPAID,
+    },
+    totalPaid: {
+      type: Number,
+      default: 0,
+      min: [0, 'Total paid cannot be negative'],
+    },
+    remainingAmount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Remaining amount cannot be negative'],
+    },
+    paymentTerms: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Payment terms cannot exceed 200 characters'],
+    },
+    expectedDeliveryDate: {
+      type: Date,
+    },
+    actualDeliveryDate: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
@@ -90,18 +137,38 @@ TradingGoodsProcurementSchema.index({ procurementDate: -1 });
 TradingGoodsProcurementSchema.index({ status: 1 });
 TradingGoodsProcurementSchema.index({ invoiceNumber: 1 });
 
-// Calculate amounts before saving
-TradingGoodsProcurementSchema.pre('save', async function () {
+// Calculate amounts before validation
+TradingGoodsProcurementSchema.pre('validate', async function (this: any) {
   // Calculate item amounts
-  this.items.forEach((item) => {
-    item.amount = item.quantity * item.unitPrice;
-  });
+  if (this.items && this.items.length > 0) {
+    this.items.forEach((item: any) => {
+      item.amount = item.quantity * item.unitPrice;
+    });
 
-  // Calculate total amount
-  this.totalAmount = this.items.reduce((sum, item) => sum + item.amount, 0);
+    // Calculate total amount (sum of items)
+    this.totalAmount = this.items.reduce((sum: number, item: any) => sum + item.amount, 0);
+  } else {
+    this.totalAmount = 0;
+  }
 
-  // Calculate grand total
-  this.grandTotal = this.totalAmount + this.gstAmount;
+  // Enhanced pricing logic
+  this.originalPrice = this.totalAmount;
+  this.gstAmount = (this.originalPrice * (this.gstPercentage || 0)) / 100;
+  this.gstBillPrice = this.originalPrice + this.gstAmount;
+  this.grandTotal = this.gstBillPrice;
+
+  // Calculate remaining amount
+  this.remainingAmount = Math.max(0, this.grandTotal - (this.totalPaid || 0));
+
+  // Update payment status
+  if ((this.totalPaid || 0) === 0) {
+    this.paymentStatus = PaymentStatus.UNPAID;
+  } else if ((this.totalPaid || 0) >= this.grandTotal) {
+    this.paymentStatus = PaymentStatus.FULLY_PAID;
+    this.remainingAmount = 0;
+  } else {
+    this.paymentStatus = PaymentStatus.PARTIALLY_PAID;
+  }
 });
 
 // Prevent model recompilation

@@ -32,6 +32,7 @@ export function usePayments(params: {
     partyType?: string;
     assetId?: string;
     saleId?: string;
+    procurementId?: string;
     startDate?: string;
     endDate?: string;
 } = {}) {

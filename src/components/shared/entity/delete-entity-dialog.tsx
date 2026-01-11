@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 interface DeleteEntityDialogProps {
   entityId: string | string[];
   entityName: string;
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement';
   open: boolean;
   basePath: string;
   onOpenChange: (open: boolean) => void;

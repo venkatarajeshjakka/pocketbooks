@@ -8,6 +8,7 @@ import { Client, Vendor, Asset, Sale } from '@/models';
 import { connectToDatabase, errorResponse } from '@/lib/api-helpers';
 import { revalidatePath } from 'next/cache';
 import { updateAssetPaymentStatus } from '@/lib/utils/asset-payment-utils';
+import { ProcurementService } from '@/lib/services/procurement-service';
 import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
     const partyType = searchParams.get('partyType') || '';
     const assetId = searchParams.get('assetId') || '';
     const saleId = searchParams.get('saleId') || '';
+    const procurementId = searchParams.get('procurementId') || '';
     const startDate = searchParams.get('startDate') || '';
     const endDate = searchParams.get('endDate') || '';
 
@@ -59,6 +61,9 @@ export async function GET(request: NextRequest) {
     }
     if (saleId && mongoose.Types.ObjectId.isValid(saleId)) {
       query.saleId = new mongoose.Types.ObjectId(saleId);
+    }
+    if (procurementId && mongoose.Types.ObjectId.isValid(procurementId)) {
+      query.procurementId = new mongoose.Types.ObjectId(procurementId);
     }
 
     // Execute query with pagination using aggregation for better performance
@@ -111,11 +116,36 @@ export async function GET(request: NextRequest) {
           as: 'clientData'
         }
       },
+      // Lookup Procurement (Raw Material)
+      {
+        $lookup: {
+          from: 'rawmaterialprocurements',
+          localField: 'procurementId',
+          foreignField: '_id',
+          as: 'rawMaterialProcData'
+        }
+      },
+      // Lookup Procurement (Trading Goods)
+      {
+        $lookup: {
+          from: 'tradinggoodsprocurements',
+          localField: 'procurementId',
+          foreignField: '_id',
+          as: 'tradingGoodProcData'
+        }
+      },
       // Transform and populate fields
       {
         $addFields: {
           assetId: { $arrayElemAt: ['$assetData', 0] },
           saleId: { $arrayElemAt: ['$saleData', 0] },
+          procurementId: {
+            $cond: {
+              if: { $eq: ['$procurementType', 'raw_material'] },
+              then: { $arrayElemAt: ['$rawMaterialProcData', 0] },
+              else: { $arrayElemAt: ['$tradingGoodProcData', 0] }
+            }
+          },
           partyId: {
             $cond: {
               if: { $or: [{ $eq: ['$partyType', 'vendor'] }, { $eq: ['$partyType', 'Vendor'] }] },
@@ -131,7 +161,9 @@ export async function GET(request: NextRequest) {
           assetData: 0,
           saleData: 0,
           vendorData: 0,
-          clientData: 0
+          clientData: 0,
+          rawMaterialProcData: 0,
+          tradingGoodProcData: 0
         }
       }
     ]);
@@ -190,6 +222,15 @@ export async function POST(request: NextRequest) {
             await vendor.save({ session });
           }
         }
+      }
+
+      // If this is a procurement payment, sync the procurement status
+      if (body.procurementId && body.procurementType) {
+        await ProcurementService.syncProcurementPaymentStatus(
+          body.procurementId,
+          body.procurementType,
+          session
+        );
       }
 
       await session.commitTransaction();

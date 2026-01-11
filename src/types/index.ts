@@ -25,7 +25,10 @@ export enum TransactionStatus {
 export enum ProcurementStatus {
   ORDERED = 'ordered',
   RECEIVED = 'received',
+  PARTIALLY_RECEIVED = 'partially_received',
+  RETURNED = 'returned',
   CANCELLED = 'cancelled',
+  COMPLETED = 'completed',
 }
 
 export enum SaleStatus {
@@ -33,6 +36,12 @@ export enum SaleStatus {
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
   PARTIALLY_PAID = 'partially_paid',
+}
+
+export enum PaymentStatus {
+  UNPAID = 'unpaid',
+  PARTIALLY_PAID = 'partially_paid',
+  FULLY_PAID = 'fully_paid',
 }
 
 export enum PaymentMethod {
@@ -319,6 +328,18 @@ export interface IRawMaterialProcurement {
   invoiceNumber?: string;
   notes?: string;
   receivedDate?: Date;
+
+  // Enhanced fields
+  originalPrice: number;
+  gstBillPrice: number;
+  gstPercentage: number;
+  paymentStatus: PaymentStatus;
+  totalPaid: number;
+  remainingAmount: number;
+  paymentTerms?: string;
+  expectedDeliveryDate?: Date;
+  actualDeliveryDate?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -335,6 +356,12 @@ export interface IRawMaterialProcurementInput {
   status?: ProcurementStatus;
   invoiceNumber?: string;
   notes?: string;
+
+  // Enhanced fields
+  gstPercentage?: number;
+  paymentTerms?: string;
+  expectedDeliveryDate?: Date;
+  actualDeliveryDate?: Date;
 }
 
 export interface ITradingGoodsProcurement {
@@ -354,6 +381,18 @@ export interface ITradingGoodsProcurement {
   invoiceNumber?: string;
   notes?: string;
   receivedDate?: Date;
+
+  // Enhanced fields
+  originalPrice: number;
+  gstBillPrice: number;
+  gstPercentage: number;
+  paymentStatus: PaymentStatus;
+  totalPaid: number;
+  remainingAmount: number;
+  paymentTerms?: string;
+  expectedDeliveryDate?: Date;
+  actualDeliveryDate?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -370,6 +409,12 @@ export interface ITradingGoodsProcurementInput {
   status?: ProcurementStatus;
   invoiceNumber?: string;
   notes?: string;
+
+  // Enhanced fields
+  gstPercentage?: number;
+  paymentTerms?: string;
+  expectedDeliveryDate?: Date;
+  actualDeliveryDate?: Date;
 }
 
 // ============================================================================
@@ -437,6 +482,13 @@ export interface IPayment {
   assetId?: Types.ObjectId | string;
   expenseId?: Types.ObjectId | string;
   notes?: string;
+
+  // Enhanced fields
+  procurementType?: 'raw_material' | 'trading_good';
+  trancheNumber?: number;
+  totalTranches?: number;
+  referenceNumber?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }

@@ -8,7 +8,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Mail, Phone, MapPin, IndianRupee } from "lucide-react";
-import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment } from "@/types";
+import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment, IRawMaterialProcurement, ITradingGoodsProcurement } from "@/types";
 import { GradientCard } from "@/components/shared/ui/gradient-card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,11 +28,11 @@ import { staggerContainer, fadeInUp } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
 import { EntityActionsMenu } from "./entity-actions-menu";
 
-export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment | IRawMaterialProcurement | ITradingGoodsProcurement;
 
 export interface EntityGridViewProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement';
   selectedEntities?: Set<string>;
   onToggleSelection?: (id: string) => void;
   onEdit?: (id: string) => void;

@@ -5,8 +5,7 @@
 
 import { notFound } from 'next/navigation';
 import { AssetDetailView } from '@/components/assets/asset-detail-view';
-import { Asset } from '@/models';
-import { connectToDatabase } from '@/lib/api-helpers';
+import { fetchAsset } from '@/lib/api/assets';
 
 interface AssetDetailPageProps {
   params: Promise<{ id: string }>;
@@ -17,8 +16,8 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
 
   let asset;
   try {
-    await connectToDatabase();
-    asset = await Asset.findById(id).populate('vendorId').lean();
+    const response = await fetchAsset(id);
+    asset = response.data;
 
     if (!asset) {
       notFound();
@@ -28,18 +27,15 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
     notFound();
   }
 
-  // Serialize the asset data for the client component
-  const serializedAsset = JSON.parse(JSON.stringify(asset));
-
-  return <AssetDetailView asset={serializedAsset} assetId={id} />;
+  return <AssetDetailView asset={asset as any} assetId={id} />;
 }
 
 export async function generateMetadata({ params }: AssetDetailPageProps) {
   const { id } = await params;
 
   try {
-    await connectToDatabase();
-    const asset = await Asset.findById(id).lean();
+    const response = await fetchAsset(id);
+    const asset = response.data;
 
     if (asset) {
       return {

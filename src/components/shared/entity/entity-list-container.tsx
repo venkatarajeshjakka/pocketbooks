@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment } from '@/types';
+import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment, IRawMaterialProcurement, ITradingGoodsProcurement } from '@/types';
 import { EntityGridView } from './entity-grid-view';
 import { EntityTableView } from './entity-table-view';
 import { ViewMode } from './view-toggle';
@@ -16,11 +16,11 @@ import { BulkActionsBar } from './bulk-actions-bar';
 import { DeleteEntityDialog } from './delete-entity-dialog';
 import { toast } from 'sonner';
 
-export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment | IRawMaterialProcurement | ITradingGoodsProcurement;
 
 export interface EntityListContainerProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement';
   initialView?: ViewMode;
   basePath: string;
   onDelete: (id: string) => Promise<void>;
