@@ -36,6 +36,7 @@ export async function fetchPayments(params: {
     partyType?: string;
     assetId?: string;
     saleId?: string;
+    procurementId?: string;
     startDate?: string;
     endDate?: string;
 } = {}): Promise<PaginatedResponse<IPayment>> {
@@ -50,6 +51,7 @@ export async function fetchPayments(params: {
     if (params.partyType) queryParams.set('partyType', params.partyType);
     if (params.assetId) queryParams.set('assetId', params.assetId);
     if (params.saleId) queryParams.set('saleId', params.saleId);
+    if (params.procurementId) queryParams.set('procurementId', params.procurementId);
     if (params.startDate) queryParams.set('startDate', params.startDate);
     if (params.endDate) queryParams.set('endDate', params.endDate);
 

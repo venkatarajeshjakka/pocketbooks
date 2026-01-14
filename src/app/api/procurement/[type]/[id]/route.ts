@@ -20,15 +20,17 @@ export async function GET(
     { params }: { params: Promise<{ type: string; id: string }> }
 ) {
     const { type, id } = await params;
+    console.log(`[API] GET Procurement: type=${type}, id=${id}`);
 
-    if (type !== 'raw-material' && type !== 'trading-good') {
+    if (!['raw-material', 'raw-materials', 'trading-good', 'trading-goods'].includes(type)) {
         return errorResponse('Invalid procurement type', 400);
     }
 
-    const normalizedType = type === 'raw-material' ? 'raw_material' : 'trading_good';
+    const normalizedType = (type === 'raw-material' || type === 'raw-materials') ? 'raw_material' : 'trading_good';
     const Model = normalizedType === 'raw_material' ? RawMaterialProcurement : TradingGoodsProcurement;
+    const populatePaths = ['vendorId', normalizedType === 'raw_material' ? 'items.rawMaterialId' : 'items.tradingGoodId'];
 
-    return handleGetById(id, Model as any, ['vendorId', 'items.rawMaterialId', 'items.tradingGoodId']);
+    return handleGetById(id, Model as any, populatePaths);
 }
 
 /**
@@ -41,11 +43,11 @@ export async function PUT(
 ) {
     const { type, id } = await params;
 
-    if (type !== 'raw-material' && type !== 'trading-good') {
+    if (!['raw-material', 'raw-materials', 'trading-good', 'trading-goods'].includes(type)) {
         return errorResponse('Invalid procurement type', 400);
     }
 
-    const normalizedType = type === 'raw-material' ? 'raw_material' : 'trading_good';
+    const normalizedType = (type === 'raw-material' || type === 'raw-materials') ? 'raw_material' : 'trading_good';
     const Model = normalizedType === 'raw_material' ? RawMaterialProcurement : TradingGoodsProcurement;
     const body = await request.json();
 
@@ -114,11 +116,11 @@ export async function DELETE(
 ) {
     const { type, id } = await params;
 
-    if (type !== 'raw-material' && type !== 'trading-good') {
+    if (!['raw-material', 'raw-materials', 'trading-good', 'trading-goods'].includes(type)) {
         return errorResponse('Invalid procurement type', 400);
     }
 
-    const normalizedType = type === 'raw-material' ? 'raw_material' : 'trading_good';
+    const normalizedType = (type === 'raw-material' || type === 'raw-materials') ? 'raw_material' : 'trading_good';
     let session: mongoose.ClientSession | null = null;
 
     try {

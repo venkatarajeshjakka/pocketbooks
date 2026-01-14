@@ -84,7 +84,8 @@ export async function fetchProcurement(
         if (response.status === 404) {
             throw new Error('Procurement not found');
         }
-        throw new Error('Failed to fetch procurement');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to fetch procurement (${response.status})`);
     }
 
     const data: ApiResponse<IProcurement> = await response.json();
@@ -92,7 +93,7 @@ export async function fetchProcurement(
         throw new Error('Invalid response from server');
     }
 
-    return data.data;
+    return data.data as IProcurement;
 }
 
 /**

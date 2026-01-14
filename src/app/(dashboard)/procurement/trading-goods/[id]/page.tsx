@@ -8,6 +8,7 @@ interface PageProps {
 
 export default async function TradingGoodsProcurementPage({ params }: PageProps) {
     const { id } = await params;
+    console.log(`[PAGE] TradingGoodsProcurementPage: id=${id}`);
 
     let procurement;
     try {

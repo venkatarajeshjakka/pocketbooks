@@ -24,7 +24,7 @@ export async function GET(
         return errorResponse('Invalid procurement type', 400);
     }
 
-    const normalizedType = type === 'raw-material' ? 'raw_material' : 'trading_good';
+    const normalizedType = (type === 'raw-material' || type === 'raw-materials') ? 'raw_material' : 'trading_good';
     const Model = normalizedType === 'raw_material' ? RawMaterialProcurement : TradingGoodsProcurement;
 
     // Use handleGetAll helper for listing
@@ -41,11 +41,11 @@ export async function POST(
 ) {
     const { type } = await params;
 
-    if (type !== 'raw-material' && type !== 'trading-good') {
+    if (!['raw-material', 'raw-materials', 'trading-good', 'trading-goods'].includes(type)) {
         return errorResponse('Invalid procurement type', 400);
     }
 
-    const normalizedType = type === 'raw-material' ? 'raw_material' : 'trading_good';
+    const normalizedType = (type === 'raw-material' || type === 'raw-materials') ? 'raw_material' : 'trading_good';
     const body = await request.json();
     const { initialPayment, ...procurementData } = body;
 

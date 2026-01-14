@@ -55,6 +55,13 @@ export function ProcurementList({ type, page, search, status, view }: Procuremen
         limit: 50,
     });
 
+    const deleteMutation = useDeleteProcurement(type);
+
+    const handleDelete = async (id: string) => {
+        await deleteMutation.mutateAsync(id);
+        refetch();
+    };
+
     if (isLoading) {
         return (
             <div className="flex h-64 items-center justify-center">
@@ -122,11 +129,6 @@ export function ProcurementList({ type, page, search, status, view }: Procuremen
     // If I want custom actions, passing `renderCardContent` is fine for grid. 
     // For table, `columns` are used.
 
-    const deleteMutation = useDeleteProcurement(type);
-
-    const handleDelete = async (id: string) => {
-        await deleteMutation.mutateAsync(id);
-    };
 
     const columns = [
         {
