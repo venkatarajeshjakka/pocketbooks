@@ -17,8 +17,7 @@ const TradingGoodSchema = new Schema<ITradingGood>(
     },
     sku: {
       type: String,
-      required: [true, 'SKU is required'],
-      unique: true,
+      sparse: true,
       uppercase: true,
       trim: true,
     },

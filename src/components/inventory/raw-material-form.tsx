@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader2, Package, Hash, Layers, AlertCircle, Save, ArrowLeft } from 'lucide-react';
@@ -133,6 +133,22 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  // Handle Ctrl+S keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        const form = document.querySelector('form');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">

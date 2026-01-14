@@ -24,7 +24,6 @@ function getStatusBadgeStyles(status: string) {
         case ProcurementStatus.COMPLETED:
             return 'bg-success/10 text-success border-success/20';
         case ProcurementStatus.PARTIALLY_RECEIVED:
-        case ProcurementStatus.PARTIALLY_PAID:
             return 'bg-warning/10 text-warning border-warning/20';
         case ProcurementStatus.CANCELLED:
         case ProcurementStatus.RETURNED:

@@ -450,7 +450,7 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
                                     value=""
                                     onValueChange={(val) => {
                                         const item = inventoryData?.data.find((i: any) => i._id === val);
-                                        if (item) handleAddItem(item._id, item.name);
+                                        if (item) handleAddItem(item._id.toString(), item.name);
                                     }}
                                     disabled={inventoryLoading || !inventoryData?.data || inventoryData.data.length === 0}
                                 >

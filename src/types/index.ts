@@ -237,7 +237,7 @@ export interface IRawMaterial {
   unit: UnitOfMeasurement;
   currentStock: number;
   reorderLevel: number;
-  intendedFor?: Types.ObjectId | string; // Reference to FinishedGood
+  intendedFor?: string;
   costPrice: number;
   lastProcurementDate?: Date;
   createdAt: Date;
@@ -256,7 +256,7 @@ export interface IRawMaterialInput {
 export interface ITradingGood {
   _id: Types.ObjectId | string;
   name: string;
-  sku: string;
+  sku?: string;
   unit: UnitOfMeasurement;
   currentStock: number;
   reorderLevel: number;
@@ -269,7 +269,7 @@ export interface ITradingGood {
 
 export interface ITradingGoodInput {
   name: string;
-  sku: string;
+  sku?: string;
   unit: UnitOfMeasurement;
   currentStock?: number;
   reorderLevel: number;

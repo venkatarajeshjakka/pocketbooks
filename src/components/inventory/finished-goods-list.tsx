@@ -254,7 +254,7 @@ export function FinishedGoodsList() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setDeleteId(good._id)}
+                            onClick={() => setDeleteId(good._id.toString())}
                             className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />

@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import * as inventoryApi from '@/lib/api/inventory';
 import { inventoryKeys } from '@/lib/query-keys';
 import { ApiResponse, PaginatedResponse } from '@/types';
@@ -84,10 +83,6 @@ export function useCreateRawMaterial() {
         mutationFn: inventoryApi.createRawMaterial,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.rawMaterials.lists() });
-            toast.success('Raw material created successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to create raw material');
         },
     });
 }
@@ -100,10 +95,6 @@ export function useUpdateRawMaterial() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.rawMaterials.lists() });
             queryClient.invalidateQueries({ queryKey: inventoryKeys.rawMaterials.detail(variables.id) });
-            toast.success('Raw material updated successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to update raw material');
         },
     });
 }
@@ -114,10 +105,6 @@ export function useDeleteRawMaterial() {
         mutationFn: inventoryApi.deleteRawMaterial,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.rawMaterials.lists() });
-            toast.success('Raw material deleted successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to delete raw material');
         },
     });
 }
@@ -132,10 +119,6 @@ export function useCreateTradingGood() {
         mutationFn: inventoryApi.createTradingGood,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.tradingGoods.lists() });
-            toast.success('Trading good created successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to create trading good');
         },
     });
 }
@@ -148,10 +131,6 @@ export function useUpdateTradingGood() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.tradingGoods.lists() });
             queryClient.invalidateQueries({ queryKey: inventoryKeys.tradingGoods.detail(variables.id) });
-            toast.success('Trading good updated successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to update trading good');
         },
     });
 }
@@ -162,10 +141,6 @@ export function useDeleteTradingGood() {
         mutationFn: inventoryApi.deleteTradingGood,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.tradingGoods.lists() });
-            toast.success('Trading good deleted successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to delete trading good');
         },
     });
 }
@@ -180,10 +155,6 @@ export function useCreateFinishedGood() {
         mutationFn: inventoryApi.createFinishedGood,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.finishedGoods.lists() });
-            toast.success('Finished good created successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to create finished good');
         },
     });
 }
@@ -196,10 +167,6 @@ export function useUpdateFinishedGood() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.finishedGoods.lists() });
             queryClient.invalidateQueries({ queryKey: inventoryKeys.finishedGoods.detail(variables.id) });
-            toast.success('Finished good updated successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to update finished good');
         },
     });
 }
@@ -210,10 +177,6 @@ export function useDeleteFinishedGood() {
         mutationFn: inventoryApi.deleteFinishedGood,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: inventoryKeys.finishedGoods.lists() });
-            toast.success('Finished good deleted successfully');
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'Failed to delete finished good');
         },
     });
 }
