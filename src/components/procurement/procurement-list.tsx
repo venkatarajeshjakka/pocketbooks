@@ -1,6 +1,6 @@
 'use client';
 
-import { useProcurements } from '@/lib/hooks/use-procurements';
+import { useProcurements, useDeleteProcurement } from '@/lib/hooks/use-procurements';
 import { EntityListContainer } from '@/components/shared/entity/entity-list-container';
 import { EmptyState } from '@/components/shared/ui/empty-state';
 import { ProcurementStatus } from '@/types';
@@ -122,14 +122,10 @@ export function ProcurementList({ type, page, search, status, view }: Procuremen
     // If I want custom actions, passing `renderCardContent` is fine for grid. 
     // For table, `columns` are used.
 
+    const deleteMutation = useDeleteProcurement(type);
+
     const handleDelete = async (id: string) => {
-        // This is the function called by generic delete dialog.
-        // It's less ideal than custom dialog but valid for now.
-        const res = await fetch(`/api/procurement/${endpointType}/${id}`, {
-            method: 'DELETE',
-        });
-        if (!res.ok) throw new Error('Failed to delete');
-        refetch();
+        await deleteMutation.mutateAsync(id);
     };
 
     const columns = [

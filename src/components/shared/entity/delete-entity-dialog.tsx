@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 interface DeleteEntityDialogProps {
   entityId: string | string[];
   entityName: string;
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement' | 'raw-material' | 'trading-good' | 'finished-good';
   open: boolean;
   basePath: string;
   onOpenChange: (open: boolean) => void;
@@ -41,7 +41,7 @@ export function DeleteEntityDialog({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const entityLabel = entityType === 'client' ? 'Client' : entityType === 'vendor' ? 'Vendor' : entityType === 'asset' ? 'Asset' : entityType === 'loan' ? 'Loan Account' : entityType === 'interest-payment' ? 'Interest Payment' : 'Payment';
+  const entityLabel = entityType === 'client' ? 'Client' : entityType === 'vendor' ? 'Vendor' : entityType === 'asset' ? 'Asset' : entityType === 'loan' ? 'Loan Account' : entityType === 'interest-payment' ? 'Interest Payment' : entityType === 'raw-material' ? 'Raw Material' : entityType === 'trading-good' ? 'Trading Good' : entityType === 'finished-good' ? 'Finished Good' : 'Payment';
 
   const handleDelete = async () => {
     setIsDeleting(true);
