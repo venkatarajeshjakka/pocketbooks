@@ -12,7 +12,7 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
-  return handleGetById(id, FinishedGood, ['rawMaterialsUsed.rawMaterialId']);
+  return handleGetById(id, FinishedGood, ['bom.rawMaterialId']);
 }
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {

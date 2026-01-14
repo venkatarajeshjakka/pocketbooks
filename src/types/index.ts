@@ -280,31 +280,18 @@ export interface ITradingGoodInput {
 export interface IFinishedGood {
   _id: Types.ObjectId | string;
   name: string;
-  sku: string;
+  sku?: string;
   unit: UnitOfMeasurement;
   currentStock: number;
-  rawMaterialsUsed: {
-    rawMaterialId: Types.ObjectId | string;
-    quantityRequired: number;
+  reorderLevel: number;
+  bom: {
+    rawMaterialId: Types.ObjectId | string | IRawMaterial;
+    quantity: number;
+    _id?: string;
   }[];
-  manufacturingCost: number;
   sellingPrice: number;
-  lastManufactureDate?: Date;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface IFinishedGoodInput {
-  name: string;
-  sku: string;
-  unit: UnitOfMeasurement;
-  currentStock?: number;
-  rawMaterialsUsed: {
-    rawMaterialId: string;
-    quantityRequired: number;
-  }[];
-  manufacturingCost: number;
-  sellingPrice: number;
 }
 
 // ============================================================================
