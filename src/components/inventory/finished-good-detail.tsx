@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { useFinishedGood, useDeleteFinishedGood } from '@/lib/hooks/use-inventory-items';
+import type { IRawMaterial } from '@/types';
 
 interface FinishedGoodDetailProps {
   id: string;
@@ -72,7 +73,7 @@ export function FinishedGoodDetail({ id }: FinishedGoodDetailProps) {
 
   // Calculate production cost from BOM
   const productionCost = good.bom?.reduce((sum, item) => {
-    const material = typeof item.rawMaterialId === 'object' ? item.rawMaterialId : null;
+    const material = typeof item.rawMaterialId === 'object' && item.rawMaterialId !== null && '_id' in item.rawMaterialId ? item.rawMaterialId as IRawMaterial : null;
     return sum + (material?.costPrice || 0) * item.quantity;
   }, 0) || 0;
 
@@ -240,7 +241,7 @@ export function FinishedGoodDetail({ id }: FinishedGoodDetailProps) {
                   </TableHeader>
                   <TableBody>
                     {good.bom.map((item, index) => {
-                      const material = typeof item.rawMaterialId === 'object' ? item.rawMaterialId : null;
+                      const material = typeof item.rawMaterialId === 'object' && item.rawMaterialId !== null && '_id' in item.rawMaterialId ? item.rawMaterialId as IRawMaterial : null;
                       const itemCost = (material?.costPrice || 0) * item.quantity;
 
                       return (

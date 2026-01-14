@@ -106,7 +106,7 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
     try {
       if (isEdit && initialData?._id) {
         await updateMutation.mutateAsync({
-          id: initialData._id,
+          id: initialData._id.toString(),
           data,
         });
         toast.success('Raw material updated successfully');

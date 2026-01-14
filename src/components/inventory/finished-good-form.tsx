@@ -157,7 +157,7 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
     try {
       if (isEdit && initialData?._id) {
         await updateMutation.mutateAsync({
-          id: initialData._id,
+          id: initialData._id.toString(),
           data,
         });
         toast.success('Finished good updated successfully');

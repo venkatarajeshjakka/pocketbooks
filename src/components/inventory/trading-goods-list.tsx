@@ -165,7 +165,7 @@ export function TradingGoodsList() {
 
                   return (
                     <motion.tr
-                      key={good._id}
+                      key={good._id.toString()}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}

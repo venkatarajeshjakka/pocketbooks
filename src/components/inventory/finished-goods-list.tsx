@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { useFinishedGoods, useDeleteFinishedGood } from '@/lib/hooks/use-inventory-items';
-import type { IFinishedGood } from '@/types';
+import type { IFinishedGood, IRawMaterial } from '@/types';
 
 export function FinishedGoodsList() {
   
@@ -75,7 +75,7 @@ export function FinishedGoodsList() {
   const calculateProductionCost = (good: IFinishedGood) => {
     if (!good.bom || good.bom.length === 0) return 0;
     return good.bom.reduce((sum, item) => {
-      const material = typeof item.rawMaterialId === 'object' ? item.rawMaterialId : null;
+      const material = typeof item.rawMaterialId === 'object' && item.rawMaterialId !== null && '_id' in item.rawMaterialId ? item.rawMaterialId as IRawMaterial : null;
       return sum + (material?.costPrice || 0) * item.quantity;
     }, 0);
   };
@@ -176,7 +176,7 @@ export function FinishedGoodsList() {
 
                   return (
                     <motion.tr
-                      key={good._id}
+                      key={good._id.toString()}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}

@@ -121,7 +121,7 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
     try {
       if (isEdit && initialData?._id) {
         await updateMutation.mutateAsync({
-          id: initialData._id,
+          id: initialData._id.toString(),
           data,
         });
         toast.success('Trading good updated successfully');
