@@ -88,6 +88,8 @@ export async function PUT(
 
         revalidatePath(`/procurement/${type}`);
         revalidatePath(`/procurement/${type}/${id}`);
+        revalidatePath('/inventory/raw-materials');
+        revalidatePath('/inventory/trading-goods');
         revalidatePath('/inventory');
         revalidatePath('/vendors');
 
@@ -133,6 +135,8 @@ export async function DELETE(
         await session.commitTransaction();
 
         revalidatePath(`/procurement/${type}`);
+        revalidatePath('/inventory/raw-materials');
+        revalidatePath('/inventory/trading-goods');
         revalidatePath('/inventory');
         revalidatePath('/vendors');
         revalidatePath('/payments');

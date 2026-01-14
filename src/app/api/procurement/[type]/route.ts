@@ -66,6 +66,8 @@ export async function POST(
         await session.commitTransaction();
 
         revalidatePath(`/procurement/${type}`);
+        revalidatePath('/inventory/raw-materials');
+        revalidatePath('/inventory/trading-goods');
         revalidatePath('/inventory');
         revalidatePath('/vendors');
         if (initialPayment) revalidatePath('/payments');

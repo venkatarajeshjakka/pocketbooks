@@ -63,8 +63,9 @@ export class ProcurementService {
             await vendor.save({ session });
         }
 
-        // 4. If status is already RECEIVED, update inventory
-        if (procurement.status === ProcurementStatus.RECEIVED) {
+        // 4. If status is already RECEIVED or COMPLETED, update inventory
+        if (procurement.status === ProcurementStatus.RECEIVED || procurement.status === ProcurementStatus.COMPLETED) {
+            console.log(`[ProcurementService] Auto-updating inventory for status: ${procurement.status}`);
             await InventoryIntegrationService.updateInventoryFromProcurement(
                 procurement.items,
                 type,
@@ -94,7 +95,11 @@ export class ProcurementService {
         if (oldStatus === newStatus) return procurement;
 
         // Handle inventory transitions
-        if (newStatus === ProcurementStatus.RECEIVED) {
+        const isStockAffecting = (s: ProcurementStatus) =>
+            s === ProcurementStatus.RECEIVED || s === ProcurementStatus.COMPLETED;
+
+        if (isStockAffecting(newStatus) && !isStockAffecting(oldStatus)) {
+            console.log(`[ProcurementService] Updating inventory: ${oldStatus} -> ${newStatus}`);
             await InventoryIntegrationService.updateInventoryFromProcurement(
                 procurement.items,
                 type,
@@ -102,8 +107,9 @@ export class ProcurementService {
                 session
             );
             procurement.receivedDate = receivedDate || new Date();
-        } else if (oldStatus === ProcurementStatus.RECEIVED) {
-            // Reverting from RECEIVED (to ORDERED or CANCELLED)
+        } else if (!isStockAffecting(newStatus) && isStockAffecting(oldStatus)) {
+            // Reverting from stock-affecting status
+            console.log(`[ProcurementService] Reversing inventory: ${oldStatus} -> ${newStatus}`);
             await InventoryIntegrationService.reverseInventoryUpdate(
                 procurement.items,
                 type,

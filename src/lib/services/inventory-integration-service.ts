@@ -15,8 +15,13 @@ export class InventoryIntegrationService {
         const itemField = type === 'raw_material' ? 'rawMaterialId' : 'tradingGoodId';
 
         for (const item of items) {
-            const dbItem = await (Model as any).findById(item[itemField]).session(session || null);
-            if (!dbItem) continue;
+            const id = item[itemField];
+            const dbItem = await (Model as any).findById(id).session(session || null);
+
+            if (!dbItem) {
+                console.warn(`[InventoryIntegrationService] Item not found: ${id} for type ${type}`);
+                continue;
+            }
 
             // Calculate new weighted average cost
             const currentStock = dbItem.currentStock || 0;
@@ -34,6 +39,8 @@ export class InventoryIntegrationService {
             // Update stock level
             dbItem.currentStock = totalQuantity;
             dbItem.lastProcurementDate = procurementDate;
+
+            console.log(`[InventoryIntegrationService] Updated ${type}: ${dbItem.name}. Stock: ${currentStock} -> ${totalQuantity}, Cost: ${currentCost} -> ${dbItem.costPrice}`);
 
             await dbItem.save({ session });
         }

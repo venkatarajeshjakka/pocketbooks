@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { Loader2, ShoppingCart, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProcurementDeleteButton } from './procurement-delete-button';
+import { AddPaymentDialog } from './add-payment-dialog';
 
 interface ProcurementListProps {
     type: 'raw_material' | 'trading_good';
@@ -184,6 +185,22 @@ export function ProcurementList({ type, page, search, status, view }: Procuremen
                 </div>
             ),
         },
+        {
+            header: 'Actions',
+            cell: (item: any) => (
+                <div className="flex justify-end">
+                    {(item.remainingAmount || 0) > 0 && (
+                        <AddPaymentDialog
+                            procurementId={item._id}
+                            procurementType={type}
+                            vendorId={item.vendorId?._id || item.vendorId}
+                            remainingAmount={item.remainingAmount || 0}
+                            currentTranche={item.payments?.length || 0}
+                        />
+                    )}
+                </div>
+            ),
+        },
     ];
 
     return (
@@ -236,6 +253,17 @@ export function ProcurementList({ type, page, search, status, view }: Procuremen
                             <span className="text-[10px] text-destructive font-medium">
                                 Due: {'\u20B9'}{(item.remainingAmount || 0).toLocaleString('en-IN')}
                             </span>
+                        </div>
+                    )}
+                    {(item.remainingAmount || 0) > 0 && (
+                        <div className="pt-3 flex justify-end">
+                            <AddPaymentDialog
+                                procurementId={item._id}
+                                procurementType={type}
+                                vendorId={item.vendorId?._id || item.vendorId}
+                                remainingAmount={item.remainingAmount || 0}
+                                currentTranche={item.payments?.length || 0}
+                            />
                         </div>
                     )}
                 </div>
