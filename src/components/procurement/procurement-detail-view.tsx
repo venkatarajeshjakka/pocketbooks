@@ -144,91 +144,99 @@ export function ProcurementDetailView({ procurement, type }: ProcurementDetailVi
                         <div className="lg:col-span-2 space-y-8">
                             {/* Order Details Card */}
                             <motion.div variants={fadeInUp}>
-                                <Card className="overflow-hidden border-border/50 bg-card/30 backdrop-blur-xl shadow-xl rounded-2xl">
-                                    <CardHeader className="bg-muted/30 border-b border-border/10 py-4">
-                                        <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-muted-foreground">
-                                            <FileText className="h-4 w-4" />
-                                            Order Information
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="grid sm:grid-cols-2 gap-8 p-8">
-                                        <div className="space-y-1.5 p-4 rounded-xl bg-accent/5 border border-border/5">
-                                            <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider flex items-center gap-2">
-                                                <Calendar className="h-3.5 w-3.5" /> Ordered Date
+                                <Card className="overflow-hidden border-border/50 bg-card/40 backdrop-blur-xl shadow-sm rounded-2xl">
+                                    <div className="p-6 grid sm:grid-cols-4 gap-6">
+                                        <div className="space-y-1">
+                                            <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
+                                                <Calendar className="h-3.5 w-3.5" /> Order Date
                                             </span>
-                                            <p className="text-lg font-black text-foreground">
-                                                {format(new Date(procurement.procurementDate), 'MMMM d, yyyy')}
+                                            <p className="text-base font-bold text-foreground">
+                                                {format(new Date(procurement.procurementDate), 'dd MMM yyyy')}
                                             </p>
                                         </div>
 
-                                        {procurement.expectedDeliveryDate && (
-                                            <div className="space-y-1.5 p-4 rounded-xl bg-accent/5 border border-border/5">
-                                                <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider flex items-center gap-2">
-                                                    <Clock className="h-3.5 w-3.5" /> Expected Arrival
-                                                </span>
-                                                <p className="text-lg font-black text-foreground">
-                                                    {format(new Date(procurement.expectedDeliveryDate), 'MMMM d, yyyy')}
+                                        <div className="space-y-1">
+                                            <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
+                                                <Clock className="h-3.5 w-3.5" /> Expected
+                                            </span>
+                                            {procurement.expectedDeliveryDate ? (
+                                                <p className="text-base font-bold text-foreground">
+                                                    {format(new Date(procurement.expectedDeliveryDate), 'dd MMM yyyy')}
                                                 </p>
-                                            </div>
-                                        )}
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground italic">--</span>
+                                            )}
+                                        </div>
 
-                                        <div className="space-y-1.5">
-                                            <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider">Payment Terms</span>
-                                            <Badge variant="secondary" className="text-sm px-3 py-0.5 rounded-lg">
-                                                {procurement.paymentTerms || 'Not Specified'}
-                                            </Badge>
+                                        <div className="space-y-1">
+                                            <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest">Payment Terms</span>
+                                            <p className="text-base font-medium text-foreground">
+                                                {procurement.paymentTerms || 'Standard'}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest">Reference</span>
+                                            <div className='flex items-center gap-2'>
+                                                <Badge variant="outline" className='font-mono text-xs'>
+                                                    PO-{procurement._id.toString().slice(-6).toUpperCase()}
+                                                </Badge>
+                                            </div>
                                         </div>
 
                                         {procurement.notes && (
-                                            <div className="sm:col-span-2 space-y-2">
-                                                <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider">Internal Notes</span>
-                                                <div className="relative p-4 rounded-xl bg-muted/30 border border-border/20 italic text-muted-foreground text-sm">
-                                                    <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 rounded-l-xl" />
+                                            <div className="sm:col-span-4 mt-2 pt-4 border-t border-border/10">
+                                                <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest mb-2 block">Internal Notes</span>
+                                                <p className="text-sm text-muted-foreground leading-relaxed bg-muted/20 p-3 rounded-lg border border-border/5">
                                                     {procurement.notes}
-                                                </div>
+                                                </p>
                                             </div>
                                         )}
-                                    </CardContent>
+                                    </div>
                                 </Card>
                             </motion.div>
 
                             {/* Line Items Table */}
                             <motion.div variants={fadeInUp}>
-                                <Card className="border-border/50 shadow-xl rounded-2xl overflow-hidden bg-card/40">
-                                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/10 p-6">
-                                        <CardTitle className="text-xl font-black tracking-tight flex items-center gap-2">
-                                            <Package className="h-5 w-5 text-primary" />
-                                            Procured Items
+                                <Card className="border-border/50 shadow-sm rounded-2xl overflow-hidden bg-card/40">
+                                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/10 p-6 py-4">
+                                        <CardTitle className="text-base font-extrabold tracking-tight flex items-center gap-2 uppercase text-muted-foreground/70">
+                                            <Package className="h-4 w-4" />
+                                            Items
                                         </CardTitle>
-                                        <Badge variant="secondary" className="font-mono">
-                                            {procurement.items?.length || 0} Total Lines
+                                        <Badge variant="outline" className="font-mono text-xs text-foreground bg-background/50">
+                                            {procurement.items?.length || 0} Lines
                                         </Badge>
                                     </CardHeader>
                                     <CardContent className="p-0">
                                         <Table>
-                                            <TableHeader className="bg-muted/50">
+                                            <TableHeader className="bg-muted/10">
                                                 <TableRow className="hover:bg-transparent border-none">
-                                                    <TableHead className="py-4 pl-6 uppercase text-[10px] font-bold tracking-widest">Description</TableHead>
-                                                    <TableHead className="text-right uppercase text-[10px] font-bold tracking-widest">Qty</TableHead>
-                                                    <TableHead className="text-right uppercase text-[10px] font-bold tracking-widest">Unit Cost</TableHead>
-                                                    <TableHead className="text-right pr-6 uppercase text-[10px] font-bold tracking-widest">Taxable Amount</TableHead>
+                                                    <TableHead className="py-3 pl-6 uppercase text-[10px] font-bold tracking-widest text-muted-foreground">Description</TableHead>
+                                                    <TableHead className="text-right uppercase text-[10px] font-bold tracking-widest text-muted-foreground">Qty</TableHead>
+                                                    <TableHead className="text-right uppercase text-[10px] font-bold tracking-widest text-muted-foreground">Cost</TableHead>
+                                                    <TableHead className="text-right pr-6 uppercase text-[10px] font-bold tracking-widest text-muted-foreground">Total</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
                                                 {procurement.items.map((item: any, idx: number) => (
-                                                    <TableRow key={idx} className="border-border/5 hover:bg-accent/5 transition-colors">
-                                                        <TableCell className="py-5 pl-6">
-                                                            <span className="font-black text-foreground">
-                                                                {item.rawMaterialId?.name || item.tradingGoodId?.name || 'Unknown Item'}
-                                                            </span>
+                                                    <TableRow key={idx} className="border-border/5 hover:bg-muted/5 transition-colors">
+                                                        <TableCell className="py-4 pl-6">
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-sm text-foreground">
+                                                                    {item.rawMaterialId?.name || item.tradingGoodId?.name || 'Unknown Item'}
+                                                                </span>
+                                                                <span className="text-[10px] text-muted-foreground font-mono">
+                                                                    {item.rawMaterialId?.sku || item.tradingGoodId?.sku}
+                                                                </span>
+                                                            </div>
                                                         </TableCell>
-                                                        <TableCell className="text-right font-medium">
-                                                            {item.quantity} <span className="text-[10px] text-muted-foreground uppercase">{item.unit}</span>
+                                                        <TableCell className="text-right text-sm font-medium">
+                                                            {item.quantity} <span className="text-[10px] text-muted-foreground uppercase ml-0.5">{item.unit}</span>
                                                         </TableCell>
-                                                        <TableCell className="text-right font-medium text-muted-foreground">
+                                                        <TableCell className="text-right text-sm font-medium text-muted-foreground">
                                                             {item.unitPrice.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                                                         </TableCell>
-                                                        <TableCell className="text-right pr-6 font-black text-foreground">
+                                                        <TableCell className="text-right pr-6 font-bold text-sm text-foreground">
                                                             {item.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                                                         </TableCell>
                                                     </TableRow>
@@ -237,25 +245,22 @@ export function ProcurementDetailView({ procurement, type }: ProcurementDetailVi
                                         </Table>
 
                                         {/* Totals Summary Area */}
-                                        <div className="bg-muted/20 p-8 flex flex-col items-end border-t border-border/10">
-                                            <div className="w-full max-w-[320px] space-y-4">
-                                                <div className="flex justify-between text-sm font-medium">
-                                                    <span className="text-muted-foreground">Subtotal (Taxable)</span>
-                                                    <span className="text-foreground">{procurement.originalPrice?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
+                                        <div className="bg-muted/5 p-6 flex flex-col items-end border-t border-border/10">
+                                            <div className="w-full max-w-[280px] space-y-3">
+                                                <div className="flex justify-between text-xs font-medium">
+                                                    <span className="text-muted-foreground">Subtotal</span>
+                                                    <span className="text-foreground font-mono">{procurement.originalPrice?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
                                                 </div>
-                                                <div className="flex justify-between text-sm font-medium">
+                                                <div className="flex justify-between text-xs font-medium">
                                                     <span className="text-muted-foreground flex items-center gap-1.5">
-                                                        GST Content <Badge variant="outline" className="text-[9px] h-4 px-1">{procurement.gstPercentage}%</Badge>
+                                                        GST <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{procurement.gstPercentage}%</span>
                                                     </span>
-                                                    <span className="text-foreground">{procurement.gstAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
+                                                    <span className="text-foreground font-mono">{procurement.gstAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
                                                 </div>
-                                                <Separator className="bg-border/20" />
-                                                <div className="flex justify-between items-center py-2">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Grand Total</span>
-                                                        <span className="text-[9px] text-muted-foreground font-medium">Inclusive of all taxes</span>
-                                                    </div>
-                                                    <span className="text-3xl font-black text-primary tracking-tighter tabular-nums">
+                                                <Separator className="bg-border/40" />
+                                                <div className="flex justify-between items-end pt-1">
+                                                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Total</span>
+                                                    <span className="text-2xl font-black text-foreground tracking-tighter tabular-nums">
                                                         {procurement.gstBillPrice?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                                                     </span>
                                                 </div>
@@ -270,79 +275,99 @@ export function ProcurementDetailView({ procurement, type }: ProcurementDetailVi
                         <div className="space-y-8">
                             {/* Settlement Summary Card */}
                             <motion.div variants={fadeInUp}>
-                                <Card className="relative overflow-hidden border-primary/20 bg-primary/[0.02] shadow-2xl rounded-2xl">
+                                <Card className="relative overflow-hidden border-border/50 bg-card/40 backdrop-blur-xl shadow-sm rounded-2xl">
                                     <div className="absolute top-0 right-0 p-3 opacity-[0.03] rotate-12">
                                         <Receipt className="h-32 w-32" />
                                     </div>
-                                    <CardHeader className="pb-3 border-b border-primary/10">
+
+                                    <CardHeader className="pb-4">
                                         <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg font-black flex items-center gap-2">
-                                                <IndianRupee className="h-5 w-5 text-primary" />
+                                            <CardTitle className="text-base font-extrabold flex items-center gap-2 uppercase tracking-tight text-foreground/80">
+                                                <IndianRupee className="h-4 w-4" />
                                                 Settlement
                                             </CardTitle>
-                                            {procurement.remainingAmount > 0 && (
+                                            <Badge variant="outline" className={cn(
+                                                "capitalize font-bold shadow-sm border",
+                                                procurement.paymentStatus === 'fully_paid' && "bg-success/10 text-success border-success/20",
+                                                procurement.paymentStatus === 'partially_paid' && "bg-warning/10 text-warning border-warning/20",
+                                                (!procurement.paymentStatus || procurement.paymentStatus === 'unpaid') && "bg-destructive/10 text-destructive border-destructive/20",
+                                            )}>
+                                                {procurement.paymentStatus?.replace('_', ' ') || 'Unpaid'}
+                                            </Badge>
+                                        </div>
+                                    </CardHeader>
+
+                                    <div className="px-6 pb-6 space-y-6">
+                                        {/* Main Number */}
+                                        <div className="space-y-1 text-center py-2">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                {(procurement.remainingAmount || 0) > 0 ? 'Outstanding Amount' : 'Payment Complete'}
+                                            </span>
+                                            <div className={cn(
+                                                "text-4xl font-black tracking-tighter tabular-nums flex items-center justify-center gap-1",
+                                                (procurement.remainingAmount || 0) > 0 ? "text-destructive" : "text-success"
+                                            )}>
+                                                <span className="text-2xl opacity-50">₹</span>
+                                                {((procurement.remainingAmount || 0) > 0 ? procurement.remainingAmount : procurement.gstBillPrice)?.toLocaleString('en-IN')}
+                                            </div>
+                                        </div>
+
+                                        {/* Progress Bar */}
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                                                <span>Paid</span>
+                                                <span>{Math.round(((procurement.totalPaid || 0) / (procurement.gstBillPrice || 1)) * 100)}%</span>
+                                            </div>
+                                            <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden">
+                                                <div
+                                                    className={cn("h-full transition-all duration-1000 ease-out rounded-full",
+                                                        (procurement.remainingAmount || 0) > 0 ? "bg-destructive" : "bg-success"
+                                                    )}
+                                                    style={{ width: `${Math.min(100, ((procurement.totalPaid || 0) / (procurement.gstBillPrice || 1)) * 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Stats Grid */}
+                                        <div className="grid grid-cols-2 gap-px bg-border/20 rounded-lg overflow-hidden">
+                                            <div className="bg-card/50 p-3 flex flex-col items-center justify-center gap-0.5">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total</span>
+                                                <span className="font-bold text-sm">
+                                                    {(procurement.gstBillPrice || 0) >= 100000
+                                                        ? `${((procurement.gstBillPrice || 0) / 1000).toFixed(1)}k`
+                                                        : procurement.gstBillPrice?.toLocaleString('en-IN')
+                                                    }
+                                                </span>
+                                            </div>
+                                            <div className="bg-card/50 p-3 flex flex-col items-center justify-center gap-0.5">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Paid</span>
+                                                <span className="font-bold text-sm text-success">
+                                                    {(procurement.totalPaid || 0) >= 100000
+                                                        ? `${((procurement.totalPaid || 0) / 1000).toFixed(1)}k`
+                                                        : procurement.totalPaid?.toLocaleString('en-IN')
+                                                    }
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Button */}
+                                        {procurement.remainingAmount > 0 && (
+                                            <div className="pt-2">
                                                 <AddPaymentDialog
                                                     procurementId={procurement._id}
                                                     procurementType={type}
                                                     vendorId={procurement.vendorId?._id || procurement.vendorId}
                                                     remainingAmount={procurement.remainingAmount || 0}
                                                     currentTranche={procurement.payments?.length || 0}
+                                                    trigger={
+                                                        <Button className="w-full font-bold shadow-lg shadow-primary/20" size="lg">
+                                                            Record Payment
+                                                        </Button>
+                                                    }
                                                 />
-                                            )}
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="pt-6 space-y-6">
-                                        <div className="flex justify-between items-center group">
-                                            <div className="flex items-center gap-2.5">
-                                                <div className="p-2 rounded-lg bg-success/10 text-success">
-                                                    <CheckCircle2 className="h-4 w-4" />
-                                                </div>
-                                                <span className="text-sm font-bold text-muted-foreground group-hover:text-foreground transition-colors">Successful</span>
                                             </div>
-                                            <span className="text-lg font-black text-success tabular-nums">
-                                                {procurement.totalPaid?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center group">
-                                            <div className="flex items-center gap-2.5">
-                                                <div className={cn(
-                                                    "p-2 rounded-lg",
-                                                    (procurement.remainingAmount || 0) > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground/40"
-                                                )}>
-                                                    <Clock className="h-4 w-4" />
-                                                </div>
-                                                <span className="text-sm font-bold text-muted-foreground group-hover:text-foreground transition-colors">Outstanding</span>
-                                            </div>
-                                            <span className={cn(
-                                                "text-lg font-black tabular-nums transition-all",
-                                                (procurement.remainingAmount || 0) > 0
-                                                    ? "text-destructive scale-110 drop-shadow-sm"
-                                                    : "text-muted-foreground/30 font-medium scale-90"
-                                            )}>
-                                                {procurement.remainingAmount?.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                                            </span>
-                                        </div>
-
-                                        <Separator className="bg-primary/10" />
-
-                                        <div className="flex flex-col gap-3">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Payment Status</span>
-                                            <Badge
-                                                variant="outline"
-                                                className={cn(
-                                                    "h-9 w-full justify-center text-sm font-black tracking-tight rounded-xl",
-                                                    procurement.paymentStatus === 'fully_paid'
-                                                        ? "bg-success text-white border-none shadow-lg shadow-success/20"
-                                                        : procurement.paymentStatus === 'partially_paid'
-                                                            ? "bg-warning/20 text-warning border-warning/30"
-                                                            : "bg-muted text-muted-foreground border-border/50"
-                                                )}
-                                            >
-                                                {procurement.paymentStatus?.replace('_', ' ') || 'Unpaid'}
-                                            </Badge>
-                                        </div>
-                                    </CardContent>
+                                        )}
+                                    </div>
                                 </Card>
                             </motion.div>
                         </div>
@@ -353,9 +378,9 @@ export function ProcurementDetailView({ procurement, type }: ProcurementDetailVi
                     <motion.div variants={fadeInUp} initial="hidden" animate="visible">
                         <Card className="border-border/50 bg-card/20 rounded-2xl shadow-xl overflow-hidden">
                             <CardHeader className="py-6 border-b border-border/10 bg-muted/20">
-                                <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-2 text-foreground">
+                                <CardTitle className="text-lg font-black tracking-tight flex items-center gap-2 text-foreground">
                                     <Receipt className="h-5 w-5 text-primary" />
-                                    Payment History Log
+                                    Payment History
                                 </CardTitle>
                                 <p className="text-sm text-muted-foreground">Track all transactions related to this order</p>
                             </CardHeader>

@@ -34,6 +34,7 @@ interface AddPaymentDialogProps {
     vendorId: string;
     remainingAmount: number;
     currentTranche?: number;
+    trigger?: React.ReactNode;
 }
 
 export function AddPaymentDialog({
@@ -42,6 +43,7 @@ export function AddPaymentDialog({
     vendorId,
     remainingAmount,
     currentTranche = 1,
+    trigger,
 }: AddPaymentDialogProps) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
@@ -135,10 +137,12 @@ export function AddPaymentDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Payment
-                </Button>
+                {trigger || (
+                    <Button variant="outline" size="sm" className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add Payment
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <form onSubmit={handleSubmit}>

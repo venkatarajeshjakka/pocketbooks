@@ -5,7 +5,7 @@ import { IPayment, PaymentMethod } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { Loader2, CreditCard, HandCoins, Wallet, Landmark } from 'lucide-react';
+import { Loader2, CreditCard, HandCoins, Wallet, Landmark, CheckCircle2 } from 'lucide-react';
 import { EmptyState } from '@/components/shared/ui/empty-state';
 
 interface ProcurementPaymentHistoryProps {
@@ -38,33 +38,19 @@ export function ProcurementPaymentHistory({ procurementId }: ProcurementPaymentH
 
     if (isLoading) {
         return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Payment History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex h-32 items-center justify-center">
-                        <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
-                    </div>
-                </CardContent>
-            </Card>
+            <div className="flex h-32 items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
+            </div>
         );
     }
 
     if (error) {
         return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Payment History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <EmptyState
-                        icon={CreditCard}
-                        title="Failed to load payments"
-                        description="An error occurred while loading payment history."
-                    />
-                </CardContent>
-            </Card>
+            <EmptyState
+                icon={CreditCard}
+                title="Failed to load payments"
+                description="An error occurred while loading payment history."
+            />
         );
     }
 
@@ -72,85 +58,76 @@ export function ProcurementPaymentHistory({ procurementId }: ProcurementPaymentH
 
     if (payments.length === 0) {
         return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Payment History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <EmptyState
-                        icon={CreditCard}
-                        title="No payments recorded"
-                        description="No payments have been recorded for this procurement yet."
-                    />
-                </CardContent>
-            </Card>
+            <EmptyState
+                icon={CreditCard}
+                title="No payments recorded"
+                description="No payments have been recorded for this procurement yet."
+            />
         );
     }
 
     const totalPaid = payments.reduce((sum: number, payment: IPayment) => sum + payment.amount, 0);
 
     return (
-        <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Payment History</CardTitle>
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                        Total: ₹{totalPaid.toLocaleString('en-IN')}
-                    </Badge>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {payments.map((payment: IPayment) => (
-                        <div
-                            key={payment._id.toString()}
-                            className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-card/50 hover:bg-card/80 transition-colors"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                                    {getPaymentMethodIcon(payment.paymentMethod)}
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="font-medium">
-                                        {format(new Date(payment.paymentDate), 'dd MMM yyyy')}
-                                    </span>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <span className="capitalize">
-                                            {payment.paymentMethod.replace('_', ' ')}
-                                        </span>
-                                        {payment.trancheNumber && payment.totalTranches && (
-                                            <>
-                                                <span>•</span>
-                                                <Badge variant="secondary" className="text-xs px-2 py-0">
-                                                    Tranche {payment.trancheNumber}/{payment.totalTranches}
-                                                </Badge>
-                                            </>
-                                        )}
-                                        {(payment.transactionId || payment.referenceNumber) && (
-                                            <>
-                                                <span>•</span>
-                                                <span className="font-mono text-xs">
-                                                    {payment.referenceNumber || payment.transactionId}
-                                                </span>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
+        <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between pb-4 px-2">
+                <h4 className="text-sm font-medium text-muted-foreground hidden">Total Paid</h4> {/* Hidden but semantic */}
+                <Badge variant="outline" className="ml-auto bg-success/10 text-success border-success/20 h-7 text-xs font-bold gap-1.5 px-3">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Total Paid: ₹{totalPaid.toLocaleString('en-IN')}
+                </Badge>
+            </div>
+
+            <div className="space-y-3">
+                {payments.map((payment: IPayment) => (
+                    <div
+                        key={payment._id.toString()}
+                        className="group flex items-center justify-between p-4 rounded-xl border border-border/40 bg-card/40 hover:bg-card/80 hover:border-border/80 transition-all hover:shadow-sm"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                                {getPaymentMethodIcon(payment.paymentMethod)}
                             </div>
-                            <div className="flex flex-col items-end">
-                                <span className="font-bold text-lg text-success">
-                                    ₹{payment.amount.toLocaleString('en-IN')}
+                            <div className="flex flex-col gap-0.5">
+                                <span className="font-bold text-foreground">
+                                    {format(new Date(payment.paymentDate), 'MMMM dd, yyyy')}
                                 </span>
-                                {payment.notes && (
-                                    <span className="text-xs text-muted-foreground italic max-w-[200px] text-right line-clamp-1">
-                                        {payment.notes}
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span className="capitalize font-medium text-foreground/80">
+                                        {payment.paymentMethod.replace('_', ' ')}
                                     </span>
-                                )}
+                                    {payment.trancheNumber && payment.totalTranches && (
+                                        <>
+                                            <span className="text-border">•</span>
+                                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 rounded-md font-medium">
+                                                {payment.trancheNumber}/{payment.totalTranches}
+                                            </Badge>
+                                        </>
+                                    )}
+                                    {(payment.transactionId || payment.referenceNumber) && (
+                                        <>
+                                            <span className="text-border">•</span>
+                                            <span className="font-mono text-[10px] bg-muted/50 px-1 py-0.5 rounded text-muted-foreground">
+                                                {payment.referenceNumber || payment.transactionId}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+                        <div className="flex flex-col items-end gap-1">
+                            <span className="font-black text-lg text-success tracking-tight">
+                                ₹{payment.amount.toLocaleString('en-IN')}
+                            </span>
+                            {payment.notes && (
+                                <span className="text-[11px] text-muted-foreground/80 italic max-w-[200px] text-right line-clamp-1 group-hover:text-muted-foreground transition-colors">
+                                    {payment.notes}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }
