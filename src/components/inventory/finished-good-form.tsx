@@ -8,6 +8,7 @@ import {
   TrendingUp, Barcode, Plus, Trash2, PackageOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -51,7 +52,7 @@ interface FinishedGoodFormProps {
 
 export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFormProps) {
   const router = useRouter();
-  
+
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -71,6 +72,8 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
   );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [changes, setChanges] = useState<any[]>([]);
 
   // Fetch raw materials for BOM dropdown
   const { data: rawMaterialsData, isLoading: rawMaterialsLoading } = useRawMaterials({
@@ -141,6 +144,64 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
       return;
     }
 
+    if (isEdit) {
+      const detectedChanges = getDetectedChanges();
+      if (detectedChanges.length > 0) {
+        setChanges(detectedChanges);
+        setIsPreviewOpen(true);
+        return;
+      }
+    }
+
+    await actualSubmit();
+  };
+
+  const getDetectedChanges = () => {
+    const changes: any[] = [];
+    const labels: Record<string, string> = {
+      name: 'Product Name',
+      sku: 'SKU',
+      unit: 'Unit',
+      currentStock: 'Current Stock',
+      reorderLevel: 'Reorder Level',
+      sellingPrice: 'Selling Price'
+    };
+
+    const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+      sellingPrice: 'price'
+    };
+
+    Object.keys(labels).forEach(key => {
+      const oldValue = (initialData as any)?.[key]?.toString();
+      const newValue = (formData as any)[key]?.toString();
+
+      if (oldValue !== newValue && newValue !== undefined) {
+        changes.push({
+          field: key,
+          label: labels[key],
+          oldValue: oldValue || '0',
+          newValue: newValue || '0',
+          type: fieldTypes[key] || 'text'
+        });
+      }
+    });
+
+    // Handle BOM changes simplified (just detect if count changed or materials changed)
+    if (initialData?.bom?.length !== bom.length) {
+      changes.push({
+        field: 'bom',
+        label: 'Bill of Materials',
+        oldValue: `${initialData?.bom?.length || 0} items`,
+        newValue: `${bom.length} items`,
+        type: 'text'
+      });
+    }
+
+    return changes;
+  };
+
+  const actualSubmit = async () => {
+    setIsPreviewOpen(false);
     const data = {
       name: formData.name.trim(),
       sku: formData.sku.trim() || undefined,
@@ -257,9 +318,8 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
                 placeholder="e.g., Custom Cabinet, Finished T-Shirt"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
-                className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${
-                  errors.name ? 'border-destructive' : ''
-                }`}
+                className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${errors.name ? 'border-destructive' : ''
+                  }`}
               />
               {errors.name && (
                 <p className="flex items-center gap-1 text-sm text-destructive">
@@ -294,9 +354,8 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
               </Label>
               <Select value={formData.unit} onValueChange={(value) => handleChange('unit', value)}>
                 <SelectTrigger
-                  className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${
-                    errors.unit ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${errors.unit ? 'border-destructive' : ''
+                    }`}
                 >
                   <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
@@ -386,9 +445,8 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
                           onValueChange={(value) => updateBOMItem(index, 'rawMaterialId', value)}
                         >
                           <SelectTrigger
-                            className={`h-10 ${
-                              errors[`bom_${index}_material`] ? 'border-destructive' : ''
-                            }`}
+                            className={`h-10 ${errors[`bom_${index}_material`] ? 'border-destructive' : ''
+                              }`}
                           >
                             <SelectValue placeholder="Select material" />
                           </SelectTrigger>
@@ -511,9 +569,8 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
                   placeholder="0.00"
                   value={formData.currentStock}
                   onChange={(e) => handleChange('currentStock', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${
-                    errors.currentStock ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${errors.currentStock ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.currentStock && (
@@ -539,9 +596,8 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
                   placeholder="0.00"
                   value={formData.reorderLevel}
                   onChange={(e) => handleChange('reorderLevel', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${
-                    errors.reorderLevel ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${errors.reorderLevel ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.reorderLevel && (
@@ -567,9 +623,8 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
                   placeholder="0.00"
                   value={formData.sellingPrice}
                   onChange={(e) => handleChange('sellingPrice', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-8 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${
-                    errors.sellingPrice ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-8 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${errors.sellingPrice ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.sellingPrice && (
@@ -667,6 +722,14 @@ export function FinishedGoodForm({ initialData, isEdit = false }: FinishedGoodFo
           </Button>
         </div>
       </motion.div>
+
+      <EditPreviewDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        changes={changes}
+        onConfirm={actualSubmit}
+        isSubmitting={isLoading}
+      />
     </form>
   );
 }

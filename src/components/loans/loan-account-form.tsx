@@ -40,6 +40,7 @@ import { useCreateLoanAccount, useUpdateLoanAccount, useLoanAccount } from '@/li
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 
 interface LoanAccountFormProps {
     mode: 'create' | 'edit';
@@ -59,6 +60,8 @@ export function LoanAccountForm({ mode, id, initialData: propsInitialData }: Loa
     const router = useRouter();
     const formRef = useRef<HTMLFormElement>(null);
     const [errors, setErrors] = useState<FormErrors>({});
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [changes, setChanges] = useState<any[]>([]);
 
     const createLoanMutation = useCreateLoanAccount();
     const updateLoanMutation = useUpdateLoanAccount();
@@ -155,6 +158,53 @@ export function LoanAccountForm({ mode, id, initialData: propsInitialData }: Loa
             return;
         }
 
+        if (mode === 'edit') {
+            const detectedChanges = getDetectedChanges();
+            if (detectedChanges.length > 0) {
+                setChanges(detectedChanges);
+                setIsPreviewOpen(true);
+                return;
+            }
+        }
+
+        await actualSubmit();
+    };
+
+    const getDetectedChanges = () => {
+        const changes: any[] = [];
+        const labels: Record<string, string> = {
+            bankName: 'Bank Name',
+            accountNumber: 'Account Number',
+            principalAmount: 'Principal Amount',
+            interestRate: 'Interest Rate',
+            status: 'Status'
+        };
+
+        const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+            principalAmount: 'price',
+            status: 'status'
+        };
+
+        Object.keys(labels).forEach(key => {
+            const oldValue = (initialData as any)?.[key];
+            const newValue = (formData as any)[key];
+
+            if (oldValue !== newValue && newValue !== undefined) {
+                changes.push({
+                    field: key,
+                    label: labels[key],
+                    oldValue: oldValue || 'Empty',
+                    newValue: newValue || 'Empty',
+                    type: fieldTypes[key] || 'text'
+                });
+            }
+        });
+
+        return changes;
+    };
+
+    const actualSubmit = async () => {
+        setIsPreviewOpen(false);
         setErrors({});
 
         try {
@@ -171,13 +221,15 @@ export function LoanAccountForm({ mode, id, initialData: propsInitialData }: Loa
 
             if (mode === 'create') {
                 await createLoanMutation.mutateAsync(input as ILoanAccountInput);
+                toast.success('Loan account created successfully');
                 router.push('/loan-accounts');
             } else if (mode === 'edit' && id) {
                 await updateLoanMutation.mutateAsync({ id, data: input as Partial<ILoanAccountInput> });
+                toast.success('Loan account updated successfully');
                 router.push('/loan-accounts');
             }
         } catch (error) {
-            // toast.error is handled in the hook
+            // Error handled by hook
         }
     };
 
@@ -532,6 +584,14 @@ export function LoanAccountForm({ mode, id, initialData: propsInitialData }: Loa
                     </Button>
                 </div>
             </form>
+
+            <EditPreviewDialog
+                open={isPreviewOpen}
+                onOpenChange={setIsPreviewOpen}
+                changes={changes}
+                onConfirm={actualSubmit}
+                isSubmitting={isSubmitting}
+            />
         </TooltipProvider>
     );
 }

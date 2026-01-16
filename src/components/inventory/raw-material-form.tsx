@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader2, Package, Hash, Layers, AlertCircle, Save, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -52,6 +53,8 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [changes, setChanges] = useState<any[]>([]);
 
   const createMutation = useCreateRawMaterial();
   const updateMutation = useUpdateRawMaterial();
@@ -94,6 +97,52 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
       return;
     }
 
+    if (isEdit) {
+      const detectedChanges = getDetectedChanges();
+      if (detectedChanges.length > 0) {
+        setChanges(detectedChanges);
+        setIsPreviewOpen(true);
+        return;
+      }
+    }
+
+    await actualSubmit();
+  };
+
+  const getDetectedChanges = () => {
+    const changes: any[] = [];
+    const labels: Record<string, string> = {
+      name: 'Material Name',
+      unit: 'Unit',
+      currentStock: 'Current Stock',
+      reorderLevel: 'Reorder Level',
+      costPrice: 'Cost Price'
+    };
+
+    const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+      costPrice: 'price'
+    };
+
+    Object.keys(labels).forEach(key => {
+      const oldValue = (initialData as any)?.[key]?.toString();
+      const newValue = (formData as any)[key]?.toString();
+
+      if (oldValue !== newValue && newValue !== undefined) {
+        changes.push({
+          field: key,
+          label: labels[key],
+          oldValue: oldValue || '0',
+          newValue: newValue || '0',
+          type: fieldTypes[key] || 'text'
+        });
+      }
+    });
+
+    return changes;
+  };
+
+  const actualSubmit = async () => {
+    setIsPreviewOpen(false);
     const data = {
       name: formData.name.trim(),
       unit: formData.unit,
@@ -185,9 +234,8 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
                 placeholder="e.g., Cotton Fabric, Steel Rod"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
-                className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${
-                  errors.name ? 'border-destructive' : ''
-                }`}
+                className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${errors.name ? 'border-destructive' : ''
+                  }`}
               />
               {errors.name && (
                 <p className="flex items-center gap-1 text-sm text-destructive">
@@ -205,9 +253,8 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
               </Label>
               <Select value={formData.unit} onValueChange={(value) => handleChange('unit', value)}>
                 <SelectTrigger
-                  className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${
-                    errors.unit ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${errors.unit ? 'border-destructive' : ''
+                    }`}
                 >
                   <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
@@ -281,9 +328,8 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
                   placeholder="0.00"
                   value={formData.currentStock}
                   onChange={(e) => handleChange('currentStock', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${
-                    errors.currentStock ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${errors.currentStock ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.currentStock && (
@@ -309,9 +355,8 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
                   placeholder="0.00"
                   value={formData.reorderLevel}
                   onChange={(e) => handleChange('reorderLevel', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${
-                    errors.reorderLevel ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${errors.reorderLevel ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.reorderLevel && (
@@ -337,9 +382,8 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
                   placeholder="0.00"
                   value={formData.costPrice}
                   onChange={(e) => handleChange('costPrice', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-8 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${
-                    errors.costPrice ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-8 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${errors.costPrice ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.costPrice && (
@@ -404,6 +448,14 @@ export function RawMaterialForm({ initialData, isEdit = false }: RawMaterialForm
           </Button>
         </div>
       </motion.div>
+
+      <EditPreviewDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        changes={changes}
+        onConfirm={actualSubmit}
+        isSubmitting={isLoading}
+      />
     </form>
   );
 }

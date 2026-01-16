@@ -40,6 +40,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRawMaterialTypes } from '@/lib/hooks/use-raw-material-types';
 import { QuickAddRawMaterialType } from '@/components/settings/quick-add-raw-material-type';
+import { EditPreviewDialog } from './edit-preview-dialog';
 
 // Base form data that both clients and vendors share
 export interface BaseEntityFormData {
@@ -92,6 +93,8 @@ export function EntityForm<T extends BaseEntityFormData>({
 }: EntityFormProps<T>) {
   const router = useRouter();
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [changes, setChanges] = useState<any[]>([]);
 
   // Fetch raw material types dynamically
   const {
@@ -194,6 +197,66 @@ export function EntityForm<T extends BaseEntityFormData>({
       return;
     }
 
+    if (config.mode === 'edit') {
+      const detectedChanges = getDetectedChanges();
+      if (detectedChanges.length > 0) {
+        setChanges(detectedChanges);
+        setIsPreviewOpen(true);
+        return;
+      }
+    }
+
+    await actualSubmit();
+  };
+
+  const getDetectedChanges = () => {
+    const changes: any[] = [];
+    const labels: Record<string, string> = {
+      name: `${entityLabel} Name`,
+      email: 'Email',
+      contactPerson: 'Contact Person',
+      phone: 'Phone',
+      status: 'Status',
+      gstNumber: 'GST Number',
+      specialty: 'Specialty',
+      rawMaterialTypes: 'Material Types'
+    };
+
+    const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+      status: 'status',
+      rawMaterialTypes: 'list'
+    };
+
+    Object.keys(labels).forEach(key => {
+      const oldValue = (initialData as any)?.[key];
+      const newValue = (formData as any)[key];
+
+      if (key === 'rawMaterialTypes') {
+        if (JSON.stringify(oldValue || []) !== JSON.stringify(newValue || [])) {
+          changes.push({
+            field: key,
+            label: labels[key],
+            oldValue: (oldValue || []).join(', ') || 'None',
+            newValue: (newValue || []).join(', ') || 'None',
+            type: 'list'
+          });
+        }
+      } else if (oldValue !== newValue && newValue !== undefined) {
+        changes.push({
+          field: key,
+          label: labels[key],
+          oldValue: oldValue || 'Empty',
+          newValue: newValue || 'Empty',
+          type: fieldTypes[key] || 'text'
+        });
+      }
+    });
+
+    return changes;
+  };
+
+  const actualSubmit = async () => {
+    setIsPreviewOpen(false);
     setErrors({});
 
     try {
@@ -207,6 +270,7 @@ export function EntityForm<T extends BaseEntityFormData>({
       } as unknown as T;
 
       const result = await onSubmit(submitData);
+      toast.success(`${entityLabel} saved successfully`);
 
       if (config.mode === 'create' && result?._id) {
         const id = typeof result._id === 'string' ? result._id : result._id.toString();
@@ -533,6 +597,14 @@ export function EntityForm<T extends BaseEntityFormData>({
           </Button>
         </div>
       </form>
+
+      <EditPreviewDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        changes={changes}
+        onConfirm={actualSubmit}
+        isSubmitting={isSubmitting}
+      />
     </TooltipProvider>
   );
 }

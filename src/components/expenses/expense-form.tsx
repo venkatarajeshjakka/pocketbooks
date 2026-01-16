@@ -40,6 +40,7 @@ import { useCreateExpense, useUpdateExpense } from '@/lib/hooks/use-expenses';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 
 interface ExpenseFormProps {
     mode: 'create' | 'edit';
@@ -86,6 +87,8 @@ export function ExpenseForm({ mode, expenseId, initialData }: ExpenseFormProps) 
     const router = useRouter();
     const formRef = useRef<HTMLFormElement>(null);
     const [errors, setErrors] = useState<FormErrors>({});
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [changes, setChanges] = useState<any[]>([]);
 
     const createExpenseMutation = useCreateExpense();
     const updateExpenseMutation = useUpdateExpense();
@@ -143,6 +146,59 @@ export function ExpenseForm({ mode, expenseId, initialData }: ExpenseFormProps) 
             return;
         }
 
+        if (mode === 'edit') {
+            const detectedChanges = getDetectedChanges();
+            if (detectedChanges.length > 0) {
+                setChanges(detectedChanges);
+                setIsPreviewOpen(true);
+                return;
+            }
+        }
+
+        await actualSubmit();
+    };
+
+    const getDetectedChanges = () => {
+        const changes: any[] = [];
+        const labels: Record<string, string> = {
+            date: 'Date',
+            category: 'Category',
+            description: 'Description',
+            amount: 'Amount',
+            paymentMethod: 'Payment Method',
+            receiptNumber: 'Receipt Number'
+        };
+
+        const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+            amount: 'price',
+            date: 'date'
+        };
+
+        Object.keys(labels).forEach(key => {
+            let oldValue = (initialData as any)?.[key];
+            let newValue = (formData as any)[key];
+
+            if (key === 'date' && oldValue) {
+                oldValue = new Date(oldValue).toISOString().split('T')[0];
+                newValue = newValue ? new Date(newValue).toISOString().split('T')[0] : '';
+            }
+
+            if (oldValue !== newValue && newValue !== undefined) {
+                changes.push({
+                    field: key,
+                    label: labels[key],
+                    oldValue: oldValue || 'Empty',
+                    newValue: newValue || 'Empty',
+                    type: fieldTypes[key] || 'text'
+                });
+            }
+        });
+
+        return changes;
+    };
+
+    const actualSubmit = async () => {
+        setIsPreviewOpen(false);
         setErrors({});
 
         try {
@@ -475,6 +531,14 @@ export function ExpenseForm({ mode, expenseId, initialData }: ExpenseFormProps) 
                     </div>
                 </div>
             </form>
+
+            <EditPreviewDialog
+                open={isPreviewOpen}
+                onOpenChange={setIsPreviewOpen}
+                changes={changes}
+                onConfirm={actualSubmit}
+                isSubmitting={isSubmitting}
+            />
         </TooltipProvider>
     );
 }

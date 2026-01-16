@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader2, Package, Hash, Layers, AlertCircle, Save, ArrowLeft, TrendingUp, Barcode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -41,7 +42,7 @@ interface TradingGoodFormProps {
 
 export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodFormProps) {
   const router = useRouter();
-  
+
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -54,6 +55,8 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [changes, setChanges] = useState<any[]>([]);
 
   const createMutation = useCreateTradingGood();
   const updateMutation = useUpdateTradingGood();
@@ -108,6 +111,55 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
       return;
     }
 
+    if (isEdit) {
+      const detectedChanges = getDetectedChanges();
+      if (detectedChanges.length > 0) {
+        setChanges(detectedChanges);
+        setIsPreviewOpen(true);
+        return;
+      }
+    }
+
+    await actualSubmit();
+  };
+
+  const getDetectedChanges = () => {
+    const changes: any[] = [];
+    const labels: Record<string, string> = {
+      name: 'Product Name',
+      sku: 'SKU',
+      unit: 'Unit',
+      currentStock: 'Current Stock',
+      reorderLevel: 'Reorder Level',
+      costPrice: 'Cost Price',
+      sellingPrice: 'Selling Price'
+    };
+
+    const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+      costPrice: 'price',
+      sellingPrice: 'price'
+    };
+
+    Object.keys(labels).forEach(key => {
+      const oldValue = (initialData as any)?.[key]?.toString();
+      const newValue = (formData as any)[key]?.toString();
+
+      if (oldValue !== newValue && newValue !== undefined) {
+        changes.push({
+          field: key,
+          label: labels[key],
+          oldValue: oldValue || '0',
+          newValue: newValue || '0',
+          type: fieldTypes[key] || 'text'
+        });
+      }
+    });
+
+    return changes;
+  };
+
+  const actualSubmit = async () => {
+    setIsPreviewOpen(false);
     const data = {
       name: formData.name.trim(),
       sku: formData.sku.trim() || undefined,
@@ -199,9 +251,8 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
                 placeholder="e.g., Laptop Stand, Office Chair"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
-                className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${
-                  errors.name ? 'border-destructive' : ''
-                }`}
+                className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${errors.name ? 'border-destructive' : ''
+                  }`}
               />
               {errors.name && (
                 <p className="flex items-center gap-1 text-sm text-destructive">
@@ -236,9 +287,8 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
               </Label>
               <Select value={formData.unit} onValueChange={(value) => handleChange('unit', value)}>
                 <SelectTrigger
-                  className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${
-                    errors.unit ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 shadow-inner transition-all focus:border-primary/50 focus:shadow-lg ${errors.unit ? 'border-destructive' : ''
+                    }`}
                 >
                   <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
@@ -298,9 +348,8 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
                   placeholder="0.00"
                   value={formData.currentStock}
                   onChange={(e) => handleChange('currentStock', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${
-                    errors.currentStock ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${errors.currentStock ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.currentStock && (
@@ -326,9 +375,8 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
                   placeholder="0.00"
                   value={formData.reorderLevel}
                   onChange={(e) => handleChange('reorderLevel', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${
-                    errors.reorderLevel ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-10 shadow-inner transition-all focus:border-success/50 focus:shadow-lg ${errors.reorderLevel ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.reorderLevel && (
@@ -390,9 +438,8 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
                   placeholder="0.00"
                   value={formData.costPrice}
                   onChange={(e) => handleChange('costPrice', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-8 shadow-inner transition-all focus:border-warning/50 focus:shadow-lg ${
-                    errors.costPrice ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-8 shadow-inner transition-all focus:border-warning/50 focus:shadow-lg ${errors.costPrice ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.costPrice && (
@@ -418,9 +465,8 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
                   placeholder="0.00"
                   value={formData.sellingPrice}
                   onChange={(e) => handleChange('sellingPrice', e.target.value)}
-                  className={`h-12 rounded-xl border-2 bg-background/50 pl-8 shadow-inner transition-all focus:border-warning/50 focus:shadow-lg ${
-                    errors.sellingPrice ? 'border-destructive' : ''
-                  }`}
+                  className={`h-12 rounded-xl border-2 bg-background/50 pl-8 shadow-inner transition-all focus:border-warning/50 focus:shadow-lg ${errors.sellingPrice ? 'border-destructive' : ''
+                    }`}
                 />
               </div>
               {errors.sellingPrice && (
@@ -500,6 +546,14 @@ export function TradingGoodForm({ initialData, isEdit = false }: TradingGoodForm
           </Button>
         </div>
       </motion.div>
+
+      <EditPreviewDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        changes={changes}
+        onConfirm={actualSubmit}
+        isSubmitting={isLoading}
+      />
     </form>
   );
 }

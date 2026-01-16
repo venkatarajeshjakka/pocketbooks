@@ -60,29 +60,13 @@ export async function PUT(
 
         let doc;
 
-        // Check if we are updating status
-        if (body.status && Object.values(ProcurementStatus).includes(body.status)) {
-            doc = await ProcurementService.updateProcurementStatus(
-                id,
-                normalizedType,
-                body.status,
-                body.receivedDate,
-                session
-            );
-        } else {
-            // Regular update of other fields
-            doc = await (Model as any).findByIdAndUpdate(id, body, {
-                new: true,
-                runValidators: true,
-                session
-            });
-
-            if (!doc) throw new Error('Procurement not found');
-
-            // If items or prices changed, we might need to sync vendor balance
-            // This is handled by pre-validate in the model, but we need to ensure vendor balance is updated
-            // For now, let's assume standard updates and the sync logic will be called if needed.
-        }
+        // Use ProcurementService for all updates to ensure side effects (inventory, vendor balance) are handled
+        doc = await ProcurementService.updateProcurement(
+            id,
+            normalizedType,
+            body,
+            session
+        );
 
         await session.commitTransaction();
 

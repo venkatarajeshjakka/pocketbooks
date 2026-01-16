@@ -9,6 +9,7 @@ import { connectToDatabase } from '@/lib/api-helpers';
 import { updateAssetPaymentStatus } from '@/lib/utils/asset-payment-utils';
 import { revalidatePath } from 'next/cache';
 import mongoose from 'mongoose';
+import { TransactionType } from '@/types';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -88,13 +89,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         throw new Error('Failed to update payment');
       }
 
-      // Recalculate asset payment status if this payment is linked to an asset
+      // 1. Recalculate asset payment status if this payment is linked to an asset
       if (updatedPayment.assetId) {
         await updateAssetPaymentStatus(updatedPayment.assetId.toString(), session);
       }
 
-      // Update vendor balance if amount changed and payment is linked to a vendor
-      if (originalPayment.amount !== updatedPayment.amount && updatedPayment.partyId && updatedPayment.partyType === 'vendor') {
+      // 2. Sync procurement if linked
+      if (updatedPayment.procurementId && updatedPayment.procurementType) {
+        const { ProcurementService } = await import('@/lib/services/procurement-service');
+        await ProcurementService.syncProcurementPaymentStatus(
+          updatedPayment.procurementId.toString(),
+          updatedPayment.procurementType as any,
+          session
+        );
+      } else if (originalPayment.procurementId && originalPayment.procurementType) {
+        // If it was linked to a procurement but now it's not
+        const { ProcurementService } = await import('@/lib/services/procurement-service');
+        await ProcurementService.syncProcurementPaymentStatus(
+          originalPayment.procurementId.toString(),
+          originalPayment.procurementType as any,
+          session
+        );
+      }
+
+      // 3. Update vendor balance if NOT linked to a procurement (ProcurementService handles its own sync)
+      // Only do this for pure vendor payments (like advances or generic purchases)
+      if (!updatedPayment.procurementId && updatedPayment.partyType === 'vendor' && updatedPayment.transactionType === 'purchase') {
         const amountDiff = updatedPayment.amount - originalPayment.amount;
         await Vendor.findByIdAndUpdate(
           updatedPayment.partyId,
@@ -162,13 +182,23 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       // Delete the payment
       await Payment.findByIdAndDelete(id).session(session);
 
-      // Recalculate asset payment status if this payment was linked to an asset
+      // 1. Recalculate asset payment status if this payment was linked to an asset
       if (assetId) {
         await updateAssetPaymentStatus(assetId.toString(), session);
       }
 
-      // Update vendor balance - add back the payment amount to outstanding
-      if (partyId && partyType === 'vendor') {
+      // 2. Sync procurement if linked
+      if (payment.procurementId && payment.procurementType) {
+        const { ProcurementService } = await import('@/lib/services/procurement-service');
+        await ProcurementService.syncProcurementPaymentStatus(
+          payment.procurementId.toString(),
+          payment.procurementType as any,
+          session
+        );
+      }
+
+      // 3. Update vendor balance if NOT linked to a procurement
+      if (!payment.procurementId && partyId && partyType === 'vendor' && payment.transactionType === TransactionType.PURCHASE) {
         await Vendor.findByIdAndUpdate(
           partyId,
           { $inc: { outstandingPayable: amount } },

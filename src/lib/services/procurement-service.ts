@@ -180,7 +180,84 @@ export class ProcurementService {
     }
 
     /**
-     * Recalculate procurement payment status and update vendor balance
+     * Update an existing procurement and handle side effects atomically
+     */
+    static async updateProcurement(
+        id: string,
+        type: 'raw_material' | 'trading_good',
+        data: any,
+        session?: mongoose.ClientSession
+    ) {
+        const Model = this.getModel(type);
+        const procurement = await (Model as any).findById(id).session(session || null);
+        if (!procurement) throw new Error('Procurement not found');
+
+        const oldStatus = procurement.status;
+        const oldRemaining = procurement.remainingAmount || 0;
+        const oldItems = JSON.parse(JSON.stringify(procurement.items)); // Deep copy old items
+
+        // 1. Update the procurement document
+        // This will trigger pre-validate to recalculate prices and payment status
+        Object.assign(procurement, data);
+        await procurement.save({ session });
+
+        const newStatus = procurement.status;
+        const newRemaining = procurement.remainingAmount || 0;
+
+        // 2. Handle inventory side effects if items changed or status changed
+        const isStockAffecting = (s: ProcurementStatus) =>
+            s === ProcurementStatus.RECEIVED || s === ProcurementStatus.COMPLETED;
+
+        const wasStockAffecting = isStockAffecting(oldStatus);
+        const nowStockAffecting = isStockAffecting(newStatus);
+
+        if (nowStockAffecting) {
+            if (!wasStockAffecting) {
+                // Newly stock affecting (Ordered -> Received)
+                await InventoryIntegrationService.updateInventoryFromProcurement(
+                    procurement.items,
+                    type,
+                    procurement.receivedDate || new Date(),
+                    session
+                );
+            } else {
+                // Still stock affecting, but items might have changed
+                // Simplest way to handle item edits: reverse old items, apply new ones
+                await InventoryIntegrationService.reverseInventoryUpdate(oldItems, type, session);
+                await InventoryIntegrationService.updateInventoryFromProcurement(
+                    procurement.items,
+                    type,
+                    procurement.receivedDate || new Date(),
+                    session
+                );
+            }
+        } else if (wasStockAffecting) {
+            // No longer stock affecting (Received -> Cancelled/Ordered)
+            await InventoryIntegrationService.reverseInventoryUpdate(oldItems, type, session);
+        }
+
+        // 3. Handle vendor balance side effects
+        // If status is CANCELLED, we treat remaining as 0 for external balance
+        const getEffectiveRemaining = (p: any) => p.status === ProcurementStatus.CANCELLED ? 0 : p.remainingAmount;
+
+        const oldEffectiveRemaining = oldStatus === ProcurementStatus.CANCELLED ? 0 : oldRemaining;
+        const newEffectiveRemaining = getEffectiveRemaining(procurement);
+
+        const diff = newEffectiveRemaining - oldEffectiveRemaining;
+
+        if (diff !== 0) {
+            const vendor = await Vendor.findById(procurement.vendorId).session(session || null);
+            if (vendor) {
+                vendor.outstandingPayable = Math.max(0, vendor.outstandingPayable + diff);
+                await vendor.save({ session });
+            }
+        }
+
+        return procurement;
+    }
+
+    /**
+     * Sync procurement payment status and update vendor balance
      */
     static async syncProcurementPaymentStatus(
         procurementId: string,
@@ -198,15 +275,16 @@ export class ProcurementService {
 
         const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
-        // Previous remaining amount to adjust vendor balance
-        const oldRemaining = procurement.remainingAmount || 0;
+        // Previous effective remaining amount to adjust vendor balance
+        const getEffectiveRemaining = (p: any) => p.status === ProcurementStatus.CANCELLED ? 0 : p.remainingAmount;
+        const oldEffectiveRemaining = getEffectiveRemaining(procurement);
 
         procurement.totalPaid = totalPaid;
         // This will trigger pre-validate to update remainingAmount and paymentStatus
         await procurement.save({ session });
 
-        const newRemaining = procurement.remainingAmount || 0;
-        const diff = newRemaining - oldRemaining;
+        const newEffectiveRemaining = getEffectiveRemaining(procurement);
+        const diff = newEffectiveRemaining - oldEffectiveRemaining;
 
         if (diff !== 0) {
             const vendor = await Vendor.findById(procurement.vendorId).session(session || null);

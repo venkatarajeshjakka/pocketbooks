@@ -213,15 +213,6 @@ export async function POST(request: NextRequest) {
       // If this is an asset payment, update the asset's payment tracking
       if (body.assetId) {
         await updateAssetPaymentStatus(body.assetId, session);
-
-        // Update vendor outstanding balance if it's a vendor payment
-        if (body.partyType === 'vendor' && body.transactionType === 'purchase') {
-          const vendor = await Vendor.findById(body.partyId).session(session);
-          if (vendor) {
-            vendor.outstandingPayable = Math.max(0, vendor.outstandingPayable - body.amount);
-            await vendor.save({ session });
-          }
-        }
       }
 
       // If this is a procurement payment, sync the procurement status

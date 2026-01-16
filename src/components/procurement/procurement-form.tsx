@@ -43,6 +43,7 @@ import { useCreateProcurement, useUpdateProcurement } from '@/lib/hooks/use-proc
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 
 interface ProcurementItem {
     itemId: string;
@@ -88,6 +89,8 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
     const formRef = useRef<HTMLFormElement>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [changes, setChanges] = useState<any[]>([]);
 
     const { data: vendorsData, isLoading: vendorsLoading } = useVendors({ limit: 100 });
     const inventoryHook = type === 'raw_material' ? useRawMaterials : useTradingGoods;
@@ -212,12 +215,89 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!validateForm()) {
-            toast.error('Please fix form errors');
+            toast.error('Please fix form errors before submitting');
             return;
         }
 
+        if (mode === 'edit') {
+            const detectedChanges = getDetectedChanges();
+            if (detectedChanges.length > 0) {
+                setChanges(detectedChanges);
+                setIsPreviewOpen(true);
+                return;
+            }
+        }
+
+        await actualSubmit();
+    };
+
+    const getDetectedChanges = () => {
+        const changes: any[] = [];
+        const labels: Record<string, string> = {
+            vendorId: 'Vendor',
+            procurementDate: 'Procurement Date',
+            expectedDeliveryDate: 'Expected Delivery',
+            invoiceNumber: 'Invoice Number',
+            paymentTerms: 'Payment Terms',
+            status: 'Status',
+            gstPercentage: 'GST %',
+            grandTotal: 'Grand Total',
+            items: 'Items'
+        };
+
+        const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+            procurementDate: 'date',
+            expectedDeliveryDate: 'date',
+            grandTotal: 'price',
+            status: 'status',
+            items: 'list'
+        };
+
+        Object.keys(labels).forEach(key => {
+            const oldValue = initialData[key];
+            const newValue = (formData as any)[key];
+
+            if (key === 'items') {
+                if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+                    changes.push({
+                        field: key,
+                        label: labels[key],
+                        oldValue: `${oldValue?.length || 0} items`,
+                        newValue: `${newValue?.length || 0} items`,
+                        type: 'list'
+                    });
+                }
+            } else if (key === 'procurementDate' || key === 'expectedDeliveryDate') {
+                const oldDate = oldValue ? new Date(oldValue).toDateString() : null;
+                const newDate = newValue ? new Date(newValue).toDateString() : null;
+                if (oldDate !== newDate) {
+                    changes.push({
+                        field: key,
+                        label: labels[key],
+                        oldValue: oldValue,
+                        newValue: newValue,
+                        type: 'date'
+                    });
+                }
+            } else if (oldValue !== newValue && newValue !== undefined) {
+                changes.push({
+                    field: key,
+                    label: labels[key],
+                    oldValue,
+                    newValue,
+                    type: fieldTypes[key] || 'text'
+                });
+            }
+        });
+
+        return changes;
+    };
+
+    const actualSubmit = async () => {
         setIsSubmitting(true);
+        setIsPreviewOpen(false);
         try {
             const payload = {
                 ...formData,
@@ -227,29 +307,29 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
                     unitPrice: item.unitPrice,
                     amount: item.amount
                 })),
-                originalPrice: formData.totalAmount,
-                gstBillPrice: formData.grandTotal,
-                gstAmount: formData.gstAmount,
+                vendorId: formData.vendorId, // Explicitly send vendor ID
                 initialPayment: paymentData.recordPayment ? {
                     amount: paymentData.amount,
                     paymentMethod: paymentData.paymentMethod,
                     paymentDate: paymentData.paymentDate,
-                    notes: paymentData.notes,
-                    totalTranches: paymentData.tranches
+                    notes: paymentData.notes
                 } : undefined
             };
 
             if (mode === 'create') {
                 await createMutation.mutateAsync(payload);
+                toast.success('Procurement created successfully');
             } else {
                 await updateMutation.mutateAsync({ id: procurementId!, input: payload });
+                toast.success('Procurement updated successfully');
             }
 
             const endpointType = type === 'raw_material' ? 'raw-materials' : 'trading-goods';
             router.push(`/procurement/${endpointType}`);
             router.refresh();
-        } catch (error: any) {
-            console.error(error);
+        } catch (error) {
+            console.error('Submission error:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to save procurement');
         } finally {
             setIsSubmitting(false);
         }
@@ -811,6 +891,14 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
                     </div>
                 </div>
             </form>
+
+            <EditPreviewDialog
+                open={isPreviewOpen}
+                onOpenChange={setIsPreviewOpen}
+                changes={changes}
+                onConfirm={actualSubmit}
+                isSubmitting={isSubmitting}
+            />
         </TooltipProvider>
     );
 }
