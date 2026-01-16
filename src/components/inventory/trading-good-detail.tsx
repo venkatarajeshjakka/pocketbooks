@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { useTradingGood, useDeleteTradingGood } from '@/lib/hooks/use-inventory-items';
+import { ProcurementHistory } from '@/components/inventory/procurement-history';
 
 interface TradingGoodDetailProps {
   id: string;
@@ -29,7 +30,7 @@ interface TradingGoodDetailProps {
 
 export function TradingGoodDetail({ id }: TradingGoodDetailProps) {
   const router = useRouter();
-  
+
   const { data: good, isLoading, error } = useTradingGood(id);
   const deleteMutation = useDeleteTradingGood();
 
@@ -293,6 +294,9 @@ export function TradingGoodDetail({ id }: TradingGoodDetailProps) {
           </div>
         </div>
       </motion.div>
+
+      {/* Procurement History */}
+      <ProcurementHistory itemId={id} type="trading_good" />
     </div>
   );
 }

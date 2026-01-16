@@ -97,7 +97,7 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
     const { data: inventoryData, isLoading: inventoryLoading } = inventoryHook({ limit: 100 });
 
     const [formData, setFormData] = useState<ProcurementFormData>({
-        vendorId: initialData?.vendorId || '',
+        vendorId: typeof initialData?.vendorId === 'object' ? initialData.vendorId?._id : (initialData?.vendorId || ''),
         procurementDate: initialData?.procurementDate ? new Date(initialData.procurementDate) : new Date(),
         expectedDeliveryDate: initialData?.expectedDeliveryDate ? new Date(initialData.expectedDeliveryDate) : undefined,
         invoiceNumber: initialData?.invoiceNumber || '',
@@ -256,16 +256,62 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
         };
 
         Object.keys(labels).forEach(key => {
-            const oldValue = initialData[key];
-            const newValue = (formData as any)[key];
+            let oldValue = initialData[key];
+            let newValue = (formData as any)[key];
 
-            if (key === 'items') {
-                if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+            if (key === 'vendorId') {
+                const oldId = typeof oldValue === 'object' ? oldValue?._id : oldValue;
+                const newId = newValue;
+
+                if (oldId !== newId) {
+                    const oldVendorName = typeof oldValue === 'object' ? oldValue?.name : vendorsData?.data.find((v: any) => v._id === oldId)?.name || oldId;
+                    const newVendorName = vendorsData?.data.find((v: any) => v._id === newId)?.name || newId;
+
                     changes.push({
                         field: key,
                         label: labels[key],
-                        oldValue: `${oldValue?.length || 0} items`,
-                        newValue: `${newValue?.length || 0} items`,
+                        oldValue: oldVendorName,
+                        newValue: newVendorName,
+                        type: 'text'
+                    });
+                }
+            } else if (key === 'items') {
+                const normalize = (items: any[]) => items?.map(i => ({
+                    id: i.rawMaterialId || i.tradingGoodId || i.itemId,
+                    name: i.name || 'Unknown Item',
+                    quantity: Number(i.quantity),
+                    unitPrice: Number(i.unitPrice)
+                })).sort((a, b) => (a.id || '').localeCompare(b.id || '')) || [];
+
+                const normalizedOld = normalize(oldValue);
+                const normalizedNew = normalize(newValue);
+
+                if (JSON.stringify(normalizedOld) !== JSON.stringify(normalizedNew)) {
+                    // Generate a more descriptive summary for items
+                    const itemChanges: string[] = [];
+
+                    if (normalizedOld.length !== normalizedNew.length) {
+                        itemChanges.push(`${normalizedOld.length} -> ${normalizedNew.length} items`);
+                    } else {
+                        normalizedNew.forEach((newItem, idx) => {
+                            const oldItem = normalizedOld[idx];
+                            if (JSON.stringify(newItem) !== JSON.stringify(oldItem)) {
+                                if (newItem.quantity !== oldItem.quantity) {
+                                    itemChanges.push(`${newItem.name}: Qty ${oldItem.quantity} -> ${newItem.quantity}`);
+                                } else if (newItem.unitPrice !== oldItem.unitPrice) {
+                                    itemChanges.push(`${newItem.name}: Price ₹${oldItem.unitPrice} -> ₹${newItem.unitPrice}`);
+                                } else {
+                                    itemChanges.push(`${newItem.name} modified`);
+                                }
+                            }
+                        });
+                    }
+
+                    changes.push({
+                        field: key,
+                        label: labels[key],
+                        oldValue: normalizedOld.length === 1 ? '1 item' : `${normalizedOld.length} items`,
+                        newValue: itemChanges.length > 0 ? itemChanges.join(', ') : (normalizedNew.length === 1 ? '1 item' : `${normalizedNew.length} items`),
                         type: 'list'
                     });
                 }
@@ -860,7 +906,7 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
                 </AnimatePresence>
 
                 {/* Fixed Footer with Actions */}
-                <div className="fixed bottom-0 left-0 right-0 p-6 bg-background/40 backdrop-blur-2xl border-t border-border/30 z-50 shadow-[0_-12px_40px_rgba(0,0,0,0.1)]">
+                <div className="fixed bottom-0 left-0 right-0 p-8 pb-10 bg-background/40 backdrop-blur-2xl border-t border-border/30 z-50 shadow-[0_-12px_40px_rgba(0,0,0,0.1)]">
                     <div className="mx-auto max-w-4xl px-8 md:px-12">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                             <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">

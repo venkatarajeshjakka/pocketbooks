@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { useRawMaterial, useDeleteRawMaterial } from '@/lib/hooks/use-inventory-items';
+import { ProcurementHistory } from '@/components/inventory/procurement-history';
 
 interface RawMaterialDetailProps {
   id: string;
@@ -29,7 +30,7 @@ interface RawMaterialDetailProps {
 
 export function RawMaterialDetail({ id }: RawMaterialDetailProps) {
   const router = useRouter();
-  
+
   const { data: material, isLoading, error } = useRawMaterial(id);
   const deleteMutation = useDeleteRawMaterial();
 
@@ -233,6 +234,9 @@ export function RawMaterialDetail({ id }: RawMaterialDetailProps) {
           </div>
         </div>
       </motion.div>
+
+      {/* Procurement History */}
+      <ProcurementHistory itemId={id} type="raw_material" />
     </div>
   );
 }

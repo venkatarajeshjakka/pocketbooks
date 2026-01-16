@@ -15,6 +15,7 @@ interface UseProcurementsParams extends FetchProcurementsParams {
     type: 'raw_material' | 'trading_good';
     startDate?: string;
     endDate?: string;
+    itemId?: string;
 }
 
 export const PROCUREMENT_KEYS = {

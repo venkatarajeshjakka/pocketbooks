@@ -31,6 +31,7 @@ export interface FetchProcurementsParams {
     limit?: number;
     search?: string;
     status?: string;
+    itemId?: string;
 }
 
 /**
@@ -45,6 +46,7 @@ export async function fetchProcurements(
     if (params.limit) searchParams.set('limit', params.limit.toString());
     if (params.search) searchParams.set('search', params.search);
     if (params.status) searchParams.set('status', params.status);
+    if (params.itemId) searchParams.set('itemId', params.itemId);
 
     // endpoint is /api/procurement/raw-materials or /api/procurement/trading-goods
     // The type arg is 'raw_material' or 'trading_good'.

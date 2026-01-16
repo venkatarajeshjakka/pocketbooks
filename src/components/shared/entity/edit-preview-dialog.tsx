@@ -94,7 +94,7 @@ export function EditPreviewDialog({
                                     <div className="grid grid-cols-[1fr,auto,1fr] items-center gap-4">
                                         <div className="flex flex-col items-start gap-1">
                                             <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-tighter">Current</span>
-                                            <div className="text-sm font-medium truncate w-full">
+                                            <div className="text-sm font-medium whitespace-pre-wrap">
                                                 {formatValue(change.oldValue, change.type)}
                                             </div>
                                         </div>
@@ -103,9 +103,9 @@ export function EditPreviewDialog({
                                             <ArrowRight className="h-4 w-4 text-primary" />
                                         </div>
 
-                                        <div className="flex flex-col items-end gap-1">
+                                        <div className="flex flex-col items-end gap-1 text-right">
                                             <span className="text-[10px] font-bold text-primary/50 uppercase tracking-tighter">New Value</span>
-                                            <div className="text-sm font-bold text-primary truncate w-full text-right">
+                                            <div className="text-sm font-bold text-primary whitespace-pre-wrap">
                                                 {formatValue(change.newValue, change.type)}
                                             </div>
                                         </div>
@@ -129,22 +129,33 @@ export function EditPreviewDialog({
                     )}
                 </ScrollArea>
 
-                <DialogFooter className="p-6 pt-4 border-t border-border/20 bg-muted/10">
+                <DialogFooter className="p-8 pt-4 pb-10 border-t border-border/20 bg-muted/5">
                     <div className="flex items-center justify-between w-full gap-4">
                         <Button
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                             disabled={isSubmitting}
-                            className="flex-1 h-12 font-bold rounded-xl border-border/40 hover:bg-background transition-all"
+                            className="flex-1 h-12 font-bold rounded-xl border-border/40 hover:bg-background transition-all gap-2"
                         >
-                            Back to Editing
+                            <ArrowRight className="h-4 w-4 rotate-180" />
+                            <span className="tracking-tight uppercase text-xs">Back to Editing</span>
                         </Button>
                         <Button
                             onClick={onConfirm}
                             disabled={isSubmitting}
-                            className="flex-1 h-12 font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all bg-primary hover:bg-primary/90"
+                            className="flex-1 h-12 font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all bg-primary hover:bg-primary/90 gap-2"
                         >
-                            {isSubmitting ? "Saving..." : "Confirm & Save"}
+                            {isSubmitting ? (
+                                <>
+                                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <span className="tracking-tight uppercase text-xs">Saving...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    <span className="tracking-tight uppercase text-xs">Confirm & Save</span>
+                                </>
+                            )}
                         </Button>
                     </div>
                 </DialogFooter>

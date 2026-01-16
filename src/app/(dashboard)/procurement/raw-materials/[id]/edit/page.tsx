@@ -36,7 +36,7 @@ export default async function EditRawMaterialProcurementPage({
   serializedProcurement.items = transformedItems;
 
   return (
-    <div className="flex-1 p-6 md:p-10 min-h-screen">
+    <div className="flex-1 saas-canvas p-6 md:p-10 min-h-screen">
       <div className="mx-auto w-full max-w-4xl">
         {/* Back Button */}
         <Link
@@ -53,10 +53,10 @@ export default async function EditRawMaterialProcurementPage({
         <div className="relative mb-12">
           <div className="absolute -left-4 top-0 bottom-0 w-1 bg-primary/20 rounded-full" />
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground/90 sm:text-5xl">
-            Edit Raw Material Procurement
+            Edit Procurement
           </h1>
           <p className="text-base text-muted-foreground mt-3 font-medium max-w-2xl leading-relaxed">
-            Update procurement details, items, and payment information.
+            Update raw material procurement details and items.
           </p>
         </div>
 

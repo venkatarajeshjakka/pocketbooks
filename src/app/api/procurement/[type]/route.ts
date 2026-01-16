@@ -26,9 +26,22 @@ export async function GET(
 
     const normalizedType = (type === 'raw-material' || type === 'raw-materials') ? 'raw_material' : 'trading_good';
     const Model = normalizedType === 'raw_material' ? RawMaterialProcurement : TradingGoodsProcurement;
+    const itemFilterField = normalizedType === 'raw_material' ? 'items.rawMaterialId' : 'items.tradingGoodId';
 
-    // Use handleGetAll helper for listing
-    return handleGetAll(request, Model as any, ['invoiceNumber', 'notes'], ['vendorId']);
+    // Use handleGetAll helper for listing with a custom query builder for itemId
+    return handleGetAll(
+        request,
+        Model as any,
+        ['invoiceNumber', 'notes'],
+        ['vendorId'],
+        (searchParams) => {
+            const itemId = searchParams.get('itemId');
+            if (itemId) {
+                return { [itemFilterField]: itemId };
+            }
+            return {};
+        }
+    );
 }
 
 /**
