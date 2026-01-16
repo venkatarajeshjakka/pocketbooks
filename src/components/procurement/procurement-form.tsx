@@ -451,6 +451,21 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        {(formData.status === ProcurementStatus.RECEIVED || formData.status === ProcurementStatus.COMPLETED) ? (
+                                            <div className="flex items-center gap-1.5 mt-1.5 px-1">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                                                <p className="text-[10px] text-success font-bold uppercase tracking-wider">
+                                                    Inventory will be updated
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-1.5 mt-1.5 px-1 opacity-70">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                                                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
+                                                    No inventory impact in this status
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Expected Delivery Date */}

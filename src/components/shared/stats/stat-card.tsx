@@ -19,7 +19,8 @@ import {
     CreditCard,
     PiggyBank,
     ArrowUpRight,
-    ArrowDownRight
+    ArrowDownRight,
+    ShoppingCart
 } from 'lucide-react';
 import { fadeInUp } from '@/lib/utils/animation-variants';
 import { cn } from '@/lib/utils';
@@ -28,7 +29,7 @@ export interface StatCardProps {
     title: string;
     value: string | number;
     subtitle?: string;
-    icon: 'Users' | 'UserCheck' | 'UserX' | 'IndianRupee' | 'Package' | 'CheckCircle' | 'TrendingUp' | 'Monitor' | 'CreditCard' | 'PiggyBank';
+    icon: 'Users' | 'UserCheck' | 'UserX' | 'IndianRupee' | 'Package' | 'CheckCircle' | 'TrendingUp' | 'Monitor' | 'CreditCard' | 'PiggyBank' | 'ShoppingCart';
     trend?: {
         value: number;
         isPositive: boolean;
@@ -55,6 +56,7 @@ const iconMap = {
     Monitor,
     CreditCard,
     PiggyBank,
+    ShoppingCart,
 };
 
 export function StatCard({
