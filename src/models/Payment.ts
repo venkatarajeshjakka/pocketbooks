@@ -76,6 +76,26 @@ const PaymentSchema = new Schema<IPayment>(
       trim: true,
       maxlength: [500, 'Notes cannot exceed 500 characters'],
     },
+    // Enhanced procurement linking
+    procurementType: {
+      type: String,
+      enum: ['raw_material', 'trading_good'],
+    },
+    // Payment tranche information
+    trancheNumber: {
+      type: Number,
+      min: [1, 'Tranche number must be at least 1'],
+    },
+    totalTranches: {
+      type: Number,
+      min: [1, 'Total tranches must be at least 1'],
+    },
+    // Enhanced reference tracking
+    referenceNumber: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Reference number cannot exceed 100 characters'],
+    },
   },
   {
     timestamps: true,
@@ -104,6 +124,8 @@ PaymentSchema.index({ assetId: 1 }); // Missing index for asset lookups
 PaymentSchema.index({ saleId: 1 });
 PaymentSchema.index({ expenseId: 1 }); // For expense lookups
 PaymentSchema.index({ transactionType: 1 });
+PaymentSchema.index({ procurementId: 1, procurementType: 1 });
+PaymentSchema.index({ trancheNumber: 1, procurementId: 1 });
 PaymentSchema.index({ createdAt: -1 }); // Useful for default sort
 
 // Prevent model recompilation in production

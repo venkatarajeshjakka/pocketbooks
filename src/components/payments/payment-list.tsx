@@ -5,7 +5,7 @@
 
 'use client';
 
-import { usePayments } from '@/lib/hooks/use-payments';
+import { usePayments, useDeletePayment } from '@/lib/hooks/use-payments';
 import { EntityListContainer } from '@/components/shared/entity/entity-list-container';
 import { EmptyState } from '@/components/shared/ui/empty-state';
 import { IPayment, TransactionType, PaymentMethod, PartyType } from '@/types';
@@ -81,7 +81,8 @@ function getPaymentMethodIcon(method: PaymentMethod) {
 }
 
 export function PaymentList({ page, search, transactionType, partyType, view }: PaymentListProps) {
-    const { data, isLoading, error } = usePayments({
+    const deleteMutation = useDeletePayment();
+    const { data, isLoading, error, refetch } = usePayments({
         page,
         search,
         transactionType,
@@ -90,6 +91,19 @@ export function PaymentList({ page, search, transactionType, partyType, view }: 
         sortBy: 'paymentDate',
         sortOrder: 'desc',
     });
+
+    const handleDelete = async (id: string | string[]) => {
+        if (Array.isArray(id)) {
+            // Bulk delete logic if needed, but EntityListContainer usually handles single delete
+            // If bulk delete is needed, we'd need a useBulkDeletePayments hook
+            for (const paymentId of id) {
+                await deleteMutation.mutateAsync(paymentId);
+            }
+        } else {
+            await deleteMutation.mutateAsync(id);
+        }
+        refetch();
+    };
 
     if (isLoading) {
         return (
@@ -226,7 +240,7 @@ export function PaymentList({ page, search, transactionType, partyType, view }: 
             entities={payments}
             initialView={view || 'table'}
             basePath="/payments"
-            onDelete={async () => { }} // Payments usually shouldn't be deleted easily
+            onDelete={handleDelete}
             columns={columns}
             renderCardContent={(payment: IPayment) => (
                 <div className="space-y-3">

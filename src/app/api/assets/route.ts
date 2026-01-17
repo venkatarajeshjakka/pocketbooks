@@ -13,12 +13,20 @@ import { revalidatePath } from 'next/cache';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
-    return handleGetAll(request, Asset, ['name', 'category', 'location']);
+    return handleGetAll(request, Asset, ['name', 'category', 'location'], undefined, (params) => {
+        if (params.get('hasOutstanding') === 'true') {
+            return {
+                paymentStatus: { $ne: 'fully_paid' },
+                remainingAmount: { $gt: 0 }
+            };
+        }
+        return {};
+    });
 }
 
 export async function POST(request: NextRequest) {
     let session: mongoose.ClientSession | null = null;
-    
+
     try {
         await connectToDatabase();
         const body = await request.json();
@@ -37,7 +45,7 @@ export async function POST(request: NextRequest) {
             assetData.totalPaid = 0;
             assetData.paymentStatus = 'unpaid';
             assetData.remainingAmount = assetData.purchasePrice;
-            
+
             const asset = new Asset(assetData);
             await asset.save();
             revalidatePath('/assets');
@@ -102,10 +110,10 @@ export async function POST(request: NextRequest) {
             await asset.save({ session });
 
             await session.commitTransaction();
-            
+
             revalidatePath('/assets');
             revalidatePath('/payments');
-            
+
             return NextResponse.json({
                 success: true,
                 data: asset,

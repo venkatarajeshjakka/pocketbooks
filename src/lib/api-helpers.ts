@@ -20,7 +20,8 @@ export async function handleGetAll<T>(
   request: NextRequest,
   model: Model<T>,
   searchFields: string[] = ["name"],
-  populate?: string[]
+  populate?: string[],
+  customQueryBuilder?: (params: URLSearchParams) => any
 ) {
   try {
     await connectToDatabase();
@@ -37,7 +38,7 @@ export async function handleGetAll<T>(
     const sortOrder = searchParams.get("sortOrder") === "asc" ? 1 : -1;
 
     // Build query
-    const query: any = {};
+    let query: any = {}; // Changed to let to allow reassignment/modification checks
     if (search && searchFields.length > 0) {
       query.$or = searchFields.map((field) => ({
         [field]: { $regex: search, $options: "i" },
@@ -45,6 +46,11 @@ export async function handleGetAll<T>(
     }
     if (status) {
       query.status = status;
+    }
+
+    if (customQueryBuilder) {
+      const customQuery = customQueryBuilder(searchParams);
+      query = { ...query, ...customQuery };
     }
 
     // Execute query with pagination

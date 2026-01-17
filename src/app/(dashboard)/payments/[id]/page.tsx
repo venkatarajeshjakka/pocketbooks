@@ -9,11 +9,10 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Payment, Client, Vendor, Asset, Sale } from '@/models';
-import { connectToDatabase } from '@/lib/api-helpers';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { PaymentDeleteButton } from '@/components/payments/payment-delete-button';
+import { fetchPayment } from '@/lib/api/payments';
 
 interface PaymentDetailPageProps {
     params: Promise<{ id: string }>;
@@ -54,26 +53,7 @@ export default async function PaymentDetailPage({ params }: PaymentDetailPagePro
 
     let payment: any;
     try {
-        await connectToDatabase();
-        payment = await Payment.findById(id)
-            .populate('assetId')
-            .populate('saleId')
-            .lean();
-
-        if (!payment) {
-            notFound();
-        }
-
-        // Manually populate partyId based on partyType
-        if (payment.partyId && payment.partyType) {
-            if (payment.partyType === 'client') {
-                const client = await Client.findById(payment.partyId).lean();
-                payment.party = client;
-            } else if (payment.partyType === 'vendor') {
-                const vendor = await Vendor.findById(payment.partyId).lean();
-                payment.party = vendor;
-            }
-        }
+        payment = await fetchPayment(id);
     } catch (error) {
         console.error('Failed to fetch payment:', error);
         notFound();
@@ -200,7 +180,7 @@ export default async function PaymentDetailPage({ params }: PaymentDetailPagePro
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {/* Party Information */}
-                        {payment.party && (
+                        {payment.partyId && (typeof payment.partyId === 'object') && (
                             <div className="p-4 rounded-lg bg-muted/50">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -215,13 +195,13 @@ export default async function PaymentDetailPage({ params }: PaymentDetailPagePro
                                             {payment.partyType === 'vendor' ? 'Vendor' : 'Client'}
                                         </p>
                                         <Link
-                                            href={`/${payment.partyType === 'vendor' ? 'vendors' : 'clients'}/${payment.party._id}`}
+                                            href={`/${payment.partyType === 'vendor' ? 'vendors' : 'clients'}/${payment.partyId._id}`}
                                             className="font-medium hover:underline"
                                         >
-                                            {payment.party.name}
+                                            {payment.partyId.name}
                                         </Link>
-                                        {payment.party.email && (
-                                            <p className="text-sm text-muted-foreground">{payment.party.email}</p>
+                                        {payment.partyId.email && (
+                                            <p className="text-sm text-muted-foreground">{payment.partyId.email}</p>
                                         )}
                                     </div>
                                 </div>
@@ -300,8 +280,7 @@ export async function generateMetadata({ params }: PaymentDetailPageProps) {
     const { id } = await params;
 
     try {
-        await connectToDatabase();
-        const payment = await Payment.findById(id).lean();
+        const payment = await fetchPayment(id);
 
         if (payment) {
             return {

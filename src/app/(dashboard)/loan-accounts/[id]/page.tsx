@@ -41,7 +41,7 @@ export default async function LoanAccountPage({ params }: LoanAccountPageProps) 
     }
 
     return (
-        <div className="flex flex-1 flex-col saas-canvas -m-4 md:-m-6 p-4 md:p-6 min-h-screen">
+        <div className="flex flex-1 flex-col gap-6 md:gap-8 w-full p-4 md:p-6">
             <LoanAccountDetailView loan={loan} />
         </div>
     );

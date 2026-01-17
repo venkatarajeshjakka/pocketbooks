@@ -8,8 +8,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { ExpenseForm } from '@/components/expenses/expense-form';
-import Expense from '@/models/Expense';
-import { connectToDatabase } from '@/lib/api-helpers';
+import { fetchExpense } from '@/lib/api/expenses';
 
 interface EditExpensePageProps {
     params: Promise<{ id: string }>;
@@ -18,8 +17,7 @@ interface EditExpensePageProps {
 export async function generateMetadata({ params }: EditExpensePageProps) {
     const { id } = await params;
     try {
-        await connectToDatabase();
-        const expense = await Expense.findById(id).lean();
+        const expense = await fetchExpense(id);
         if (expense) {
             return {
                 title: `Edit ${expense.description} | Expenses | PocketBooks`,
@@ -39,15 +37,11 @@ export default async function EditExpensePage({ params }: EditExpensePageProps) 
 
     let expense;
     try {
-        await connectToDatabase();
-        expense = await Expense.findById(id).lean();
+        expense = await fetchExpense(id);
 
         if (!expense) {
             notFound();
         }
-
-        // Convert to plain object for client component
-        expense = JSON.parse(JSON.stringify(expense));
     } catch (error) {
         console.error('Error fetching expense:', error);
         notFound();

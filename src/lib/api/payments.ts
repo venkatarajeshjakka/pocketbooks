@@ -5,6 +5,24 @@
 import { IPayment, ApiResponse, PaginatedResponse } from '@/types';
 
 /**
+ * Get the base URL for API calls
+ */
+function getBaseUrl(): string {
+    if (typeof window !== 'undefined') {
+        return '';
+    }
+    if (process.env.NEXTAUTH_URL) {
+        return process.env.NEXTAUTH_URL;
+    }
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+    return `http://localhost:${process.env.PORT || 3000}`;
+}
+
+const API_BASE = '/api/payments';
+
+/**
  * Fetch all payments with optional filtering and pagination
  */
 export async function fetchPayments(params: {
@@ -18,6 +36,7 @@ export async function fetchPayments(params: {
     partyType?: string;
     assetId?: string;
     saleId?: string;
+    procurementId?: string;
     startDate?: string;
     endDate?: string;
 } = {}): Promise<PaginatedResponse<IPayment>> {
@@ -32,10 +51,14 @@ export async function fetchPayments(params: {
     if (params.partyType) queryParams.set('partyType', params.partyType);
     if (params.assetId) queryParams.set('assetId', params.assetId);
     if (params.saleId) queryParams.set('saleId', params.saleId);
+    if (params.procurementId) queryParams.set('procurementId', params.procurementId);
     if (params.startDate) queryParams.set('startDate', params.startDate);
     if (params.endDate) queryParams.set('endDate', params.endDate);
 
-    const response = await fetch(`/api/payments?${queryParams.toString()}`);
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${API_BASE}?${queryParams.toString()}`, {
+        cache: 'no-store'
+    });
     if (!response.ok) {
         throw new Error('Failed to fetch payments');
     }
@@ -46,7 +69,10 @@ export async function fetchPayments(params: {
  * Fetch a single payment by ID
  */
 export async function fetchPayment(id: string): Promise<IPayment> {
-    const response = await fetch(`/api/payments/${id}`);
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${API_BASE}/${id}`, {
+        cache: 'no-store'
+    });
     if (!response.ok) {
         throw new Error('Failed to fetch payment');
     }
@@ -61,7 +87,10 @@ export async function fetchPayment(id: string): Promise<IPayment> {
  * Fetch payment stats
  */
 export async function fetchPaymentStats(): Promise<any> {
-    const response = await fetch('/api/payments/stats');
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${API_BASE}/stats`, {
+        cache: 'no-store'
+    });
     if (!response.ok) {
         throw new Error('Failed to fetch payment stats');
     }

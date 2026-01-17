@@ -50,93 +50,115 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* Financial Application Colors */
+  --color-money-positive: var(--money-positive);
+  --color-money-negative: var(--money-negative);
+  --color-money-neutral: var(--money-neutral);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --background: oklch(0.98 0.002 240); /* Refined off-white with subtle cool tint */
+  --foreground: oklch(0.18 0.02 250); /* Deep navy for professional look */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.18 0.02 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.546 0.245 262.881);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.558 0.288 302.321);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
+  --popover-foreground: oklch(0.18 0.02 250);
+  --primary: oklch(0.52 0.2 255); /* Professional deep blue */
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.45 0.02 250); /* Slate gray */
+  --secondary-foreground: oklch(0.99 0 0);
+  --muted: oklch(0.96 0.005 240);
+  --muted-foreground: oklch(0.5 0.02 250);
+  --accent: oklch(0.52 0.2 255 / 8%);
+  --accent-foreground: oklch(0.52 0.2 255);
+  --destructive: oklch(0.55 0.22 25); /* Clear red for errors */
   --destructive-foreground: oklch(1 0 0);
-  --success: oklch(0.527 0.154 150.069);
+  --success: oklch(0.55 0.18 155); /* Professional green */
   --success-foreground: oklch(1 0 0);
-  --warning: oklch(0.705 0.213 47.604);
-  --warning-foreground: oklch(0.208 0.042 265.755);
-  --info: oklch(0.546 0.245 262.881);
+  --warning: oklch(0.78 0.16 70); /* Amber warning */
+  --warning-foreground: oklch(0.2 0.02 70);
+  --info: oklch(0.6 0.18 230); /* Info blue */
   --info-foreground: oklch(1 0 0);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.546 0.245 262.881);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-active: oklch(0.546 0.245 262.881 / 15%);
-  --sidebar-active-foreground: oklch(0.546 0.245 262.881);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.546 0.245 262.881);
+  --border: oklch(0.92 0.005 240);
+  --input: oklch(0.92 0.005 240);
+  --ring: oklch(0.52 0.2 255);
+  /* Financial Semantic Colors */
+  --money-positive: oklch(0.55 0.2 155); /* Emerald - money received */
+  --money-negative: oklch(0.55 0.22 20); /* Rose - money owed */
+  --money-neutral: oklch(0.5 0.02 250); /* Slate - neutral amounts */
+  --gold: oklch(0.75 0.15 75); /* Premium gold accent */
+  --gold-foreground: oklch(0.25 0.05 75);
+  /* Chart Colors - Enhanced for financial data */
+  --chart-1: oklch(0.52 0.2 255); /* Primary blue */
+  --chart-2: oklch(0.55 0.18 155); /* Success green */
+  --chart-3: oklch(0.75 0.15 75); /* Gold */
+  --chart-4: oklch(0.55 0.22 25); /* Red */
+  --chart-5: oklch(0.6 0.15 290); /* Purple */
+  /* Sidebar */
+  --sidebar: oklch(0.99 0.002 240);
+  --sidebar-foreground: oklch(0.18 0.02 250);
+  --sidebar-primary: oklch(0.52 0.2 255);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.52 0.2 255 / 8%);
+  --sidebar-accent-foreground: oklch(0.52 0.2 255);
+  --sidebar-active: oklch(0.52 0.2 255 / 12%);
+  --sidebar-active-foreground: oklch(0.52 0.2 255);
+  --sidebar-border: oklch(0.92 0.005 240);
+  --sidebar-ring: oklch(0.52 0.2 255);
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.623 0.214 259.815);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.627 0.265 303.9);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
+  --background: oklch(0.13 0.015 250); /* Deep navy-black */
+  --foreground: oklch(0.95 0.005 240); /* Crisp off-white */
+  --card: oklch(0.17 0.015 250);
+  --card-foreground: oklch(0.95 0.005 240);
+  --popover: oklch(0.17 0.015 250);
+  --popover-foreground: oklch(0.95 0.005 240);
+  --primary: oklch(0.65 0.2 255); /* Brighter blue for dark mode */
+  --primary-foreground: oklch(0.1 0.02 250);
+  --secondary: oklch(0.35 0.015 250);
+  --secondary-foreground: oklch(0.95 0.005 240);
+  --muted: oklch(0.22 0.015 250);
+  --muted-foreground: oklch(0.65 0.01 240);
+  --accent: oklch(0.65 0.2 255 / 15%);
+  --accent-foreground: oklch(0.7 0.18 255);
+  --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(1 0 0);
-  --success: oklch(0.627 0.194 149.214);
-  --success-foreground: oklch(1 0 0);
-  --warning: oklch(0.769 0.188 70.08);
-  --warning-foreground: oklch(0.208 0.042 265.755);
-  --info: oklch(0.623 0.214 259.815);
-  --info-foreground: oklch(1 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.623 0.214 259.815);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.623 0.214 259.815);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-active: oklch(0.623 0.214 259.815 / 20%);
-  --sidebar-active-foreground: oklch(0.75 0.18 259.815);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  --success: oklch(0.62 0.2 155);
+  --success-foreground: oklch(0.1 0.02 155);
+  --warning: oklch(0.82 0.16 70);
+  --warning-foreground: oklch(0.15 0.02 70);
+  --info: oklch(0.65 0.18 230);
+  --info-foreground: oklch(0.1 0.02 230);
+  --border: oklch(0.28 0.015 250);
+  --input: oklch(0.22 0.015 250);
+  --ring: oklch(0.65 0.2 255);
+  /* Financial Semantic Colors - Dark Mode */
+  --money-positive: oklch(0.62 0.2 155); /* Brighter emerald */
+  --money-negative: oklch(0.62 0.22 20); /* Brighter rose */
+  --money-neutral: oklch(0.65 0.01 240);
+  --gold: oklch(0.78 0.16 75); /* Brighter gold */
+  --gold-foreground: oklch(0.15 0.05 75);
+  /* Chart Colors - Dark Mode */
+  --chart-1: oklch(0.65 0.2 255);
+  --chart-2: oklch(0.62 0.2 155);
+  --chart-3: oklch(0.78 0.16 75);
+  --chart-4: oklch(0.62 0.22 25);
+  --chart-5: oklch(0.65 0.15 290);
+  /* Sidebar - Dark Mode */
+  --sidebar: oklch(0.15 0.015 250);
+  --sidebar-foreground: oklch(0.95 0.005 240);
+  --sidebar-primary: oklch(0.65 0.2 255);
+  --sidebar-primary-foreground: oklch(0.1 0.02 250);
+  --sidebar-accent: oklch(0.65 0.2 255 / 15%);
+  --sidebar-accent-foreground: oklch(0.7 0.18 255);
+  --sidebar-active: oklch(0.65 0.2 255 / 20%);
+  --sidebar-active-foreground: oklch(0.7 0.18 255);
+  --sidebar-border: oklch(0.28 0.015 250);
+  --sidebar-ring: oklch(0.65 0.2 255);
 }
 
 @layer base {
@@ -144,28 +166,48 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+  /* Consistent focus styles across all interactive elements */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 
-/* Modern UI Enhancements */
+/* ============================================
+   FINANCIAL APPLICATION DESIGN SYSTEM
+   ============================================ */
+
 @layer utilities {
-  /* Glassmorphism effects */
+  /* ===========================================
+     GLASSMORPHISM EFFECTS
+     =========================================== */
   .glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
-  .glass-dark {
-    background: rgba(0, 0, 0, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
-  /* Smooth animations */
+  .dark .glass {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .dark .glass-subtle {
+    background: rgba(15, 23, 42, 0.5);
+  }
+
+  /* ===========================================
+     ANIMATIONS
+     =========================================== */
+
   .animate-shimmer {
     animation: shimmer 2s linear infinite;
     background: linear-gradient(
@@ -177,6 +219,22 @@
     background-size: 200% 100%;
   }
 
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  /* ===========================================
+     ACCESSIBILITY
+     =========================================== */
+
   /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -187,7 +245,77 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .glass,
+    .glass-subtle {
+      background: var(--background);
+      backdrop-filter: none;
+    }
+  }
 }
+
+/* ===========================================
+   TYPOGRAPHY UTILITY CLASSES (CSS-based)
+   =========================================== */
+
+.text-page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .text-page-title {
+    font-size: 1.875rem;
+  }
+}
+
+.text-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.text-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.text-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+
+.text-currency {
+  font-family: var(--font-mono);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.text-currency-lg {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 640px) {
+  .text-currency-lg {
+    font-size: 1.5rem;
+  }
+}
+
+/* ===========================================
+   KEYFRAME ANIMATIONS
+   =========================================== */
 
 @keyframes shimmer {
   0% {
@@ -196,4 +324,65 @@
   100% {
     background-position: 200% 0;
   }
+}
+
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===========================================
+   SCROLLBAR STYLING
+   =========================================== */
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.01 240 / 30%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.6 0.01 240 / 50%);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: oklch(0.4 0.01 250 / 40%);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0.01 250 / 60%);
 }

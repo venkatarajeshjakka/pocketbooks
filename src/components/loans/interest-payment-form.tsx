@@ -38,6 +38,7 @@ import { useLoanAccounts } from '@/lib/hooks/use-loan-accounts';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 
 const PAYMENT_METHODS = [
     { value: PaymentMethod.CASH, label: 'Cash' },
@@ -59,6 +60,8 @@ export function InterestPaymentForm({ mode = 'create', id, initialData: propsIni
     const router = useRouter();
     const formRef = useRef<HTMLFormElement>(null);
     const [errors, setErrors] = useState<FormErrors>({});
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [changes, setChanges] = useState<any[]>([]);
 
     const { data: loansData, isLoading: loansLoading } = useLoanAccounts({ limit: 100, status: 'active' });
     const createPaymentMutation = useCreateInterestPayment();
@@ -143,17 +146,82 @@ export function InterestPaymentForm({ mode = 'create', id, initialData: propsIni
             return;
         }
 
+        if (mode === 'edit') {
+            const detectedChanges = getDetectedChanges();
+            if (detectedChanges.length > 0) {
+                setChanges(detectedChanges);
+                setIsPreviewOpen(true);
+                return;
+            }
+        }
+
+        await actualSubmit();
+    };
+
+    const getDetectedChanges = () => {
+        const changes: any[] = [];
+        const labels: Record<string, string> = {
+            date: 'Payment Date',
+            interestAmount: 'Interest Amount',
+            principalAmount: 'Principal Amount',
+            paymentMethod: 'Payment Method',
+            notes: 'Notes'
+        };
+
+        const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+            interestAmount: 'price',
+            principalAmount: 'price',
+            date: 'date'
+        };
+
+        Object.keys(labels).forEach(key => {
+            let oldValue = (initialData as any)?.[key];
+            let newValue = (formData as any)[key];
+
+            if (key === 'date' && oldValue) {
+                oldValue = new Date(oldValue).toISOString().split('T')[0];
+                newValue = newValue ? new Date(newValue).toISOString().split('T')[0] : '';
+            }
+
+            if (oldValue !== newValue && newValue !== undefined) {
+                changes.push({
+                    field: key,
+                    label: labels[key],
+                    oldValue: oldValue || 'Empty',
+                    newValue: newValue || 'Empty',
+                    type: fieldTypes[key] || 'text'
+                });
+            }
+        });
+
+        return changes;
+    };
+
+    const actualSubmit = async () => {
+        setIsPreviewOpen(false);
         setErrors({});
 
         try {
+            const input = {
+                loanAccountId: formData.loanAccountId,
+                date: formData.date || new Date(),
+                interestAmount: Number(formData.interestAmount),
+                principalAmount: Number(formData.principalAmount),
+                paymentMethod: formData.paymentMethod,
+                notes: formData.notes?.trim() || undefined,
+            };
+
             if (mode === 'create') {
-                await createPaymentMutation.mutateAsync(formData);
+                await createPaymentMutation.mutateAsync(input as IInterestPaymentInput);
+                toast.success('Interest payment recorded successfully');
+                router.push('/loan-accounts');
             } else if (mode === 'edit' && id) {
-                await updatePaymentMutation.mutateAsync({ id, data: formData });
+                await updatePaymentMutation.mutateAsync({ id: id, data: input as Partial<IInterestPaymentInput> });
+                toast.success('Interest payment updated successfully');
+                router.push('/loan-accounts');
             }
-            router.push('/interest-payments');
         } catch (error) {
-            // toast.error is handled in the hook
+            // Handled by hook
         }
     };
 
@@ -410,6 +478,14 @@ export function InterestPaymentForm({ mode = 'create', id, initialData: propsIni
                     </Button>
                 </div>
             </form>
+
+            <EditPreviewDialog
+                open={isPreviewOpen}
+                onOpenChange={setIsPreviewOpen}
+                changes={changes}
+                onConfirm={actualSubmit}
+                isSubmitting={isSubmitting}
+            />
         </TooltipProvider>
     );
 }

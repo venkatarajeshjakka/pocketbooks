@@ -94,3 +94,30 @@ export const interestPaymentKeys = {
     details: () => [...interestPaymentKeys.all, 'detail'] as const,
     detail: (id: string) => [...interestPaymentKeys.details(), id] as const,
 };
+
+/**
+ * Structured query keys for Inventory
+ */
+export const inventoryKeys = {
+    rawMaterials: {
+        all: ['inventory', 'raw-materials'] as const,
+        lists: () => [...inventoryKeys.rawMaterials.all, 'list'] as const,
+        list: (params: any) => [...inventoryKeys.rawMaterials.lists(), params] as const,
+        details: () => [...inventoryKeys.rawMaterials.all, 'detail'] as const,
+        detail: (id: string) => [...inventoryKeys.rawMaterials.details(), id] as const,
+    },
+    tradingGoods: {
+        all: ['inventory', 'trading-goods'] as const,
+        lists: () => [...inventoryKeys.tradingGoods.all, 'list'] as const,
+        list: (params: any) => [...inventoryKeys.tradingGoods.lists(), params] as const,
+        details: () => [...inventoryKeys.tradingGoods.all, 'detail'] as const,
+        detail: (id: string) => [...inventoryKeys.tradingGoods.details(), id] as const,
+    },
+    finishedGoods: {
+        all: ['inventory', 'finished-goods'] as const,
+        lists: () => [...inventoryKeys.finishedGoods.all, 'list'] as const,
+        list: (params: any) => [...inventoryKeys.finishedGoods.lists(), params] as const,
+        details: () => [...inventoryKeys.finishedGoods.all, 'detail'] as const,
+        detail: (id: string) => [...inventoryKeys.finishedGoods.details(), id] as const,
+    },
+};

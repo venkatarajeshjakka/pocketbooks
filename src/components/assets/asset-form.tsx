@@ -42,6 +42,7 @@ import { useVendors } from '@/lib/hooks/use-vendors';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 
 interface AssetFormProps {
   mode: 'create' | 'edit';
@@ -111,6 +112,8 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [changes, setChanges] = useState<any[]>([]);
 
   const createAssetMutation = useCreateAsset();
   const updateAssetMutation = useUpdateAsset(assetId || '');
@@ -281,6 +284,61 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
       return;
     }
 
+    if (mode === 'edit') {
+      const detectedChanges = getDetectedChanges();
+      if (detectedChanges.length > 0) {
+        setChanges(detectedChanges);
+        setIsPreviewOpen(true);
+        return;
+      }
+    }
+
+    await actualSubmit();
+  };
+
+  const getDetectedChanges = () => {
+    const changes: any[] = [];
+    const labels: Record<string, string> = {
+      name: 'Asset Name',
+      category: 'Category',
+      purchasePrice: 'Purchase Price',
+      currentValue: 'Current Value',
+      location: 'Location',
+      status: 'Status',
+      vendorId: 'Vendor'
+    };
+
+    const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+      purchasePrice: 'price',
+      currentValue: 'price',
+      status: 'status'
+    };
+
+    Object.keys(labels).forEach(key => {
+      let oldValue = (initialData as any)?.[key];
+      let newValue = (formData as any)[key];
+
+      if (key === 'vendorId') {
+        oldValue = getVendorId(oldValue);
+        newValue = getVendorId(newValue);
+      }
+
+      if (oldValue !== newValue && newValue !== undefined) {
+        changes.push({
+          field: key,
+          label: labels[key],
+          oldValue: oldValue || 'Empty',
+          newValue: newValue || 'Empty',
+          type: fieldTypes[key] || 'text'
+        });
+      }
+    });
+
+    return changes;
+  };
+
+  const actualSubmit = async () => {
+    setIsPreviewOpen(false);
     setErrors({});
 
     try {
@@ -998,6 +1056,14 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
           </div>
         </div>
       </form>
+
+      <EditPreviewDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        changes={changes}
+        onConfirm={actualSubmit}
+        isSubmitting={isSubmitting}
+      />
     </TooltipProvider>
   );
 }

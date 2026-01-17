@@ -17,8 +17,7 @@ const FinishedGoodSchema = new Schema<IFinishedGood>(
     },
     sku: {
       type: String,
-      required: [true, 'SKU is required'],
-      unique: true,
+      sparse: true,
       uppercase: true,
       trim: true,
     },
@@ -33,32 +32,30 @@ const FinishedGoodSchema = new Schema<IFinishedGood>(
       default: 0,
       min: [0, 'Stock cannot be negative'],
     },
-    rawMaterialsUsed: [
+    reorderLevel: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: [0, 'Reorder level cannot be negative'],
+    },
+    bom: [
       {
         rawMaterialId: {
           type: Schema.Types.ObjectId,
           ref: 'RawMaterial',
           required: true,
         },
-        quantityRequired: {
+        quantity: {
           type: Number,
           required: true,
-          min: [0, 'Quantity required cannot be negative'],
+          min: [0, 'Quantity cannot be negative'],
         },
       },
     ],
-    manufacturingCost: {
-      type: Number,
-      required: [true, 'Manufacturing cost is required'],
-      min: [0, 'Manufacturing cost cannot be negative'],
-    },
     sellingPrice: {
       type: Number,
       required: [true, 'Selling price is required'],
       min: [0, 'Selling price cannot be negative'],
-    },
-    lastManufactureDate: {
-      type: Date,
     },
   },
   {
@@ -72,18 +69,7 @@ const FinishedGoodSchema = new Schema<IFinishedGood>(
 FinishedGoodSchema.index({ name: 1 });
 FinishedGoodSchema.index({ currentStock: 1 });
 
-// Virtual for profit margin
-FinishedGoodSchema.virtual('profitMargin').get(function () {
-  if (this.manufacturingCost === 0) return 0;
-  return ((this.sellingPrice - this.manufacturingCost) / this.manufacturingCost) * 100;
-});
-
-// Validation: selling price should be greater than manufacturing cost
-FinishedGoodSchema.pre('save', async function () {
-  if (this.sellingPrice < this.manufacturingCost) {
-    throw new Error('Selling price must be greater than or equal to manufacturing cost');
-  }
-});
+// No validation needed for sellingPrice vs cost since cost is calculated from BOM
 
 // Prevent model recompilation
 const FinishedGood: Model<IFinishedGood> =

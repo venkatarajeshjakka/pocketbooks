@@ -5,6 +5,24 @@
 import { IExpense, ApiResponse, PaginatedResponse } from '@/types';
 
 /**
+ * Get the base URL for API calls
+ */
+function getBaseUrl(): string {
+    if (typeof window !== 'undefined') {
+        return '';
+    }
+    if (process.env.NEXTAUTH_URL) {
+        return process.env.NEXTAUTH_URL;
+    }
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+    return `http://localhost:${process.env.PORT || 3000}`;
+}
+
+const API_BASE = '/api/expenses';
+
+/**
  * Fetch all expenses with optional filtering and pagination
  */
 export async function fetchExpenses(params: {
@@ -27,7 +45,10 @@ export async function fetchExpenses(params: {
     if (params.startDate) queryParams.set('startDate', params.startDate);
     if (params.endDate) queryParams.set('endDate', params.endDate);
 
-    const response = await fetch(`/api/expenses?${queryParams.toString()}`);
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${API_BASE}?${queryParams.toString()}`, {
+        cache: 'no-store'
+    });
     if (!response.ok) {
         throw new Error('Failed to fetch expenses');
     }
@@ -38,7 +59,10 @@ export async function fetchExpenses(params: {
  * Fetch a single expense by ID
  */
 export async function fetchExpense(id: string): Promise<IExpense> {
-    const response = await fetch(`/api/expenses/${id}`);
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${API_BASE}/${id}`, {
+        cache: 'no-store'
+    });
     if (!response.ok) {
         throw new Error('Failed to fetch expense');
     }
@@ -60,7 +84,10 @@ export async function fetchExpenseStats(): Promise<{
     thisMonth: number;
     lastMonth: number;
 }> {
-    const response = await fetch('/api/expenses/stats');
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${API_BASE}/stats`, {
+        cache: 'no-store'
+    });
     if (!response.ok) {
         throw new Error('Failed to fetch expense stats');
     }
