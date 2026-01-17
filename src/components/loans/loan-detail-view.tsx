@@ -11,22 +11,23 @@ import { ILoanAccount, LoanAccountStatus } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Landmark,
     TrendingUp,
-    Calendar,
     IndianRupee,
     ArrowLeft,
     Pencil,
     Trash2,
     Clock,
     CheckCircle2,
-    AlertCircle
+    AlertCircle,
+    LayoutDashboard,
+    History
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
 import { InterestPaymentList } from './interest-payment-list';
 import { Button } from '@/components/ui/button';
 import { useDeleteLoanAccount } from '@/lib/hooks/use-loan-accounts';
@@ -57,8 +58,12 @@ export function LoanAccountDetailView({ loan }: LoanAccountDetailViewProps) {
         }
     };
 
+    // Calculate dates to display
+    const startDate = loan.startDate ? format(new Date(loan.startDate), 'dd MMM yyyy') : 'N/A';
+    const endDate = loan.endDate ? format(new Date(loan.endDate), 'dd MMM yyyy') : null;
+
     return (
-        <div className="space-y-8 pb-20">
+        <div className="space-y-6">
             {/* Header / Navigation */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-1">
@@ -81,7 +86,7 @@ export function LoanAccountDetailView({ loan }: LoanAccountDetailViewProps) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm" asChild className="h-10 rounded-xl px-4 font-bold border-border/40 hover:bg-muted/50">
+                    <Button variant="outline" size="sm" asChild className="h-9 rounded-lg px-4 font-bold border-border/40 hover:bg-muted/50">
                         <Link href={`/loan-accounts/${loan._id}/edit`}>
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit Loan
@@ -91,7 +96,7 @@ export function LoanAccountDetailView({ loan }: LoanAccountDetailViewProps) {
                         variant="destructive"
                         size="sm"
                         onClick={handleDelete}
-                        className="h-10 rounded-xl px-4 font-bold bg-destructive/90 hover:bg-destructive shadow-lg shadow-destructive/20"
+                        className="h-9 rounded-lg px-4 font-bold bg-destructive/90 hover:bg-destructive shadow-lg shadow-destructive/20"
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
@@ -99,110 +104,132 @@ export function LoanAccountDetailView({ loan }: LoanAccountDetailViewProps) {
                 </div>
             </div>
 
-            {/* Stats Overview */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                    title="Outstanding"
-                    value={`₹${loan.outstandingAmount.toLocaleString('en-IN')}`}
-                    description={`of ₹${loan.principalAmount.toLocaleString('en-IN')}`}
-                    icon={Landmark}
-                    color="primary"
-                />
-                <StatCard
-                    title="Interest Rate"
-                    value={`${loan.interestRate}%`}
-                    description="Annualized rate"
-                    icon={TrendingUp}
-                    color="amber"
-                />
-                <StatCard
-                    title="EMI Amount"
-                    value={loan.emiAmount ? `₹${loan.emiAmount.toLocaleString('en-IN')}` : 'N/A'}
-                    description="Monthly repayment"
-                    icon={IndianRupee}
-                    color="indigo"
-                />
-                <StatCard
-                    title="Total Interest Paid"
-                    value={`₹${loan.totalInterestPaid.toLocaleString('en-IN')}`}
-                    description="So far"
-                    icon={CheckCircle2}
-                    color="success"
-                />
-            </div>
+            <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="h-14 p-1.5 bg-muted/40 backdrop-blur-xl border border-border/40 rounded-2xl shadow-inner mb-8 px-1.5 gap-1.5 w-full sm:w-auto">
+                    <TabsTrigger
+                        value="overview"
+                        className="h-full px-8 rounded-xl font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg gap-2"
+                    >
+                        <LayoutDashboard className="h-4 w-4" /> Overview
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="payments"
+                        className="h-full px-8 rounded-xl font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg gap-2"
+                    >
+                        <History className="h-4 w-4" /> Payment History
+                    </TabsTrigger>
+                </TabsList>
 
-            {/* Main Content Grid */}
-            <div className="grid gap-6 lg:grid-cols-3">
-                {/* Repayment Progress */}
-                <Card className="lg:col-span-1 border-border/40 bg-card/50 backdrop-blur-sm shadow-xl overflow-hidden group">
-                    <CardHeader className="border-b border-border/20 bg-muted/20">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Clock className="h-5 w-5 text-primary" />
-                            Repayment Progress
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-8 space-y-6">
-                        <div className="space-y-3 text-center">
-                            <div className="text-4xl font-black text-foreground">
-                                {Math.round(paidPercentage)}%
-                            </div>
-                            <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                                Principal Repaid
-                            </div>
-                            <Progress value={paidPercentage} className="h-3 bg-muted shadow-inner" />
-                        </div>
+                <TabsContent value="overview" className="mt-0 ring-offset-background focus-visible:outline-none space-y-8 animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+                    {/* Stats Overview */}
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <StatCard
+                            title="Outstanding"
+                            value={`₹${loan.outstandingAmount.toLocaleString('en-IN')}`}
+                            description={`of ₹${loan.principalAmount.toLocaleString('en-IN')}`}
+                            icon={Landmark}
+                            color="primary"
+                        />
+                        <StatCard
+                            title="Interest Rate"
+                            value={`${loan.interestRate}%`}
+                            description="Annualized rate"
+                            icon={TrendingUp}
+                            color="amber"
+                        />
+                        <StatCard
+                            title="EMI Amount"
+                            value={loan.emiAmount ? `₹${loan.emiAmount.toLocaleString('en-IN')}` : 'N/A'}
+                            description="Monthly repayment"
+                            icon={IndianRupee}
+                            color="indigo"
+                        />
+                        <StatCard
+                            title="Total Interest Paid"
+                            value={`₹${loan.totalInterestPaid.toLocaleString('en-IN')}`}
+                            description="So far"
+                            icon={CheckCircle2}
+                            color="success"
+                        />
+                    </div>
 
-                        <div className="grid grid-cols-2 gap-4 py-4 border-t border-border/20">
-                            <div className="space-y-1">
-                                <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Paid</div>
-                                <div className="text-sm font-bold text-success">₹{loan.totalPrincipalPaid.toLocaleString('en-IN')}</div>
-                            </div>
-                            <div className="space-y-1 text-right">
-                                <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Remaining</div>
-                                <div className="text-sm font-bold text-foreground">₹{loan.outstandingAmount.toLocaleString('en-IN')}</div>
-                            </div>
-                        </div>
-
-                        <div className="pt-4 space-y-3">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground font-medium flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 opacity-50" /> Start Date
-                                </span>
-                                <span className="font-bold">{format(new Date(loan.startDate), 'dd MMM yyyy')}</span>
-                            </div>
-                            {loan.endDate && (
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground font-medium flex items-center gap-2">
-                                        <Calendar className="h-4 w-4 opacity-50" /> End Date
-                                    </span>
-                                    <span className="font-bold">{format(new Date(loan.endDate), 'dd MMM yyyy')}</span>
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Interest History */}
-                <Card className="lg:col-span-2 border-border/40 bg-card/50 backdrop-blur-sm shadow-xl overflow-hidden group">
-                    <CardHeader className="flex flex-row items-center justify-between border-b border-border/20 bg-muted/20">
-                        <div>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <IndianRupee className="h-5 w-5 text-amber-500" />
-                                Payment History
+                    {/* Repayment Progress */}
+                    <Card className="border-border/50 bg-card/40 backdrop-blur-xl shadow-sm rounded-2xl overflow-hidden group">
+                        <CardHeader className="border-b border-border/10 p-6 py-4">
+                            <CardTitle className="text-base font-extrabold tracking-tight flex items-center gap-2 uppercase text-muted-foreground/70">
+                                <Clock className="h-4 w-4 text-primary" />
+                                Repayment Progress
                             </CardTitle>
-                            <CardDescription>All interest and principal repayments</CardDescription>
-                        </div>
-                        <Button variant="outline" size="sm" asChild className="h-8 rounded-lg font-bold">
-                            <Link href={`/interest-payments/new?loanAccountId=${loan._id}`}>
-                                Record Payment
-                            </Link>
-                        </Button>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <InterestPaymentList loanAccountId={loan._id.toString()} />
-                    </CardContent>
-                </Card>
-            </div>
+                        </CardHeader>
+                        <CardContent className="pt-8 space-y-6">
+                            <div className="space-y-3">
+                                <div className="flex items-end justify-between">
+                                    <div>
+                                        <div className="text-4xl font-black text-foreground">
+                                            {Math.round(paidPercentage)}%
+                                        </div>
+                                        <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                                            Principal Repaid
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-sm font-semibold text-muted-foreground">Outstanding Principal</div>
+                                        <div className="text-2xl font-bold text-foreground">₹{loan.outstandingAmount.toLocaleString('en-IN')}</div>
+                                    </div>
+                                </div>
+
+                                <Progress value={paidPercentage} className="h-4 bg-muted shadow-inner rounded-full" />
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-t border-border/20">
+                                <div className="space-y-1">
+                                    <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Paid Principal</div>
+                                    <div className="text-sm font-bold text-success">₹{loan.totalPrincipalPaid.toLocaleString('en-IN')}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Original Amount</div>
+                                    <div className="text-sm font-bold text-foreground">₹{loan.principalAmount.toLocaleString('en-IN')}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Start Date</div>
+                                    <div className="text-sm font-bold text-muted-foreground">{startDate}</div>
+                                </div>
+                                {endDate && (
+                                    <div className="space-y-1">
+                                        <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">End Date</div>
+                                        <div className="text-sm font-bold text-muted-foreground">{endDate}</div>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="payments" className="mt-0 ring-offset-background focus-visible:outline-none animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+                    <Card className="border-border/50 bg-card/20 rounded-2xl shadow-xl overflow-hidden min-h-[500px]">
+                        <CardHeader className="py-6 border-b border-border/10 bg-muted/20">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-lg font-black tracking-tight flex items-center gap-2 text-foreground">
+                                        <IndianRupee className="h-5 w-5 text-amber-500" />
+                                        Payment History
+                                    </CardTitle>
+                                    <CardDescription>Track all interest and principal repayments</CardDescription>
+                                </div>
+                                <Button variant="default" size="sm" asChild className="h-9 px-4 rounded-lg font-bold shadow-lg shadow-primary/20">
+                                    <Link href={`/interest-payments/new?loanAccountId=${loan._id}`}>
+                                        <IndianRupee className="mr-2 h-3.5 w-3.5" />
+                                        Record Payment
+                                    </Link>
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0 [&>div>div:first-child]:hidden [&_div[class*='rounded-2xl']]:border-0 [&_div[class*='rounded-2xl']]:shadow-none [&_div[class*='rounded-2xl']]:bg-transparent">
+                            <InterestPaymentList loanAccountId={loan._id.toString()} />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
