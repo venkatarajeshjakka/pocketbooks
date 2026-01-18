@@ -26,8 +26,8 @@ interface SaleItem {
     itemId: string; // The ID of the item
     itemType: InventoryItemType; // 'trading_good' | 'finished_good'
     name: string;
-    quantity: number;
-    unitPrice: number;
+    quantity: number | string;
+    unitPrice: number | string;
     amount: number;
 }
 
@@ -43,7 +43,7 @@ interface SaleFormData {
     gstPercentage: number;
     // Calculated fields
     subtotal: number;
-    discount: number;
+    discount: number | string;
     gstAmount: number;
     grandTotal: number;
     status: SaleStatus;
@@ -105,14 +105,28 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                 invoiceNumber: data.invoiceNumber || '',
                 paymentTerms: data.paymentTerms || '',
                 notes: data.notes || '',
-                items: data.items?.map((item: ISaleItem) => ({
-                    itemId: typeof item.itemId === 'object' ? (item.itemId as any)?._id : (item.itemId || ''),
-                    itemType: item.itemType,
-                    name: (item.itemId as any)?.name || (item as any).name || 'Unknown Item',
-                    quantity: item.quantity || 1,
-                    unitPrice: item.unitPrice || 0,
-                    amount: item.amount || 0
-                })) || [],
+                items: data.items?.map((item: ISaleItem) => {
+                    // Normalize item type to handle legacy data
+                    let normalizedType = item.itemType;
+                    const typeStr = String(item.itemType).toLowerCase();
+
+                    if (typeStr === 'raw_material' || typeStr === 'rawmaterial') {
+                        normalizedType = InventoryItemType.RAW_MATERIAL;
+                    } else if (typeStr === 'trading_good' || typeStr === 'tradinggood') {
+                        normalizedType = InventoryItemType.TRADING_GOOD;
+                    } else if (typeStr === 'finished_good' || typeStr === 'finishedgood') {
+                        normalizedType = InventoryItemType.FINISHED_GOOD;
+                    }
+
+                    return {
+                        itemId: typeof item.itemId === 'object' ? (item.itemId as any)?._id : (item.itemId || ''),
+                        itemType: normalizedType,
+                        name: (item.itemId as any)?.name || (item as any).name || 'Unknown Item',
+                        quantity: item.quantity || 1,
+                        unitPrice: item.unitPrice || 0,
+                        amount: item.amount || 0
+                    };
+                }) || [],
                 gstPercentage: data.gstPercentage || 18,
                 discount: data.discount || 0,
                 subtotal: data.subtotal || 0,
@@ -139,8 +153,13 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
 
     // Calculate totals
     useEffect(() => {
-        const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-        const afterDiscount = Math.max(0, subtotal - formData.discount);
+        const subtotal = formData.items.reduce((sum, item) => {
+            const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity;
+            const price = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) || 0 : item.unitPrice;
+            return sum + (qty * price);
+        }, 0);
+        const disc = typeof formData.discount === 'string' ? parseFloat(formData.discount) || 0 : formData.discount;
+        const afterDiscount = Math.max(0, subtotal - disc);
         const gstAmount = (afterDiscount * formData.gstPercentage) / 100;
         const grandTotal = afterDiscount + gstAmount;
 
@@ -192,11 +211,16 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
         }));
     };
 
-    const handleItemChange = (index: number, field: keyof SaleItem, value: number) => {
+    const handleItemChange = (index: number, field: keyof SaleItem, value: number | string) => {
         setFormData(prev => {
             const newItems = [...prev.items];
             const item = { ...newItems[index], [field]: value };
-            item.amount = item.quantity * item.unitPrice;
+
+            // Recalculate generic amount for display row if possible, but real total is in useEffect
+            const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity;
+            const price = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) || 0 : item.unitPrice;
+
+            item.amount = qty * price;
             newItems[index] = item;
             return { ...prev, items: newItems };
         });
@@ -210,8 +234,11 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
         if (formData.items.length === 0) newErrors.items = 'At least one item is required';
 
         formData.items.forEach((item, index) => {
-            if (item.quantity <= 0) newErrors[`item_${index}_qty`] = 'Quantity > 0';
-            if (item.unitPrice < 0) newErrors[`item_${index}_price`] = 'Price >= 0';
+            const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity;
+            const price = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) || 0 : item.unitPrice;
+
+            if (qty <= 0) newErrors[`item_${index}_qty`] = 'Quantity > 0';
+            if (price < 0) newErrors[`item_${index}_price`] = 'Price >= 0';
         });
 
         if (paymentData.recordPayment) {
@@ -239,13 +266,18 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
         try {
             const payload = {
                 ...formData,
-                items: formData.items.map(item => ({
-                    itemId: item.itemId,
-                    itemType: item.itemType,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    amount: item.amount // Backend might recalulate, but good to send
-                })),
+                discount: typeof formData.discount === 'string' ? parseFloat(formData.discount) || 0 : formData.discount,
+                items: formData.items.map(item => {
+                    const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity;
+                    const price = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) || 0 : item.unitPrice;
+                    return {
+                        itemId: item.itemId,
+                        itemType: item.itemType,
+                        quantity: qty,
+                        unitPrice: price,
+                        amount: qty * price
+                    };
+                }),
                 clientId: formData.clientId,
                 // Include initial payment checks if needed by backend (API needs to support this)
                 // My API implementation for POST /api/sales doesn't intrinsically handle payment creation IN SAME REQUEST?
@@ -479,10 +511,10 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                                                     <TableRow key={idx} className="hover:bg-muted/20">
                                                         <TableCell className="font-medium">{item.name} <span className="text-[10px] text-muted-foreground px-2 bg-muted rounded">{item.itemType === InventoryItemType.FINISHED_GOOD ? 'FG' : 'TG'}</span></TableCell>
                                                         <TableCell className="w-[120px]">
-                                                            <Input type="number" min="1" className="text-right h-10 bg-background/50 border-border/30 focus:border-indigo-500/50 rounded-lg shadow-sm" value={item.quantity} onChange={e => handleItemChange(idx, 'quantity', parseFloat(e.target.value) || 0)} />
+                                                            <Input type="number" min="0" step="any" className="text-right h-10 bg-background/50 border-border/30 focus:border-indigo-500/50 rounded-lg shadow-sm" value={item.quantity} onChange={e => handleItemChange(idx, 'quantity', e.target.value)} />
                                                         </TableCell>
                                                         <TableCell className="w-[120px]">
-                                                            <Input type="number" min="0" className="text-right h-10 bg-background/50 border-border/30 focus:border-indigo-500/50 rounded-lg shadow-sm" value={item.unitPrice} onChange={e => handleItemChange(idx, 'unitPrice', parseFloat(e.target.value) || 0)} />
+                                                            <Input type="number" min="0" step="any" className="text-right h-10 bg-background/50 border-border/30 focus:border-indigo-500/50 rounded-lg shadow-sm" value={item.unitPrice} onChange={e => handleItemChange(idx, 'unitPrice', e.target.value)} />
                                                         </TableCell>
                                                         <TableCell className="text-right font-bold text-indigo-500">₹{item.amount.toLocaleString('en-IN')}</TableCell>
                                                         <TableCell>
@@ -505,7 +537,7 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                                         </div>
                                         <div className="flex justify-between text-sm items-center">
                                             <span className="text-muted-foreground font-medium">Discount</span>
-                                            <Input type="number" min="0" className="w-24 text-right h-8 text-xs bg-background/50 border-border/30 focus:border-primary/50 rounded-lg shadow-sm" value={formData.discount} onChange={e => updateFormField('discount', parseFloat(e.target.value) || 0)} />
+                                            <Input type="number" min="0" step="any" className="w-24 text-right h-8 text-xs bg-background/50 border-border/30 focus:border-primary/50 rounded-lg shadow-sm" value={formData.discount} onChange={e => updateFormField('discount', e.target.value)} />
                                         </div>
                                         <div className="flex justify-between text-sm items-center">
                                             <div className="flex items-center gap-2">

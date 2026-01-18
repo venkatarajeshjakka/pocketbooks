@@ -29,7 +29,7 @@ const SaleSchema = new Schema<ISale>(
         itemType: {
           type: String,
           required: true,
-          enum: Object.values(InventoryItemType),
+          enum: [...Object.values(InventoryItemType), 'raw_material', 'trading_good', 'finished_good'],
         },
         quantity: {
           type: Number,
