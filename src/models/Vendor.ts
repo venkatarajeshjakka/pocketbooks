@@ -82,7 +82,22 @@ VendorSchema.index({ name: 1 });
 VendorSchema.index({ status: 1 });
 VendorSchema.index({ specialty: 1 });
 
-// Virtual for procurements
+// Virtual for raw material procurements
+VendorSchema.virtual('rawMaterialProcurements', {
+  ref: 'RawMaterialProcurement',
+  localField: '_id',
+  foreignField: 'vendorId',
+});
+
+// Virtual for trading goods procurements
+VendorSchema.virtual('tradingGoodsProcurements', {
+  ref: 'TradingGoodsProcurement',
+  localField: '_id',
+  foreignField: 'vendorId',
+});
+
+// DEPRECATED: Use rawMaterialProcurements or tradingGoodsProcurements instead
+// Kept for backward compatibility - only references RawMaterialProcurement
 VendorSchema.virtual('procurements', {
   ref: 'RawMaterialProcurement',
   localField: '_id',

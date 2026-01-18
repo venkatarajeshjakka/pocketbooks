@@ -69,11 +69,15 @@ const SaleSchema = new Schema<ISale>(
       required: true,
       min: [0, 'Grand total cannot be negative'],
     },
+    // DEPRECATED: paidAmount - use totalPaid instead (kept for backward compatibility)
+    // This field is now synchronized with totalPaid in pre-save hook
     paidAmount: {
       type: Number,
       default: 0,
       min: [0, 'Paid amount cannot be negative'],
     },
+    // DEPRECATED: balanceAmount - use remainingAmount instead (kept for backward compatibility)
+    // This field is now synchronized with remainingAmount in pre-save hook
     balanceAmount: {
       type: Number,
       default: 0,
@@ -175,32 +179,46 @@ SaleSchema.pre('save', async function () {
   this.subtotal = this.items.reduce((sum, item) => sum + item.amount, 0);
 
   // Calculate grand total
-  const amountAfterDiscount = this.subtotal - this.discount;
+  const amountAfterDiscount = this.subtotal - (this.discount || 0);
 
-  // New pricing logic
-  this.originalPrice = amountAfterDiscount; // Assuming original price is after discount but before GST for now, or should it be subtotal? 
-  // Let's stick to the prompt implication: price in GST bill usually means Base + GST.
-  // If originalPrice is the base amount before GST:
+  // Enhanced pricing logic
+  this.originalPrice = amountAfterDiscount;
   this.gstAmount = (this.originalPrice * (this.gstPercentage || 0)) / 100;
   this.gstBillPrice = this.originalPrice + this.gstAmount;
   this.grandTotal = this.gstBillPrice;
 
-  // Calculate remaining amount
-  this.remainingAmount = Math.max(0, this.grandTotal - (this.totalPaid || 0));
-  this.balanceAmount = this.remainingAmount; // Keep backward compatibility if needed, or deprecate balanceAmount
+  // Consolidate payment tracking - use totalPaid as the source of truth
+  // If paidAmount was set but totalPaid wasn't, migrate the value
+  if ((this.paidAmount || 0) > 0 && (this.totalPaid || 0) === 0) {
+    this.totalPaid = this.paidAmount;
+  }
 
-  // Update payment status
+  // Calculate remaining amount using totalPaid as source of truth
+  this.remainingAmount = Math.max(0, this.grandTotal - (this.totalPaid || 0));
+
+  // Synchronize deprecated fields for backward compatibility
+  this.balanceAmount = this.remainingAmount;
+  this.paidAmount = this.totalPaid || 0;
+
+  // Update payment status based on totalPaid
   if ((this.totalPaid || 0) === 0) {
     this.paymentStatus = PaymentStatus.UNPAID;
-    this.status = SaleStatus.PENDING;
+    // Only set to PENDING if not already in a terminal status
+    if (this.status !== SaleStatus.CANCELLED) {
+      this.status = SaleStatus.PENDING;
+    }
   } else if ((this.totalPaid || 0) >= this.grandTotal) {
     this.paymentStatus = PaymentStatus.FULLY_PAID;
-    this.status = SaleStatus.COMPLETED;
     this.remainingAmount = 0;
     this.balanceAmount = 0;
+    if (this.status !== SaleStatus.CANCELLED) {
+      this.status = SaleStatus.COMPLETED;
+    }
   } else {
     this.paymentStatus = PaymentStatus.PARTIALLY_PAID;
-    this.status = SaleStatus.PARTIALLY_PAID;
+    if (this.status !== SaleStatus.CANCELLED) {
+      this.status = SaleStatus.PARTIALLY_PAID;
+    }
   }
 });
 

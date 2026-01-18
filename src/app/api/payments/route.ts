@@ -224,10 +224,41 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // If this is a sale payment, sync the sale payment status and client balance
+      if (body.saleId) {
+        const sale = await Sale.findById(body.saleId).session(session);
+        if (sale) {
+          // Calculate total paid from all payments for this sale
+          const salePayments = await Payment.find({ saleId: body.saleId }).session(session);
+          const totalPaid = salePayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+          // Get previous remaining amount to calculate balance adjustment
+          const previousRemaining = sale.remainingAmount || (sale.grandTotal - (sale.totalPaid || 0));
+
+          // Update sale's totalPaid - the pre-save hook will recalculate payment status
+          sale.totalPaid = totalPaid;
+          await sale.save({ session });
+
+          // Calculate new remaining amount after save
+          const newRemaining = sale.remainingAmount || 0;
+
+          // Adjust client outstanding balance by the difference
+          const balanceDiff = newRemaining - previousRemaining;
+          if (balanceDiff !== 0 && sale.clientId) {
+            await Client.findByIdAndUpdate(
+              sale.clientId,
+              { $inc: { outstandingBalance: balanceDiff } },
+              { session }
+            );
+          }
+        }
+      }
+
       await session.commitTransaction();
 
       revalidatePath('/payments');
       revalidatePath('/assets');
+      revalidatePath('/sales');
 
       return Response.json({
         success: true,

@@ -1,12 +1,14 @@
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/mongodb';
 import Sale from '@/models/Sale';
 import Client from '@/models/Client';
+import RawMaterial from '@/models/RawMaterial';
 import TradingGood from '@/models/TradingGood';
 import FinishedGood from '@/models/FinishedGood';
-import { InventoryItemType, SaleStatus } from '@/types';
+import Payment from '@/models/Payment';
+import { InventoryItemType } from '@/types';
 import { successResponse, errorResponse } from '@/lib/api-helpers';
 
 /**
@@ -56,9 +58,18 @@ export async function PUT(
       return errorResponse('Sale not found', 404);
     }
 
+    // Store original client ID for proper balance handling when client changes
+    const originalClientId = existingSale.clientId.toString();
+
     // 1. Revert Inventory changes from existing sale
     for (const item of existingSale.items) {
-      if (item.itemType === InventoryItemType.TRADING_GOOD) {
+      if (item.itemType === InventoryItemType.RAW_MATERIAL) {
+        await RawMaterial.findByIdAndUpdate(
+          item.itemId,
+          { $inc: { currentStock: item.quantity } },
+          { session }
+        );
+      } else if (item.itemType === InventoryItemType.TRADING_GOOD) {
         await TradingGood.findByIdAndUpdate(
           item.itemId,
           { $inc: { currentStock: item.quantity } },
@@ -73,10 +84,12 @@ export async function PUT(
       }
     }
 
-    // 2. Revert Client Balance (Old Total)
+    // 2. Revert Client Balance from ORIGINAL client (Old Total minus payments already made)
+    // We revert the remaining balance, not grand total, since payments reduced the outstanding
+    const originalRemainingBalance = existingSale.remainingAmount || (existingSale.grandTotal - (existingSale.totalPaid || 0));
     await Client.findByIdAndUpdate(
-      existingSale.clientId,
-      { $inc: { outstandingBalance: -existingSale.grandTotal } },
+      originalClientId,
+      { $inc: { outstandingBalance: -originalRemainingBalance } },
       { session }
     );
 
@@ -91,13 +104,24 @@ export async function PUT(
     // Let's validate stock availability for NEW items
     for (const item of newItems) {
       let currentStock = 0;
-      if (item.itemType === InventoryItemType.TRADING_GOOD) {
-        const good = await TradingGood.findById(item.itemId).session(session);
-        if (!good) throw new Error(`Trading Good not found: ${item.itemId}`);
-        currentStock = good.currentStock;
+      if (item.itemType === InventoryItemType.RAW_MATERIAL) {
+        const material = await RawMaterial.findById(item.itemId).session(session);
+        if (!material) throw new Error(`Raw Material not found: ${item.itemId}`);
+        currentStock = material.currentStock;
 
         // Note: currentStock here includes the reverted amount from step 1 because we are in transaction and step 1 ran.
         // So we are checking against full availability.
+
+        if (currentStock < item.quantity) {
+          throw new Error(`Insufficient stock for ${material.name}. Available: ${currentStock}, Requested: ${item.quantity}`);
+        }
+
+        await RawMaterial.findByIdAndUpdate(item.itemId, { $inc: { currentStock: -item.quantity } }, { session });
+
+      } else if (item.itemType === InventoryItemType.TRADING_GOOD) {
+        const good = await TradingGood.findById(item.itemId).session(session);
+        if (!good) throw new Error(`Trading Good not found: ${item.itemId}`);
+        currentStock = good.currentStock;
 
         if (currentStock < item.quantity) {
           throw new Error(`Insufficient stock for ${good.name}. Available: ${currentStock}, Requested: ${item.quantity}`);
@@ -138,13 +162,24 @@ export async function PUT(
     // Save to trigger pre-save hook and get new totals
     await existingSale.save({ session });
 
-    // 5. Update Client Balance with NEW total
-    // existingSale.grandTotal is now updated because save() was called
+    // 5. Update Client Balance with NEW remaining amount on potentially NEW client
+    // existingSale.remainingAmount is now updated because save() was called
+    // If client changed, this adds the balance to the NEW client (original client was already reduced above)
+    const newClientId = existingSale.clientId.toString();
     await Client.findByIdAndUpdate(
-      existingSale.clientId,
-      { $inc: { outstandingBalance: existingSale.grandTotal } },
+      newClientId,
+      { $inc: { outstandingBalance: existingSale.remainingAmount } },
       { session }
     );
+
+    // If client changed, also update payments to reference the new client
+    if (newClientId !== originalClientId) {
+      await Payment.updateMany(
+        { saleId: id },
+        { $set: { partyId: newClientId } },
+        { session }
+      );
+    }
 
     await session.commitTransaction();
     return successResponse(existingSale, 'Sale updated successfully');
@@ -181,7 +216,13 @@ export async function DELETE(
 
     // 1. Restore Inventory
     for (const item of sale.items) {
-      if (item.itemType === InventoryItemType.TRADING_GOOD) {
+      if (item.itemType === InventoryItemType.RAW_MATERIAL) {
+        await RawMaterial.findByIdAndUpdate(
+          item.itemId,
+          { $inc: { currentStock: item.quantity } },
+          { session }
+        );
+      } else if (item.itemType === InventoryItemType.TRADING_GOOD) {
         await TradingGood.findByIdAndUpdate(
           item.itemId,
           { $inc: { currentStock: item.quantity } },
@@ -196,14 +237,19 @@ export async function DELETE(
       }
     }
 
-    // 2. Revert Client Balance
+    // 2. Revert Client Balance (reduce by remaining balance, not grand total, since payments may have been made)
+    // If totalPaid > 0, the client balance was already reduced by payments, so we only need to reduce by remaining
+    const balanceToRevert = sale.remainingAmount || sale.grandTotal - (sale.totalPaid || 0);
     await Client.findByIdAndUpdate(
       sale.clientId,
-      { $inc: { outstandingBalance: -sale.grandTotal } },
+      { $inc: { outstandingBalance: -balanceToRevert } },
       { session }
     );
 
-    // 3. Delete Sale
+    // 3. Delete associated payments
+    await Payment.deleteMany({ saleId: id }).session(session);
+
+    // 4. Delete Sale
     await Sale.findByIdAndDelete(id, { session });
 
     await session.commitTransaction();

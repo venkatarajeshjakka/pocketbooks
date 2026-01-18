@@ -553,7 +553,7 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                                                     </Select>
                                                 </div>
                                                 <div className="space-y-2.5">
-                                                    <Label className="font-semibold text-sm">Recieved Date</Label>
+                                                    <Label className="font-semibold text-sm">Received Date</Label>
                                                     <DatePicker date={paymentData.paymentDate} onDateChange={d => d && setPaymentData(prev => ({ ...prev, paymentDate: d }))} />
                                                 </div>
                                                 <div className="space-y-2.5">

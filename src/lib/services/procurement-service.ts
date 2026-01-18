@@ -151,8 +151,12 @@ export class ProcurementService {
         const procurement = await (Model as any).findById(id).session(session || null);
         if (!procurement) throw new Error('Procurement not found');
 
-        // 1. Reverse inventory updates if received
-        if (procurement.status === ProcurementStatus.RECEIVED) {
+        // Helper to check if status affects inventory
+        const isStockAffecting = (s: ProcurementStatus) =>
+            s === ProcurementStatus.RECEIVED || s === ProcurementStatus.COMPLETED;
+
+        // 1. Reverse inventory updates if status was stock-affecting (RECEIVED or COMPLETED)
+        if (isStockAffecting(procurement.status)) {
             await InventoryIntegrationService.reverseInventoryUpdate(
                 procurement.items,
                 type,

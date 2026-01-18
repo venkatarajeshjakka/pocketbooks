@@ -1,10 +1,11 @@
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/mongodb';
 import Sale from '@/models/Sale';
+import Client from '@/models/Client';
 import Payment from '@/models/Payment';
-import { TransactionType, AccountType, PartyType, PaymentStatus, IPayment } from '@/types';
+import { TransactionType, AccountType, PartyType, PaymentStatus } from '@/types';
 import { successResponse, errorResponse } from '@/lib/api-helpers';
 
 /**
@@ -109,13 +110,11 @@ export async function POST(
         // But check if Payment model triggers this? Payment model logic is minimal in the provided file.
         // So we do it here manually to be safe.
 
-        await import('@/models/Client').then(async ({ default: Client }) => {
-            await Client.findByIdAndUpdate(
-                sale.clientId,
-                { $inc: { outstandingBalance: -body.amount } },
-                { session }
-            );
-        });
+        await Client.findByIdAndUpdate(
+            sale.clientId,
+            { $inc: { outstandingBalance: -body.amount } },
+            { session }
+        );
 
         await session.commitTransaction();
         return successResponse(payment[0], 'Payment recorded successfully', 201);
