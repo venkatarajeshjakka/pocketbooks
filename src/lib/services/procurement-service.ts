@@ -5,7 +5,16 @@ import {
     Vendor,
     Payment
 } from '@/models';
-import { ProcurementStatus, PaymentStatus, TransactionType, AccountType, PartyType } from '@/types';
+import {
+    ProcurementStatus,
+    PaymentStatus,
+    TransactionType,
+    AccountType,
+    PartyType,
+    IRawMaterialProcurementInput,
+    ITradingGoodsProcurementInput,
+    IPaymentInput
+} from '@/types';
 import { InventoryIntegrationService } from './inventory-integration-service';
 
 export class ProcurementService {
@@ -21,8 +30,8 @@ export class ProcurementService {
      */
     static async createProcurement(
         type: 'raw_material' | 'trading_good',
-        data: any,
-        initialPayment?: any,
+        data: IRawMaterialProcurementInput | ITradingGoodsProcurementInput,
+        initialPayment?: Partial<IPaymentInput> & { totalTranches?: number },
         session?: mongoose.ClientSession
     ) {
         const Model = this.getModel(type);
@@ -33,7 +42,7 @@ export class ProcurementService {
         await procurement.save({ session });
 
         // 2. Handle initial payment if provided
-        if (initialPayment && initialPayment.amount > 0) {
+        if (initialPayment && initialPayment.amount !== undefined && initialPayment.amount > 0) {
             const payment = new Payment({
                 paymentDate: initialPayment.paymentDate || new Date(),
                 amount: initialPayment.amount,
@@ -59,7 +68,7 @@ export class ProcurementService {
         // 3. Update vendor outstanding balance
         const vendor = await Vendor.findById(data.vendorId).session(session || null);
         if (vendor) {
-            vendor.outstandingPayable += procurement.remainingAmount;
+            vendor.outstandingPayable += (procurement as any).remainingAmount;
             await vendor.save({ session });
         }
 
@@ -67,9 +76,9 @@ export class ProcurementService {
         if (procurement.status === ProcurementStatus.RECEIVED || procurement.status === ProcurementStatus.COMPLETED) {
             console.log(`[ProcurementService] Auto-updating inventory for status: ${procurement.status}`);
             await InventoryIntegrationService.updateInventoryFromProcurement(
-                procurement.items,
+                (procurement as any).items,
                 type,
-                procurement.receivedDate || new Date(),
+                (procurement as any).receivedDate || new Date(),
                 session
             );
         }
@@ -87,8 +96,8 @@ export class ProcurementService {
         receivedDate?: Date,
         session?: mongoose.ClientSession
     ) {
-        const Model = this.getModel(type);
-        const procurement = await (Model as any).findById(id).session(session || null);
+        const Model = this.getModel(type) as any;
+        const procurement = await Model.findById(id).session(session || null);
         if (!procurement) throw new Error('Procurement not found');
 
         const oldStatus = procurement.status;
@@ -98,204 +107,157 @@ export class ProcurementService {
         const isStockAffecting = (s: ProcurementStatus) =>
             s === ProcurementStatus.RECEIVED || s === ProcurementStatus.COMPLETED;
 
-        if (isStockAffecting(newStatus) && !isStockAffecting(oldStatus)) {
-            console.log(`[ProcurementService] Updating inventory: ${oldStatus} -> ${newStatus}`);
+        // If transitioning TO received/completed, increase inventory
+        if (!isStockAffecting(oldStatus) && isStockAffecting(newStatus)) {
+            console.log(`[ProcurementService] Increasing inventory: ${oldStatus} -> ${newStatus}`);
             await InventoryIntegrationService.updateInventoryFromProcurement(
                 procurement.items,
                 type,
                 receivedDate || new Date(),
                 session
             );
-            procurement.receivedDate = receivedDate || new Date();
-        } else if (!isStockAffecting(newStatus) && isStockAffecting(oldStatus)) {
-            // Reverting from stock-affecting status
-            console.log(`[ProcurementService] Reversing inventory: ${oldStatus} -> ${newStatus}`);
-            await InventoryIntegrationService.reverseInventoryUpdate(
-                procurement.items,
+        }
+        // If transitioning FROM received/completed TO something else (like cancelled or ordered), decrease inventory
+        else if (isStockAffecting(oldStatus) && !isStockAffecting(newStatus)) {
+            console.log(`[ProcurementService] Decreasing inventory (reversal): ${oldStatus} -> ${newStatus}`);
+            // Note: Reversal logic would need -quantity. 
+            // InventoryIntegrationService should handle negative updates or we handle it here.
+            const reversalItems = procurement.items.map((item: any) => ({
+                ...item,
+                quantity: -item.quantity
+            }));
+
+            await InventoryIntegrationService.updateInventoryFromProcurement(
+                reversalItems,
                 type,
+                new Date(),
                 session
             );
-            procurement.receivedDate = undefined;
         }
 
-        // Handle vendor balance if cancelled
+        // Handle vendor balance transitions on cancellation
         if (newStatus === ProcurementStatus.CANCELLED && oldStatus !== ProcurementStatus.CANCELLED) {
             const vendor = await Vendor.findById(procurement.vendorId).session(session || null);
             if (vendor) {
+                // If cancelling, remove the remaining debt from vendor balance
                 vendor.outstandingPayable = Math.max(0, vendor.outstandingPayable - procurement.remainingAmount);
                 await vendor.save({ session });
             }
         } else if (oldStatus === ProcurementStatus.CANCELLED && newStatus !== ProcurementStatus.CANCELLED) {
-            // Reverting from CANCELLED
             const vendor = await Vendor.findById(procurement.vendorId).session(session || null);
             if (vendor) {
+                // If re-activating from cancelled, add back the balance
                 vendor.outstandingPayable += procurement.remainingAmount;
                 await vendor.save({ session });
             }
         }
 
         procurement.status = newStatus;
+        if (receivedDate) procurement.receivedDate = receivedDate;
+
         await procurement.save({ session });
         return procurement;
     }
 
     /**
-     * Delete procurement and reverse side effects
+     * Delete a procurement and reverse all side effects
      */
     static async deleteProcurement(
         id: string,
         type: 'raw_material' | 'trading_good',
         session?: mongoose.ClientSession
     ) {
-        const Model = this.getModel(type);
-        const procurement = await (Model as any).findById(id).session(session || null);
+        const Model = this.getModel(type) as any;
+        const procurement = await Model.findById(id).session(session || null);
         if (!procurement) throw new Error('Procurement not found');
 
-        // Helper to check if status affects inventory
+        // 1. Reverse inventory if it was received
         const isStockAffecting = (s: ProcurementStatus) =>
             s === ProcurementStatus.RECEIVED || s === ProcurementStatus.COMPLETED;
 
-        // 1. Reverse inventory updates if status was stock-affecting (RECEIVED or COMPLETED)
         if (isStockAffecting(procurement.status)) {
-            await InventoryIntegrationService.reverseInventoryUpdate(
-                procurement.items,
+            const reversalItems = procurement.items.map((item: any) => ({
+                ...item,
+                quantity: -item.quantity
+            }));
+
+            await InventoryIntegrationService.updateInventoryFromProcurement(
+                reversalItems,
                 type,
+                new Date(),
                 session
             );
         }
 
-        // 2. Adjust vendor outstanding balance
-        if (procurement.status !== ProcurementStatus.CANCELLED) {
-            const vendor = await Vendor.findById(procurement.vendorId).session(session || null);
-            if (vendor) {
-                vendor.outstandingPayable = Math.max(0, vendor.outstandingPayable - procurement.remainingAmount);
-                await vendor.save({ session });
-            }
+        // 2. Revert vendor balance (only remaining debt)
+        const vendor = await Vendor.findById(procurement.vendorId).session(session || null);
+        if (vendor) {
+            vendor.outstandingPayable = Math.max(0, vendor.outstandingPayable - procurement.remainingAmount);
+            await vendor.save({ session });
         }
 
-        // 3. Handle associated payments (delete them)
-        await Payment.deleteMany({
-            procurementId: id,
-            procurementType: type
-        }).session(session || null);
+        // 3. Delete associated payments
+        await Payment.deleteMany({ procurementId: id, procurementType: type }).session(session || null);
 
-        // 4. Delete the procurement record
-        await (Model as any).findByIdAndDelete(id).session(session || null);
+        // 4. Delete the procurement
+        await Model.findByIdAndDelete(id).session(session || null);
     }
 
     /**
-     * Update an existing procurement and handle side effects atomically
+     * Add a payment to a procurement and sync status
      */
-    static async updateProcurement(
-        id: string,
-        type: 'raw_material' | 'trading_good',
-        data: any,
-        session?: mongoose.ClientSession
-    ) {
-        const Model = this.getModel(type);
-        const procurement = await (Model as any).findById(id).session(session || null);
-        if (!procurement) throw new Error('Procurement not found');
-
-        const oldStatus = procurement.status;
-        const oldRemaining = procurement.remainingAmount || 0;
-        const oldItems = JSON.parse(JSON.stringify(procurement.items)); // Deep copy old items
-
-        // 1. Update the procurement document
-        // This will trigger pre-validate to recalculate prices and payment status
-        Object.assign(procurement, data);
-        await procurement.save({ session });
-
-        const newStatus = procurement.status;
-        const newRemaining = procurement.remainingAmount || 0;
-
-        // 2. Handle inventory side effects if items changed or status changed
-        const isStockAffecting = (s: ProcurementStatus) =>
-            s === ProcurementStatus.RECEIVED || s === ProcurementStatus.COMPLETED;
-
-        const wasStockAffecting = isStockAffecting(oldStatus);
-        const nowStockAffecting = isStockAffecting(newStatus);
-
-        if (nowStockAffecting) {
-            if (!wasStockAffecting) {
-                // Newly stock affecting (Ordered -> Received)
-                await InventoryIntegrationService.updateInventoryFromProcurement(
-                    procurement.items,
-                    type,
-                    procurement.receivedDate || new Date(),
-                    session
-                );
-            } else {
-                // Still stock affecting, but items might have changed
-                // Simplest way to handle item edits: reverse old items, apply new ones
-                await InventoryIntegrationService.reverseInventoryUpdate(oldItems, type, session);
-                await InventoryIntegrationService.updateInventoryFromProcurement(
-                    procurement.items,
-                    type,
-                    procurement.receivedDate || new Date(),
-                    session
-                );
-            }
-        } else if (wasStockAffecting) {
-            // No longer stock affecting (Received -> Cancelled/Ordered)
-            await InventoryIntegrationService.reverseInventoryUpdate(oldItems, type, session);
-        }
-
-        // 3. Handle vendor balance side effects
-        // If status is CANCELLED, we treat remaining as 0 for external balance
-        const getEffectiveRemaining = (p: any) => p.status === ProcurementStatus.CANCELLED ? 0 : p.remainingAmount;
-
-        const oldEffectiveRemaining = oldStatus === ProcurementStatus.CANCELLED ? 0 : oldRemaining;
-        const newEffectiveRemaining = getEffectiveRemaining(procurement);
-
-        const diff = newEffectiveRemaining - oldEffectiveRemaining;
-
-        if (diff !== 0) {
-            const vendor = await Vendor.findById(procurement.vendorId).session(session || null);
-            if (vendor) {
-                vendor.outstandingPayable = Math.max(0, vendor.outstandingPayable + diff);
-                await vendor.save({ session });
-            }
-        }
-
-        return procurement;
-    }
-
-    /**
-     * Sync procurement payment status and update vendor balance
-     */
-    static async syncProcurementPaymentStatus(
+    static async addPayment(
         procurementId: string,
         type: 'raw_material' | 'trading_good',
+        paymentData: {
+            amount: number;
+            paymentMethod: PaymentMethod;
+            paymentDate?: Date;
+            notes?: string;
+            trancheNumber?: number;
+            totalTranches?: number;
+        },
         session?: mongoose.ClientSession
     ) {
-        const Model = this.getModel(type);
-        const procurement = await (Model as any).findById(procurementId).session(session || null);
-        if (!procurement) return;
+        const Model = this.getModel(type) as any;
+        const procurement = await Model.findById(procurementId).session(session || null);
+        if (!procurement) throw new Error('Procurement not found');
 
-        const payments = await Payment.find({
-            procurementId,
-            procurementType: type
-        }).session(session || null);
+        // 1. Create payment record
+        const payment = new Payment({
+            paymentDate: paymentData.paymentDate || new Date(),
+            amount: paymentData.amount,
+            paymentMethod: paymentData.paymentMethod,
+            transactionType: TransactionType.PURCHASE,
+            accountType: AccountType.PAYABLE,
+            partyId: procurement.vendorId,
+            partyType: PartyType.VENDOR,
+            procurementId: procurement._id,
+            procurementType: type,
+            notes: paymentData.notes || `Payment for ${type} procurement: ${procurement._id}`,
+            trancheNumber: paymentData.trancheNumber,
+            totalTranches: paymentData.totalTranches
+        });
+        await payment.save({ session });
 
-        const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-
-        // Previous effective remaining amount to adjust vendor balance
-        const getEffectiveRemaining = (p: any) => p.status === ProcurementStatus.CANCELLED ? 0 : p.remainingAmount;
-        const oldEffectiveRemaining = getEffectiveRemaining(procurement);
-
-        procurement.totalPaid = totalPaid;
-        // This will trigger pre-validate to update remainingAmount and paymentStatus
+        // 2. Sync procurement payment status
+        const oldRemaining = procurement.remainingAmount;
+        procurement.totalPaid += paymentData.amount;
+        // save() triggers pre-validate which updates remainingAmount and paymentStatus
         await procurement.save({ session });
 
-        const newEffectiveRemaining = getEffectiveRemaining(procurement);
-        const diff = newEffectiveRemaining - oldEffectiveRemaining;
+        // 3. Adjust vendor balance by difference
+        const newRemaining = procurement.remainingAmount;
+        const diff = newRemaining - oldRemaining;
 
         if (diff !== 0) {
             const vendor = await Vendor.findById(procurement.vendorId).session(session || null);
             if (vendor) {
-                vendor.outstandingPayable = Math.max(0, vendor.outstandingPayable + diff);
+                vendor.outstandingPayable += diff;
                 await vendor.save({ session });
             }
         }
+
+        return payment;
     }
 }

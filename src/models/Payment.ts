@@ -104,6 +104,11 @@ const PaymentSchema = new Schema<IPayment>(
   }
 );
 
+// Virtual for consistent date access
+PaymentSchema.virtual('date').get(function () {
+  return this.paymentDate;
+});
+
 // Pre-validate hook for conditional required fields
 PaymentSchema.pre('validate', async function () {
   // For non-expense transactions, partyId and partyType are required

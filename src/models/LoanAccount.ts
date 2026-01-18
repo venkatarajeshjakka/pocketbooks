@@ -96,6 +96,25 @@ LoanAccountSchema.pre('validate', async function () {
   }
 });
 
+// Virtual for interest payments
+LoanAccountSchema.virtual('interestPayments', {
+  ref: 'InterestPayment',
+  localField: '_id',
+  foreignField: 'loanAccountId',
+});
+
+// Pre-delete middleware to prevent deleting loan accounts with payments
+LoanAccountSchema.pre('findOneAndDelete', async function (this: any) {
+  const doc = await this.model.findOne(this.getQuery());
+  if (doc) {
+    // Check for related interest payments
+    const paymentCount = await mongoose.model('InterestPayment').countDocuments({ loanAccountId: doc._id });
+    if (paymentCount > 0) {
+      throw new Error(`Cannot delete loan account "${doc.bankName} - ${doc.accountNumber}" because it has ${paymentCount} existing interest payments. Please delete the payments first.`);
+    }
+  }
+});
+
 // Prevent model recompilation
 const LoanAccount: Model<ILoanAccount> =
   mongoose.models.LoanAccount ||

@@ -10,6 +10,7 @@ import FinishedGood from '@/models/FinishedGood';
 import Payment from '@/models/Payment';
 import { InventoryItemType } from '@/types';
 import { successResponse, errorResponse } from '@/lib/api-helpers';
+import { SaleService } from '@/lib/services/sale-service';
 
 /**
  * GET /api/sales/[id]
@@ -37,227 +38,62 @@ export async function GET(
 
 /**
  * PUT /api/sales/[id]
- * Update a sale
- * NOTE: Complex logic needed for inventory adjustment if items change
+ * Update a sale using SaleService
  */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session: mongoose.ClientSession | null = null;
 
   try {
     await connectToDatabase();
+    session = await mongoose.startSession();
+    session.startTransaction();
+
     const { id } = await params;
     const body = await request.json();
 
-    const existingSale = await Sale.findById(id).session(session);
-    if (!existingSale) {
-      await session.abortTransaction();
-      return errorResponse('Sale not found', 404);
-    }
-
-    // Store original client ID for proper balance handling when client changes
-    const originalClientId = existingSale.clientId.toString();
-
-    // 1. Revert Inventory changes from existing sale
-    for (const item of existingSale.items) {
-      if (item.itemType === InventoryItemType.RAW_MATERIAL) {
-        await RawMaterial.findByIdAndUpdate(
-          item.itemId,
-          { $inc: { currentStock: item.quantity } },
-          { session }
-        );
-      } else if (item.itemType === InventoryItemType.TRADING_GOOD) {
-        await TradingGood.findByIdAndUpdate(
-          item.itemId,
-          { $inc: { currentStock: item.quantity } },
-          { session }
-        );
-      } else if (item.itemType === InventoryItemType.FINISHED_GOOD) {
-        await FinishedGood.findByIdAndUpdate(
-          item.itemId,
-          { $inc: { currentStock: item.quantity } },
-          { session }
-        );
-      }
-    }
-
-    // 2. Revert Client Balance from ORIGINAL client (Old Total minus payments already made)
-    // We revert the remaining balance, not grand total, since payments reduced the outstanding
-    const originalRemainingBalance = existingSale.remainingAmount || (existingSale.grandTotal - (existingSale.totalPaid || 0));
-    await Client.findByIdAndUpdate(
-      originalClientId,
-      { $inc: { outstandingBalance: -originalRemainingBalance } },
-      { session }
-    );
-
-    // 3. Process New Items (Validate & Deduct Inventory)
-    // Note: If body.items is not provided, we use existingSale.items, effectively just updating other fields but logic runs same
-    const newItems = body.items || existingSale.items;
-
-    // Additional logic needed: If body provides items, we need to map them to calculate new totals here or let mongoose do it.
-    // If we let mongoose do it via pre-save, we don't know the new grandTotal yet to update Client balance properly unless we 
-    // manually calc it here or save first. The safe bet is to manually set fields or save then update client.
-
-    // Let's validate stock availability for NEW items
-    for (const item of newItems) {
-      let currentStock = 0;
-      if (item.itemType === InventoryItemType.RAW_MATERIAL) {
-        const material = await RawMaterial.findById(item.itemId).session(session);
-        if (!material) throw new Error(`Raw Material not found: ${item.itemId}`);
-        currentStock = material.currentStock;
-
-        // Note: currentStock here includes the reverted amount from step 1 because we are in transaction and step 1 ran.
-        // So we are checking against full availability.
-
-        if (currentStock < item.quantity) {
-          throw new Error(`Insufficient stock for ${material.name}. Available: ${currentStock}, Requested: ${item.quantity}`);
-        }
-
-        await RawMaterial.findByIdAndUpdate(item.itemId, { $inc: { currentStock: -item.quantity } }, { session });
-
-      } else if (item.itemType === InventoryItemType.TRADING_GOOD) {
-        const good = await TradingGood.findById(item.itemId).session(session);
-        if (!good) throw new Error(`Trading Good not found: ${item.itemId}`);
-        currentStock = good.currentStock;
-
-        if (currentStock < item.quantity) {
-          throw new Error(`Insufficient stock for ${good.name}. Available: ${currentStock}, Requested: ${item.quantity}`);
-        }
-
-        await TradingGood.findByIdAndUpdate(item.itemId, { $inc: { currentStock: -item.quantity } }, { session });
-
-      } else if (item.itemType === InventoryItemType.FINISHED_GOOD) {
-        const good = await FinishedGood.findById(item.itemId).session(session);
-        if (!good) throw new Error(`Finished Good not found: ${item.itemId}`);
-        currentStock = good.currentStock;
-
-        if (currentStock < item.quantity) {
-          throw new Error(`Insufficient stock for ${good.name}. Available: ${currentStock}, Requested: ${item.quantity}`);
-        }
-
-        await FinishedGood.findByIdAndUpdate(item.itemId, { $inc: { currentStock: -item.quantity } }, { session });
-      }
-    }
-
-    // 4. Update Sale Fields
-    // We update fields on the document. Mongoose set() or assign.
-    // Ensure we handle the nested objects correctly if needed.
-
-    if (body.items) {
-      // Recalculate amounts manually to be passed if pre-save logic expects them or just set items and let pre-save handle totals.
-      // My pre-save hook calculates totals from items. So just setting items is enough.
-      existingSale.items = body.items;
-    }
-
-    if (body.gstPercentage !== undefined) existingSale.gstPercentage = body.gstPercentage;
-    if (body.discount !== undefined) existingSale.discount = body.discount;
-    if (body.clientId) existingSale.clientId = body.clientId;
-    if (body.paymentTerms) existingSale.paymentTerms = body.paymentTerms;
-    if (body.notes) existingSale.notes = body.notes;
-    // ... map other fields
-
-    // Save to trigger pre-save hook and get new totals
-    await existingSale.save({ session });
-
-    // 5. Update Client Balance with NEW remaining amount on potentially NEW client
-    // existingSale.remainingAmount is now updated because save() was called
-    // If client changed, this adds the balance to the NEW client (original client was already reduced above)
-    const newClientId = existingSale.clientId.toString();
-    await Client.findByIdAndUpdate(
-      newClientId,
-      { $inc: { outstandingBalance: existingSale.remainingAmount } },
-      { session }
-    );
-
-    // If client changed, also update payments to reference the new client
-    if (newClientId !== originalClientId) {
-      await Payment.updateMany(
-        { saleId: id },
-        { $set: { partyId: newClientId } },
-        { session }
-      );
-    }
+    const sale = await SaleService.updateSale(id, body, session);
 
     await session.commitTransaction();
-    return successResponse(existingSale, 'Sale updated successfully');
+    return successResponse(sale, 'Sale updated successfully');
 
   } catch (error: any) {
-    await session.abortTransaction();
+    if (session) await session.abortTransaction();
     console.error('PUT /api/sales/[id] error:', error);
     return errorResponse(error.message || 'Failed to update sale', 500);
   } finally {
-    session.endSession();
+    if (session) session.endSession();
   }
 }
 
 /**
  * DELETE /api/sales/[id]
- * Cancel/Delete a sale
+ * Cancel/Delete a sale using SaleService
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session: mongoose.ClientSession | null = null;
 
   try {
     await connectToDatabase();
+    session = await mongoose.startSession();
+    session.startTransaction();
+
     const { id } = await params;
 
-    const sale = await Sale.findById(id).session(session);
-    if (!sale) {
-      await session.abortTransaction();
-      return errorResponse('Sale not found', 404);
-    }
-
-    // 1. Restore Inventory
-    for (const item of sale.items) {
-      if (item.itemType === InventoryItemType.RAW_MATERIAL) {
-        await RawMaterial.findByIdAndUpdate(
-          item.itemId,
-          { $inc: { currentStock: item.quantity } },
-          { session }
-        );
-      } else if (item.itemType === InventoryItemType.TRADING_GOOD) {
-        await TradingGood.findByIdAndUpdate(
-          item.itemId,
-          { $inc: { currentStock: item.quantity } },
-          { session }
-        );
-      } else if (item.itemType === InventoryItemType.FINISHED_GOOD) {
-        await FinishedGood.findByIdAndUpdate(
-          item.itemId,
-          { $inc: { currentStock: item.quantity } },
-          { session }
-        );
-      }
-    }
-
-    // 2. Revert Client Balance (reduce by remaining balance, not grand total, since payments may have been made)
-    // If totalPaid > 0, the client balance was already reduced by payments, so we only need to reduce by remaining
-    const balanceToRevert = sale.remainingAmount || sale.grandTotal - (sale.totalPaid || 0);
-    await Client.findByIdAndUpdate(
-      sale.clientId,
-      { $inc: { outstandingBalance: -balanceToRevert } },
-      { session }
-    );
-
-    // 3. Delete associated payments
-    await Payment.deleteMany({ saleId: id }).session(session);
-
-    // 4. Delete Sale
-    await Sale.findByIdAndDelete(id, { session });
+    await SaleService.deleteSale(id, session);
 
     await session.commitTransaction();
     return successResponse({ id }, 'Sale deleted successfully');
   } catch (error: any) {
-    await session.abortTransaction();
+    if (session) await session.abortTransaction();
+    console.error('DELETE /api/sales/[id] error:', error);
     return errorResponse(error.message || 'Failed to delete sale', 500);
   } finally {
-    session.endSession();
+    if (session) session.endSession();
   }
 }

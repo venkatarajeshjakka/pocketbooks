@@ -157,6 +157,11 @@ const SaleSchema = new Schema<ISale>(
   }
 );
 
+// Virtual for consistent date access
+SaleSchema.virtual('date').get(function () {
+  return this.saleDate;
+});
+
 // Indexes
 SaleSchema.index({ clientId: 1 });
 SaleSchema.index({ saleDate: -1 });

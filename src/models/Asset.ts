@@ -111,6 +111,25 @@ AssetSchema.index({ vendorId: 1 });
 AssetSchema.index({ paymentStatus: 1 });
 AssetSchema.index({ purchaseDate: -1 });
 
+// Virtual for payments
+AssetSchema.virtual('payments', {
+    ref: 'Payment',
+    localField: '_id',
+    foreignField: 'assetId',
+});
+
+// Pre-delete middleware to prevent deleting assets with payments
+AssetSchema.pre('findOneAndDelete', async function (this: any) {
+    const doc = await this.model.findOne(this.getQuery());
+    if (doc) {
+        // Check for related payments
+        const paymentCount = await mongoose.model('Payment').countDocuments({ assetId: doc._id });
+        if (paymentCount > 0) {
+            throw new Error(`Cannot delete asset "${doc.name}" because it has ${paymentCount} existing payments. Please delete the payments first.`);
+        }
+    }
+});
+
 // Prevent model recompilation
 const Asset: Model<IAsset> =
     mongoose.models.Asset || mongoose.model<IAsset>('Asset', AssetSchema);

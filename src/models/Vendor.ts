@@ -104,6 +104,24 @@ VendorSchema.virtual('procurements', {
   foreignField: 'vendorId',
 });
 
+// Pre-delete middleware to prevent deleting vendors with procurements
+VendorSchema.pre('findOneAndDelete', async function (this: any) {
+  const doc = await this.model.findOne(this.getQuery());
+  if (doc) {
+    // Check for related raw material procurements
+    const rmCount = await mongoose.model('RawMaterialProcurement').countDocuments({ vendorId: doc._id });
+    if (rmCount > 0) {
+      throw new Error(`Cannot delete vendor "${doc.name}" because they have ${rmCount} raw material procurements. Please delete the procurements first.`);
+    }
+
+    // Check for related trading goods procurements
+    const tgCount = await mongoose.model('TradingGoodsProcurement').countDocuments({ vendorId: doc._id });
+    if (tgCount > 0) {
+      throw new Error(`Cannot delete vendor "${doc.name}" because they have ${tgCount} trading goods procurements. Please delete the procurements first.`);
+    }
+  }
+});
+
 // Prevent model recompilation in development
 const Vendor: Model<IVendor> =
   mongoose.models.Vendor || mongoose.model<IVendor>('Vendor', VendorSchema);

@@ -5,7 +5,7 @@
  * Follows the same architecture pattern as ProcurementService for consistency.
  */
 
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import {
     Sale,
     Client,
@@ -20,7 +20,11 @@ import {
     TransactionType,
     AccountType,
     PartyType,
-    InventoryItemType
+    InventoryItemType,
+    ISale,
+    ISaleInput,
+    ISaleItem,
+    PaymentMethod
 } from '@/types';
 
 export class SaleService {
@@ -48,8 +52,8 @@ export class SaleService {
         session?: mongoose.ClientSession
     ): Promise<void> {
         for (const item of items) {
-            const Model = this.getInventoryModel(item.itemType);
-            const dbItem = await (Model as any).findById(item.itemId).session(session || null);
+            const Model = this.getInventoryModel(item.itemType) as any;
+            const dbItem = await Model.findById(item.itemId).session(session || null);
 
             if (!dbItem) {
                 throw new Error(`${item.itemType} not found: ${item.itemId}`);
@@ -71,8 +75,8 @@ export class SaleService {
         session?: mongoose.ClientSession
     ): Promise<void> {
         for (const item of items) {
-            const Model = this.getInventoryModel(item.itemType);
-            await (Model as any).findByIdAndUpdate(
+            const Model = this.getInventoryModel(item.itemType) as any;
+            await Model.findByIdAndUpdate(
                 item.itemId,
                 { $inc: { currentStock: -item.quantity } },
                 { session }
@@ -88,8 +92,8 @@ export class SaleService {
         session?: mongoose.ClientSession
     ): Promise<void> {
         for (const item of items) {
-            const Model = this.getInventoryModel(item.itemType);
-            await (Model as any).findByIdAndUpdate(
+            const Model = this.getInventoryModel(item.itemType) as any;
+            await Model.findByIdAndUpdate(
                 item.itemId,
                 { $inc: { currentStock: item.quantity } },
                 { session }
@@ -101,10 +105,10 @@ export class SaleService {
      * Create a new sale with optional initial payment
      */
     static async createSale(
-        data: any,
+        data: ISaleInput,
         initialPayment?: {
             amount: number;
-            paymentMethod: string;
+            paymentMethod: PaymentMethod;
             paymentDate?: Date;
             notes?: string;
         },
@@ -155,7 +159,7 @@ export class SaleService {
      */
     static async updateSale(
         id: string,
-        data: any,
+        data: Partial<ISaleInput>,
         session?: mongoose.ClientSession
     ) {
         const sale = await Sale.findById(id).session(session || null);
@@ -166,7 +170,12 @@ export class SaleService {
         const oldRemainingAmount = sale.remainingAmount || (sale.grandTotal - (sale.totalPaid || 0));
 
         // 1. Restore inventory from old items
-        await this.restoreInventory(oldItems, session);
+        const restoreItems = oldItems.map((item: any) => ({
+            itemId: item.itemId.toString(),
+            itemType: item.itemType,
+            quantity: item.quantity
+        }));
+        await this.restoreInventory(restoreItems, session);
 
         // 2. Revert client balance from original client
         await Client.findByIdAndUpdate(
@@ -179,11 +188,18 @@ export class SaleService {
         const newItems = data.items || sale.items;
 
         // 4. Validate and deduct inventory for new items
-        await this.validateStockAvailability(newItems, session);
-        await this.deductInventory(newItems, session);
+        const validateItems = newItems.map((item: any) => ({
+            itemId: item.itemId.toString(),
+            itemType: item.itemType,
+            quantity: item.quantity
+        }));
+        await this.validateStockAvailability(validateItems, session);
+        await this.deductInventory(validateItems, session);
 
         // 5. Apply updates to sale
-        if (data.items) sale.items = data.items;
+        if (data.items) {
+            sale.items = data.items as ISaleItem[];
+        }
         if (data.gstPercentage !== undefined) sale.gstPercentage = data.gstPercentage;
         if (data.discount !== undefined) sale.discount = data.discount;
         if (data.clientId) sale.clientId = data.clientId;
@@ -227,7 +243,12 @@ export class SaleService {
         if (!sale) throw new Error('Sale not found');
 
         // 1. Restore inventory
-        await this.restoreInventory(sale.items, session);
+        const restoreItems = sale.items.map((item: any) => ({
+            itemId: item.itemId.toString(),
+            itemType: item.itemType,
+            quantity: item.quantity
+        }));
+        await this.restoreInventory(restoreItems, session);
 
         // 2. Revert client balance (only remaining amount, not grand total)
         const balanceToRevert = sale.remainingAmount || (sale.grandTotal - (sale.totalPaid || 0));
@@ -261,7 +282,12 @@ export class SaleService {
         // Handle cancellation
         if (newStatus === SaleStatus.CANCELLED && oldStatus !== SaleStatus.CANCELLED) {
             // Restore inventory when cancelling
-            await this.restoreInventory(sale.items, session);
+            const restoreItems = sale.items.map((item: any) => ({
+                itemId: item.itemId.toString(),
+                itemType: item.itemType,
+                quantity: item.quantity
+            }));
+            await this.restoreInventory(restoreItems, session);
 
             // Adjust client balance - remove remaining balance
             const client = await Client.findById(sale.clientId).session(session || null);
@@ -271,8 +297,13 @@ export class SaleService {
             }
         } else if (oldStatus === SaleStatus.CANCELLED && newStatus !== SaleStatus.CANCELLED) {
             // Reactivating a cancelled sale
-            await this.validateStockAvailability(sale.items, session);
-            await this.deductInventory(sale.items, session);
+            const validateItems = sale.items.map((item: any) => ({
+                itemId: item.itemId.toString(),
+                itemType: item.itemType,
+                quantity: item.quantity
+            }));
+            await this.validateStockAvailability(validateItems, session);
+            await this.deductInventory(validateItems, session);
 
             // Restore client balance
             const client = await Client.findById(sale.clientId).session(session || null);
@@ -326,7 +357,7 @@ export class SaleService {
         saleId: string,
         paymentData: {
             amount: number;
-            paymentMethod: string;
+            paymentMethod: PaymentMethod;
             paymentDate?: Date;
             notes?: string;
             trancheNumber?: number;

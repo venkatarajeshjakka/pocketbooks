@@ -80,10 +80,17 @@ ClientSchema.virtual('sales', {
   foreignField: 'clientId',
 });
 
-// Pre-save middleware (if needed in the future)
-// ClientSchema.pre('save', async function () {
-//   // Add pre-save logic here
-// });
+// Pre-delete middleware to prevent deleting clients with sales
+ClientSchema.pre('findOneAndDelete', async function (this: any) {
+  const doc = await this.model.findOne(this.getQuery());
+  if (doc) {
+    // Check for related sales - using mongoose.model to avoid circular dependency
+    const saleCount = await mongoose.model('Sale').countDocuments({ clientId: doc._id });
+    if (saleCount > 0) {
+      throw new Error(`Cannot delete client "${doc.name}" because they have ${saleCount} existing sales. Please delete the sales first.`);
+    }
+  }
+});
 
 // Prevent model recompilation in development
 const Client: Model<IClient> =
