@@ -1,4 +1,4 @@
-import { Sale, Client, Vendor, Asset, LoanAccount, Payment, RawMaterial, TradingGood, RawMaterialProcurement, TradingGoodsProcurement } from '@/models';
+import { Sale, Client, Vendor, Asset, LoanAccount, Payment, RawMaterial, TradingGood, FinishedGood, RawMaterialProcurement, TradingGoodsProcurement } from '@/models';
 import { SaleStatus, ProcurementStatus, PaymentStatus } from '@/types';
 import mongoose from 'mongoose';
 
@@ -57,11 +57,50 @@ export class AnalyticsService {
             .populate('clientId', 'name')
             .lean();
 
+        // 6. Calculate Real COGS for Net Profit
+        const allSales = await Sale.find({ status: { $ne: SaleStatus.CANCELLED } }).lean();
+        let totalCOGS = 0;
+
+        // Cache for item costs to avoid redundant BOM traversals
+        const costCache: Record<string, number> = {};
+
+        const getItemCost = async (itemId: string, itemType: string): Promise<number> => {
+            const cacheKey = `${itemType}:${itemId}`;
+            if (costCache[cacheKey] !== undefined) return costCache[cacheKey];
+
+            let cost = 0;
+            if (itemType === 'trading_good') {
+                const item = await TradingGood.findById(itemId).select('costPrice').lean();
+                cost = item?.costPrice || 0;
+            } else if (itemType === 'raw_material') {
+                const item = await RawMaterial.findById(itemId).select('costPrice').lean();
+                cost = item?.costPrice || 0;
+            } else if (itemType === 'finished_good') {
+                const fg = await FinishedGood.findById(itemId).select('bom').lean();
+                if (fg?.bom) {
+                    for (const bomItem of fg.bom) {
+                        const componentCost = await getItemCost(String(bomItem.rawMaterialId), 'raw_material');
+                        cost += componentCost * bomItem.quantity;
+                    }
+                }
+            }
+
+            costCache[cacheKey] = cost;
+            return cost;
+        };
+
+        for (const sale of allSales) {
+            for (const item of sale.items) {
+                const itemCost = await getItemCost(String(item.itemId), item.itemType);
+                totalCOGS += itemCost * item.quantity;
+            }
+        }
+
         const metrics = {
             totalSales: salesStats[0]?.totalSales || 0,
             pendingReceivables: salesStats[0]?.remaining || 0,
             pendingPayables: (rmProcStats[0]?.remaining || 0) + (tgProcStats[0]?.remaining || 0),
-            netProfit: (salesStats[0]?.totalSales || 0) * 0.2, // Placeholder logic for profit margin
+            netProfit: (salesStats[0]?.totalSales || 0) - totalCOGS,
             totalAssets: totalAssets[0]?.total || 0,
             outstandingLoans: totalLoans[0]?.total || 0,
             recentSales: recentSales.map(s => ({

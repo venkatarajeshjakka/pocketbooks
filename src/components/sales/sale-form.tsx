@@ -21,6 +21,7 @@ import { useCreateSale, useUpdateSale, useCreateSalePayment, useSale } from '@/l
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EditPreviewDialog } from '@/components/shared/entity/edit-preview-dialog';
 
 interface SaleItem {
     itemId: string; // The ID of the item
@@ -68,6 +69,8 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
     const formRef = useRef<HTMLFormElement>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [changes, setChanges] = useState<any[]>([]);
 
     // Data Fetching
     const { data: clientsData, isLoading: clientsLoading } = useClients({ limit: 100 });
@@ -254,6 +257,62 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
     const updateMutation = useUpdateSale();
     const createPaymentMutation = useCreateSalePayment();
 
+    const getDetectedChanges = () => {
+        const changes: any[] = [];
+        const labels: Record<string, string> = {
+            clientId: 'Client',
+            saleDate: 'Sale Date',
+            grandTotal: 'Grand Total',
+            status: 'Status',
+            discount: 'Discount',
+        };
+
+        const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status'> = {
+            saleDate: 'date',
+            grandTotal: 'price',
+            discount: 'price',
+            status: 'status',
+        };
+
+        Object.keys(labels).forEach(key => {
+            let oldValue = (saleData as any)?.[key];
+            let newValue = (formData as any)[key];
+
+            if (key === 'clientId') {
+                oldValue = typeof oldValue === 'object' ? String(oldValue?._id || '') : String(oldValue || '');
+                newValue = String(newValue || '');
+            }
+
+            if (key === 'discount') {
+                oldValue = Number(oldValue || 0);
+                newValue = typeof newValue === 'string' ? parseFloat(newValue) || 0 : newValue;
+            }
+
+            if (oldValue !== newValue && newValue !== undefined) {
+                changes.push({
+                    field: key,
+                    label: labels[key],
+                    oldValue: oldValue || 'Empty',
+                    newValue: newValue || 'Empty',
+                    type: fieldTypes[key] || 'text'
+                });
+            }
+        });
+
+        // Item changes summary
+        if (JSON.stringify(saleData?.items?.map((i: any) => i.itemId)) !== JSON.stringify(formData.items.map(i => i.itemId))) {
+            changes.push({
+                field: 'items',
+                label: 'Items List',
+                oldValue: `${saleData?.items?.length || 0} items`,
+                newValue: `${formData.items.length} items`,
+                type: 'text'
+            });
+        }
+
+        return changes;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -262,6 +321,20 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
             return;
         }
 
+        if (mode === 'edit') {
+            const detectedChanges = getDetectedChanges();
+            if (detectedChanges.length > 0) {
+                setChanges(detectedChanges);
+                setIsPreviewOpen(true);
+                return;
+            }
+        }
+
+        await actualSubmit();
+    };
+
+    const actualSubmit = async () => {
+        setIsPreviewOpen(false);
         setIsSubmitting(true);
         try {
             const payload = {
@@ -635,6 +708,14 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                     </Button>
                 </div>
             </form>
+
+            <EditPreviewDialog
+                open={isPreviewOpen}
+                onOpenChange={setIsPreviewOpen}
+                onConfirm={actualSubmit}
+                changes={changes}
+                isSubmitting={isSubmitting}
+            />
         </TooltipProvider>
     );
 }

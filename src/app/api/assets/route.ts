@@ -9,6 +9,8 @@ import { TransactionType, AccountType, PartyType } from '@/types';
 import { calculatePaymentStatus } from '@/lib/utils/payment-status-calculator';
 import mongoose from 'mongoose';
 import { revalidatePath } from 'next/cache';
+import { AuditService } from '@/lib/services/audit-service';
+import { AuditAction } from '@/models/AuditLog';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +50,16 @@ export async function POST(request: NextRequest) {
 
             const asset = new Asset(assetData);
             await asset.save();
+
+            // Log creation
+            await AuditService.log({
+                action: AuditAction.CREATE,
+                entityType: 'Asset',
+                entityId: String(asset._id),
+                details: `Created asset: ${asset.name}`,
+                newValue: asset.toObject()
+            });
+
             revalidatePath('/assets');
             return NextResponse.json({
                 success: true,
@@ -108,6 +120,15 @@ export async function POST(request: NextRequest) {
             asset.paymentId = payment._id;
             asset.paymentDetails = paymentDetails;
             await asset.save({ session });
+
+            // Log creation with payment
+            await AuditService.log({
+                action: AuditAction.CREATE,
+                entityType: 'Asset',
+                entityId: String(asset._id),
+                details: `Created asset: ${asset.name} with initial payment`,
+                newValue: asset.toObject()
+            }, session);
 
             await session.commitTransaction();
 

@@ -9,6 +9,8 @@ import { TransactionType, AccountType, PartyType } from '@/types';
 import { updateAssetPaymentStatus } from '@/lib/utils/asset-payment-utils';
 import mongoose from 'mongoose';
 import { revalidatePath } from 'next/cache';
+import { AuditService } from '@/lib/services/audit-service';
+import { AuditAction } from '@/models/AuditLog';
 
 export async function GET(
     request: NextRequest,
@@ -23,7 +25,7 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     let session: mongoose.ClientSession | null = null;
-    
+
     try {
         await connectToDatabase();
         const { id } = await params;
@@ -32,11 +34,32 @@ export async function PUT(
 
         // If no payment details, use simple update
         if (!paymentDetails) {
-            const response = await handleUpdate(id, request, Asset);
-            if (response.status === 200) {
-                revalidatePath('/assets');
-            }
-            return response;
+            const assetBefore = await Asset.findById(id);
+            if (!assetBefore) return NextResponse.json({ success: false, error: 'Asset not found' }, { status: 404 });
+
+            const doc = await Asset.findByIdAndUpdate(id, updateData, {
+                new: true,
+                runValidators: true,
+            });
+
+            if (!doc) return NextResponse.json({ success: false, error: 'Asset not found during update' }, { status: 404 });
+
+            // Log update
+            await AuditService.log({
+                action: AuditAction.UPDATE,
+                entityType: 'Asset',
+                entityId: id,
+                details: 'Updated asset (simple update)',
+                oldValue: assetBefore.toObject(),
+                newValue: doc.toObject()
+            });
+
+            revalidatePath('/assets');
+            return NextResponse.json({
+                success: true,
+                data: doc,
+                message: 'Updated successfully'
+            });
         }
 
         // Handle payment updates with transaction
@@ -48,6 +71,8 @@ export async function PUT(
             if (!asset) {
                 throw new Error('Asset not found');
             }
+
+            const assetBefore = asset.toObject();
 
             // Update asset fields
             Object.assign(asset, updateData);
@@ -114,10 +139,20 @@ export async function PUT(
             }
 
             await asset.save({ session });
-            
+
+            // Log update with payment
+            await AuditService.log({
+                action: AuditAction.UPDATE,
+                entityType: 'Asset',
+                entityId: id,
+                details: 'Updated asset with payment adjustments',
+                oldValue: assetBefore,
+                newValue: asset.toObject()
+            }, session);
+
             // Recalculate payment status based on all payments
             await updateAssetPaymentStatus(id, session);
-            
+
             await session.commitTransaction();
 
             revalidatePath('/assets');
@@ -194,6 +229,15 @@ export async function DELETE(
 
             // Delete the asset
             await Asset.findByIdAndDelete(id).session(session);
+
+            // Log deletion
+            await AuditService.log({
+                action: AuditAction.DELETE,
+                entityType: 'Asset',
+                entityId: id,
+                details: `Deleted asset: ${asset.name}`,
+                oldValue: asset.toObject()
+            }, session);
 
             await session.commitTransaction();
 

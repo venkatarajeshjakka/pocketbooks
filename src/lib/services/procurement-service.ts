@@ -17,6 +17,8 @@ import {
     IPaymentInput
 } from '@/types';
 import { InventoryIntegrationService } from './inventory-integration-service';
+import { AuditService } from './audit-service';
+import { AuditAction } from '@/models/AuditLog';
 
 export class ProcurementService {
     /**
@@ -84,6 +86,15 @@ export class ProcurementService {
             );
         }
 
+        // 5. Log activity
+        await AuditService.log({
+            action: AuditAction.CREATE,
+            entityType: type === 'raw_material' ? 'RawMaterialProcurement' : 'TradingGoodsProcurement',
+            entityId: String(procurement._id),
+            details: `Created ${type} procurement for vendor: ${data.vendorId}`,
+            newValue: procurement.toObject()
+        }, session);
+
         return procurement;
     }
 
@@ -103,6 +114,16 @@ export class ProcurementService {
 
         const oldStatus = procurement.status;
         if (oldStatus === newStatus) return procurement;
+
+        // 0. Log action (before changes)
+        await AuditService.log({
+            action: AuditAction.STATUS_CHANGE,
+            entityType: type === 'raw_material' ? 'RawMaterialProcurement' : 'TradingGoodsProcurement',
+            entityId: id,
+            details: `Status changed from ${oldStatus} to ${newStatus}`,
+            oldValue: { status: oldStatus },
+            newValue: { status: newStatus }
+        }, session);
 
         // Handle inventory transitions
         const isStockAffecting = (s: ProcurementStatus) =>
@@ -179,8 +200,19 @@ export class ProcurementService {
 
         // 1. Update the document
         // This will trigger pre-validate hooks for pricing/status
+        const oldValue = procurement.toObject();
         Object.assign(procurement, data);
         await procurement.save({ session });
+
+        // 1.1 Log update
+        await AuditService.log({
+            action: AuditAction.UPDATE,
+            entityType: type === 'raw_material' ? 'RawMaterialProcurement' : 'TradingGoodsProcurement',
+            entityId: id,
+            details: `Updated ${type} procurement details`,
+            oldValue,
+            newValue: procurement.toObject()
+        }, session);
 
         // 2. Handle Status/Inventory transitions
         if (data.status && data.status !== oldStatus) {
@@ -294,6 +326,15 @@ export class ProcurementService {
 
         // 4. Delete the procurement
         await Model.findByIdAndDelete(id).session(session || null);
+
+        // 5. Log deletion
+        await AuditService.log({
+            action: AuditAction.DELETE,
+            entityType: type === 'raw_material' ? 'RawMaterialProcurement' : 'TradingGoodsProcurement',
+            entityId: id,
+            details: `Deleted ${type} procurement`,
+            oldValue: procurement.toObject()
+        }, session);
     }
 
     /**
