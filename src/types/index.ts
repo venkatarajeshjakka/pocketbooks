@@ -119,9 +119,9 @@ export enum UnitOfMeasurement {
 }
 
 export enum InventoryItemType {
-  RAW_MATERIAL = 'raw_material',
-  TRADING_GOOD = 'trading_good',
-  FINISHED_GOOD = 'finished_good',
+  RAW_MATERIAL = 'RawMaterial',
+  TRADING_GOOD = 'TradingGood',
+  FINISHED_GOOD = 'FinishedGood',
 }
 
 // ============================================================================

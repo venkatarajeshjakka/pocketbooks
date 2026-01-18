@@ -31,28 +31,31 @@ export class SaleService {
     /**
      * Get the appropriate inventory model based on item type
      */
-    private static getInventoryModel(itemType: InventoryItemType) {
-        switch (itemType) {
-            case InventoryItemType.RAW_MATERIAL:
-                return RawMaterial;
-            case InventoryItemType.TRADING_GOOD:
-                return TradingGood;
-            case InventoryItemType.FINISHED_GOOD:
-                return FinishedGood;
-            default:
-                throw new Error(`Unknown inventory item type: ${itemType}`);
+    private static getInventoryModel(itemType: string) {
+        // Handle both PascalCase (new) and snake_case (legacy) values
+        const normalizedType = itemType.toLowerCase();
+
+        // Check for specific variations or use broad matching
+        if (normalizedType === 'rawmaterial' || normalizedType === 'raw_material') {
+            return RawMaterial;
+        } else if (normalizedType === 'tradinggood' || normalizedType === 'trading_good') {
+            return TradingGood;
+        } else if (normalizedType === 'finishedgood' || normalizedType === 'finished_good') {
+            return FinishedGood;
         }
+
+        throw new Error(`Unknown inventory item type: ${itemType}`);
     }
 
     /**
      * Validate stock availability for sale items
      */
     static async validateStockAvailability(
-        items: Array<{ itemId: string; itemType: InventoryItemType; quantity: number }>,
+        items: Array<{ itemId: string; itemType: InventoryItemType | string; quantity: number }>,
         session?: mongoose.ClientSession
     ): Promise<void> {
         for (const item of items) {
-            const Model = this.getInventoryModel(item.itemType) as any;
+            const Model = this.getInventoryModel(item.itemType as string) as any;
             const dbItem = await Model.findById(item.itemId).session(session || null);
 
             if (!dbItem) {
@@ -71,11 +74,11 @@ export class SaleService {
      * Deduct inventory for sale items
      */
     static async deductInventory(
-        items: Array<{ itemId: string; itemType: InventoryItemType; quantity: number }>,
+        items: Array<{ itemId: string; itemType: InventoryItemType | string; quantity: number }>,
         session?: mongoose.ClientSession
     ): Promise<void> {
         for (const item of items) {
-            const Model = this.getInventoryModel(item.itemType) as any;
+            const Model = this.getInventoryModel(item.itemType as string) as any;
             await Model.findByIdAndUpdate(
                 item.itemId,
                 { $inc: { currentStock: -item.quantity } },
@@ -88,11 +91,11 @@ export class SaleService {
      * Restore inventory for sale items (on cancellation or deletion)
      */
     static async restoreInventory(
-        items: Array<{ itemId: string; itemType: InventoryItemType; quantity: number }>,
+        items: Array<{ itemId: string; itemType: InventoryItemType | string; quantity: number }>,
         session?: mongoose.ClientSession
     ): Promise<void> {
         for (const item of items) {
-            const Model = this.getInventoryModel(item.itemType) as any;
+            const Model = this.getInventoryModel(item.itemType as string) as any;
             await Model.findByIdAndUpdate(
                 item.itemId,
                 { $inc: { currentStock: item.quantity } },

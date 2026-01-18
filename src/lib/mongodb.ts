@@ -86,6 +86,22 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
           console.log('MongoDB reconnected successfully');
         });
 
+        // Register legacy aliases for backward compatibility with old data
+        // This fixes the issue where RefPath uses lowercase values but Models are PascalCase
+        try {
+          if (mongoose.models.TradingGood && !mongoose.models.trading_good) {
+            mongoose.model('trading_good', mongoose.models.TradingGood.schema);
+          }
+          if (mongoose.models.FinishedGood && !mongoose.models.finished_good) {
+            mongoose.model('finished_good', mongoose.models.FinishedGood.schema);
+          }
+          if (mongoose.models.RawMaterial && !mongoose.models.raw_material) {
+            mongoose.model('raw_material', mongoose.models.RawMaterial.schema);
+          }
+        } catch (e) {
+          console.warn('Failed to register legacy model aliases', e);
+        }
+
         return mongoose;
       })
       .catch((error) => {
