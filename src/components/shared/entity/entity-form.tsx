@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Save, X, Info, Plus, ChevronRight } from 'lucide-react';
+import { Loader2, Save, Info, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,6 +82,14 @@ export interface EntityFormProps<T extends BaseEntityFormData> {
   isSubmitting?: boolean;
 }
 
+interface FormChange {
+  field: string;
+  label: string;
+  oldValue: any;
+  newValue: any;
+  type?: 'text' | 'price' | 'date' | 'status' | 'list';
+}
+
 type FormErrors = Partial<Record<string, string>>;
 
 
@@ -94,7 +102,7 @@ export function EntityForm<T extends BaseEntityFormData>({
   const router = useRouter();
   const [errors, setErrors] = useState<FormErrors>({});
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [changes, setChanges] = useState<any[]>([]);
+  const [changes, setChanges] = useState<FormChange[]>([]);
 
   // Fetch raw material types dynamically
   const {
@@ -210,7 +218,7 @@ export function EntityForm<T extends BaseEntityFormData>({
   };
 
   const getDetectedChanges = () => {
-    const changes: any[] = [];
+    const changes: FormChange[] = [];
     const labels: Record<string, string> = {
       name: `${entityLabel} Name`,
       email: 'Email',
@@ -222,22 +230,22 @@ export function EntityForm<T extends BaseEntityFormData>({
       rawMaterialTypes: 'Material Types'
     };
 
-    const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+    const fieldTypes: Record<string, FormChange['type']> = {
       status: 'status',
       rawMaterialTypes: 'list'
     };
 
     Object.keys(labels).forEach(key => {
-      const oldValue = (initialData as any)?.[key];
-      const newValue = (formData as any)[key];
+      const oldValue = (initialData as Record<string, any> | undefined)?.[key];
+      const newValue = (formData as Record<string, any>)[key];
 
       if (key === 'rawMaterialTypes') {
         if (JSON.stringify(oldValue || []) !== JSON.stringify(newValue || [])) {
           changes.push({
             field: key,
             label: labels[key],
-            oldValue: (oldValue || []).join(', ') || 'None',
-            newValue: (newValue || []).join(', ') || 'None',
+            oldValue: (oldValue as string[] || []).join(', ') || 'None',
+            newValue: (newValue as string[] || []).join(', ') || 'None',
             type: 'list'
           });
         }
@@ -245,8 +253,8 @@ export function EntityForm<T extends BaseEntityFormData>({
         changes.push({
           field: key,
           label: labels[key],
-          oldValue: oldValue || 'Empty',
-          newValue: newValue || 'Empty',
+          oldValue: oldValue ?? 'Empty',
+          newValue: newValue ?? 'Empty',
           type: fieldTypes[key] || 'text'
         });
       }

@@ -1,9 +1,8 @@
 'use client';
 
-import { Suspense } from 'react';
 import { useProcurement } from '@/lib/hooks/use-procurements';
 import { ProcurementDetailView } from '@/components/procurement/procurement-detail-view';
-import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';

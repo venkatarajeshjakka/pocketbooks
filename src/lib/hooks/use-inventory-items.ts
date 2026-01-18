@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as inventoryApi from '@/lib/api/inventory';
 import { inventoryKeys } from '@/lib/query-keys';
-import { ApiResponse, PaginatedResponse } from '@/types';
 
 interface InventoryItem {
     _id: string;

@@ -11,9 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { SaleStatus, PaymentStatus, PaymentMethod, InventoryItemType } from '@/types';
+import { SaleStatus, PaymentMethod, InventoryItemType, ISale, ISaleItem } from '@/types';
 import { Switch } from '@/components/ui/switch';
 import { useClients } from '@/lib/hooks/use-clients';
 import { useTradingGoods, useFinishedGoods } from '@/lib/hooks/use-inventory-items';
@@ -59,7 +59,7 @@ interface PaymentFormData {
 
 interface SaleFormProps {
     mode: 'create' | 'edit';
-    initialData?: any;
+    initialData?: ISale;
     saleId?: string;
 }
 
@@ -98,17 +98,17 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
         const data = saleData || initialData;
         if (data) {
             setFormData({
-                clientId: typeof data.clientId === 'object' ? data.clientId?._id : (data.clientId || ''),
+                clientId: typeof data.clientId === 'object' ? String((data.clientId as any)?._id || '') : String(data.clientId || ''),
                 saleDate: data.saleDate ? new Date(data.saleDate) : new Date(),
                 expectedDeliveryDate: data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate) : undefined,
                 actualDeliveryDate: data.actualDeliveryDate ? new Date(data.actualDeliveryDate) : undefined,
                 invoiceNumber: data.invoiceNumber || '',
                 paymentTerms: data.paymentTerms || '',
                 notes: data.notes || '',
-                items: data.items?.map((item: any) => ({
-                    itemId: typeof item.itemId === 'object' ? item.itemId?._id : (item.itemId || ''),
+                items: data.items?.map((item: ISaleItem) => ({
+                    itemId: typeof item.itemId === 'object' ? (item.itemId as any)?._id : (item.itemId || ''),
                     itemType: item.itemType,
-                    name: item.itemId?.name || item.name || 'Unknown Item',
+                    name: (item.itemId as any)?.name || (item as any).name || 'Unknown Item',
                     quantity: item.quantity || 1,
                     unitPrice: item.unitPrice || 0,
                     amount: item.amount || 0
@@ -263,9 +263,7 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
 
             if (mode === 'create') {
                 const res = await createMutation.mutateAsync(payload);
-                // res is ApiResponse<ISale>
-                // verify structure: res.data._id
-                savedSaleId = (res as any).data._id; // safe cast based on typical response
+                savedSaleId = String(res.data?._id);
 
                 if (paymentData.recordPayment && savedSaleId) {
                     // Create Payment using hook
@@ -352,8 +350,8 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                                                 <SelectValue placeholder="Select Client" />
                                             </SelectTrigger>
                                             <SelectContent className="backdrop-blur-xl bg-popover/95 rounded-xl">
-                                                {clientsData?.data.map((c: any) => (
-                                                    <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
+                                                {clientsData?.data.map((c) => (
+                                                    <SelectItem key={String(c._id)} value={String(c._id)}>{c.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -438,19 +436,19 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                                     </Select>
 
                                     <Select value="" onValueChange={(val) => {
-                                        const item = currentInventoryItems?.find((i: any) => i._id === val);
-                                        if (item) handleAddItem(item._id.toString(), selectedItemType, item.name, item.sellingPrice);
+                                        const item = currentInventoryItems?.find((i) => String(i._id) === val);
+                                        if (item) handleAddItem(String(item._id), selectedItemType, (item as any).name, (item as any).sellingPrice);
                                     }} disabled={isInventoryLoading}>
                                         <SelectTrigger className="w-[200px] h-10 bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary font-semibold rounded-xl transition-colors disabled:opacity-50">
                                             <div className="flex items-center gap-2"><Plus className="h-4 w-4" /> Add Item</div>
                                         </SelectTrigger>
                                         <SelectContent className="backdrop-blur-xl bg-popover/95 rounded-xl">
                                             {isInventoryLoading ? <div className="p-2 text-center text-xs">Loading...</div> :
-                                                currentInventoryItems?.map((i: any) => (
-                                                    <SelectItem key={i._id} value={i._id}>
+                                                currentInventoryItems?.map((i) => (
+                                                    <SelectItem key={String(i._id)} value={String(i._id)}>
                                                         <div className="flex flex-col text-left">
-                                                            <span className="font-medium">{i.name}</span>
-                                                            <span className="text-[10px] text-muted-foreground">Price: ₹{i.sellingPrice} | Stock: {i.currentStock}</span>
+                                                            <span className="font-medium">{(i as any).name}</span>
+                                                            <span className="text-[10px] text-muted-foreground">Price: ₹{(i as any).sellingPrice} | Stock: {(i as any).currentStock}</span>
                                                         </div>
                                                     </SelectItem>
                                                 ))}

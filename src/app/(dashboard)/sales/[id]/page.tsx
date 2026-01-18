@@ -3,7 +3,6 @@
  * Sale Details Page
  */
 import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SaleDetailContainer } from '@/components/sales/sale-detail-container';
 

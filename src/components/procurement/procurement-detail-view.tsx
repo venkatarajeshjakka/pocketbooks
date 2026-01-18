@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
@@ -27,11 +27,27 @@ import { ProcurementDeleteButton } from '@/components/procurement/procurement-de
 import { AddPaymentDialog } from '@/components/procurement/add-payment-dialog';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { ProcurementStatus } from '@/types';
+import { ProcurementStatus, IRawMaterialProcurement, ITradingGoodsProcurement } from '@/types';
 import { fadeInUp, staggerContainer } from '@/lib/utils/animation-variants';
 
+interface PopulatedProcurementItem {
+    rawMaterialId?: { _id: string; name: string; sku?: string };
+    tradingGoodId?: { _id: string; name: string; sku?: string };
+    quantity: number;
+    unit: string;
+    unitPrice: number;
+    amount: number;
+}
+
+interface PopulatedProcurement extends Omit<IRawMaterialProcurement | ITradingGoodsProcurement, 'items' | 'vendorId'> {
+    _id: string;
+    vendorId?: { _id: string; name: string };
+    items: PopulatedProcurementItem[];
+    payments?: any[];
+}
+
 interface ProcurementDetailViewProps {
-    procurement: any;
+    procurement: PopulatedProcurement;
     type: 'raw_material' | 'trading_good';
 }
 
@@ -218,7 +234,7 @@ export function ProcurementDetailView({ procurement, type }: ProcurementDetailVi
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {procurement.items.map((item: any, idx: number) => (
+                                                {procurement.items.map((item, idx) => (
                                                     <TableRow key={idx} className="border-border/5 hover:bg-muted/5 transition-colors">
                                                         <TableCell className="py-4 pl-6">
                                                             <div className="flex flex-col">
@@ -356,7 +372,7 @@ export function ProcurementDetailView({ procurement, type }: ProcurementDetailVi
                                                 <AddPaymentDialog
                                                     procurementId={procurement._id}
                                                     procurementType={type}
-                                                    vendorId={procurement.vendorId?._id || procurement.vendorId}
+                                                    vendorId={procurement.vendorId?._id || ''}
                                                     remainingAmount={procurement.remainingAmount || 0}
                                                     currentTranche={procurement.payments?.length || 0}
                                                     trigger={

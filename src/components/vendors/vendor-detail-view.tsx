@@ -2,7 +2,7 @@
 
 import { IVendor } from '@/types';
 import Link from 'next/link';
-import { ArrowLeft, Package, Pencil, Mail, Phone, MapPin, Building2 } from 'lucide-react';
+import { ArrowLeft, Package, Pencil, Mail, MapPin, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

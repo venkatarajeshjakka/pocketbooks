@@ -30,10 +30,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {
-    Tooltip,
     TooltipContent,
     TooltipProvider,
-    TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ILoanAccount, ILoanAccountInput, LoanAccountStatus } from '@/types';
 import { useCreateLoanAccount, useUpdateLoanAccount, useLoanAccount } from '@/lib/hooks/use-loan-accounts';
@@ -56,12 +54,20 @@ const LOAN_STATUSES = [
     { value: LoanAccountStatus.DEFAULTED, label: 'Defaulted', color: 'bg-destructive' },
 ];
 
+interface FormChange {
+    field: string;
+    label: string;
+    oldValue: any;
+    newValue: any;
+    type?: 'text' | 'price' | 'date' | 'status' | 'list';
+}
+
 export function LoanAccountForm({ mode, id, initialData: propsInitialData }: LoanAccountFormProps) {
     const router = useRouter();
     const formRef = useRef<HTMLFormElement>(null);
     const [errors, setErrors] = useState<FormErrors>({});
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-    const [changes, setChanges] = useState<any[]>([]);
+    const [changes, setChanges] = useState<FormChange[]>([]);
 
     const createLoanMutation = useCreateLoanAccount();
     const updateLoanMutation = useUpdateLoanAccount();
@@ -171,7 +177,7 @@ export function LoanAccountForm({ mode, id, initialData: propsInitialData }: Loa
     };
 
     const getDetectedChanges = () => {
-        const changes: any[] = [];
+        const changes: FormChange[] = [];
         const labels: Record<string, string> = {
             bankName: 'Bank Name',
             accountNumber: 'Account Number',
@@ -180,21 +186,21 @@ export function LoanAccountForm({ mode, id, initialData: propsInitialData }: Loa
             status: 'Status'
         };
 
-        const fieldTypes: Record<string, 'text' | 'price' | 'date' | 'status' | 'list'> = {
+        const fieldTypes: Record<string, FormChange['type']> = {
             principalAmount: 'price',
             status: 'status'
         };
 
         Object.keys(labels).forEach(key => {
-            const oldValue = (initialData as any)?.[key];
-            const newValue = (formData as any)[key];
+            const oldValue = (initialData as Record<string, any> | undefined)?.[key];
+            const newValue = (formData as Record<string, any>)[key];
 
             if (oldValue !== newValue && newValue !== undefined) {
                 changes.push({
                     field: key,
                     label: labels[key],
-                    oldValue: oldValue || 'Empty',
-                    newValue: newValue || 'Empty',
+                    oldValue: oldValue ?? 'Empty',
+                    newValue: newValue ?? 'Empty',
                     type: fieldTypes[key] || 'text'
                 });
             }

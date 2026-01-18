@@ -6,7 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { fetchExpenses, fetchExpense, fetchExpenseStats } from '@/lib/api/expenses';
-import { IExpenseInput, ApiResponse, IExpense } from '@/types';
+import { IExpenseInput, IExpense } from '@/types';
 import { toast } from 'sonner';
 import {
     expenseKeys,

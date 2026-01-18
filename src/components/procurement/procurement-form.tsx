@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Save, Info, Plus, Trash2, Calculator, IndianRupee, Calendar as CalendarIcon, FileText, ShoppingCart, Wallet } from 'lucide-react';
+import { Loader2, Save, Info, Plus, Trash2, Calendar as CalendarIcon, FileText, ShoppingCart, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +26,6 @@ import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
-    TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
     Table,
@@ -36,7 +35,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { ProcurementStatus, PaymentStatus, PaymentMethod } from '@/types';
+import { ProcurementStatus, PaymentMethod } from '@/types';
 import { useVendors } from '@/lib/hooks/use-vendors';
 import { useRawMaterials, useTradingGoods } from '@/lib/hooks/use-inventory-items';
 import { useCreateProcurement, useUpdateProcurement, useProcurement } from '@/lib/hooks/use-procurements';
