@@ -7,7 +7,8 @@ import {
     updateSale,
     deleteSale,
     fetchSalePayments,
-    createSalePayment
+    createSalePayment,
+    fetchSaleStats
 } from '@/lib/api/sales';
 import { ISaleInput, QueryParams } from '@/types';
 import { toast } from 'sonner';
@@ -105,5 +106,12 @@ export function useCreateSalePayment() {
         onError: (error: any) => {
             toast.error(error.response?.data?.error || 'Failed to record payment');
         },
+    });
+}
+
+export function useSaleStats() {
+    return useQuery({
+        queryKey: ['sales-stats'],
+        queryFn: () => fetchSaleStats(),
     });
 }

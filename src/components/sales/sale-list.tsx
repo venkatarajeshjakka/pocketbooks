@@ -11,6 +11,8 @@ import { Loader2, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
+import { AddSalePaymentDialog } from '@/components/sales/add-sale-payment-dialog';
+
 interface SaleListProps {
     page: number;
     search: string;
@@ -152,6 +154,20 @@ export function SaleList({ page, search, status, view }: SaleListProps) {
                 </Badge>
             ),
         },
+        {
+            header: 'Actions',
+            cell: (sale: ISale) => (
+                <div className="flex justify-end">
+                    {(sale.remainingAmount || 0) > 0 && (
+                        <AddSalePaymentDialog
+                            saleId={sale._id.toString()}
+                            remainingAmount={sale.remainingAmount || 0}
+                            currentTranche={0} // Ideally we'd have payment count, but 0 is safe for now
+                        />
+                    )}
+                </div>
+            ),
+        },
     ];
 
     const handleDelete = async (id: string) => {
@@ -199,6 +215,16 @@ export function SaleList({ page, search, status, view }: SaleListProps) {
                             </span>
                         </div>
                     </div>
+
+                    {(sale.remainingAmount || 0) > 0 && (
+                        <div className="pt-3 flex justify-end">
+                            <AddSalePaymentDialog
+                                saleId={sale._id.toString()}
+                                remainingAmount={sale.remainingAmount || 0}
+                                currentTranche={0}
+                            />
+                        </div>
+                    )}
                 </div>
             )}
             columns={columns}

@@ -119,3 +119,13 @@ export async function createSalePayment(id: string, data: any): Promise<ApiRespo
     if (!response.ok) throw new Error(resData.error || 'Failed to create payment');
     return resData;
 }
+
+export async function fetchSaleStats(): Promise<ApiResponse<any>> {
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}${API_BASE}/stats`, {
+        cache: 'no-store',
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch sales stats');
+    return response.json();
+}

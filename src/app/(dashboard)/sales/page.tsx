@@ -17,6 +17,8 @@ interface SalesPageProps {
   }>;
 }
 
+import { SaleStatsDashboard } from '@/components/sales/sale-stats-dashboard';
+
 export const metadata = {
   title: 'Sales | PocketBooks',
   description: 'Manage sales transactions and invoices',
@@ -48,7 +50,10 @@ export default async function SalesPage({ searchParams }: SalesPageProps) {
         </div>
       </div>
 
-      {/* Stats Dashboard can be added here */}
+      {/* Stats Dashboard */}
+      <Suspense fallback={<div className="grid gap-4 md:grid-cols-4"><Skeleton className="h-32 w-full rounded-xl" /> <Skeleton className="h-32 w-full rounded-xl" /> <Skeleton className="h-32 w-full rounded-xl" /> <Skeleton className="h-32 w-full rounded-xl" /></div>}>
+        <SaleStatsDashboard />
+      </Suspense>
 
       {/* Search, Filters, and Actions Bar */}
       <div className="flex items-center justify-between gap-4">
