@@ -1,32 +1,19 @@
 'use client';
 
-import { useVendor } from '@/lib/hooks/use-vendors';
-import { notFound } from 'next/navigation';
+import { IVendor } from '@/types';
 import Link from 'next/link';
-import { ArrowLeft, Package, Pencil, Mail, Phone, MapPin, Building2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Package, Pencil, Mail, Phone, MapPin, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface VendorDetailViewProps {
-    id: string;
+    vendor: IVendor;
 }
 
-export function VendorDetailView({ id }: VendorDetailViewProps) {
-    const { data: vendor, isLoading, error } = useVendor(id);
-
-    if (isLoading) {
-        return (
-            <div className="flex h-64 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
-            </div>
-        );
-    }
-
-    if (error || !vendor) {
-        return <div>Vendor not found or an error occurred.</div>;
-    }
+export function VendorDetailView({ vendor }: VendorDetailViewProps) {
+    const id = vendor._id;
 
     return (
         <div className="flex flex-1 flex-col gap-6 md:gap-8">

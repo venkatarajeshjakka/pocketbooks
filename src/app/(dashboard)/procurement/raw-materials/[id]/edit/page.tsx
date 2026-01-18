@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ProcurementForm } from "@/components/procurement/procurement-form";
-import { fetchProcurement } from "@/lib/api/procurements";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -12,28 +12,6 @@ export default async function EditRawMaterialProcurementPage({
   params,
 }: PageProps) {
   const { id } = await params;
-
-  let procurement;
-  try {
-    procurement = await fetchProcurement("raw_material", id);
-  } catch (error) {
-    console.error("Failed to fetch procurement:", error);
-    notFound();
-  }
-
-  // The API returns serialization safe JSON (dates as strings)
-  // We need to transform items for the form to understand them
-  const serializedProcurement = procurement as any;
-
-  const transformedItems = serializedProcurement.items.map((item: any) => ({
-    ...item,
-    // Ensure rawMaterialId is just the ID string
-    rawMaterialId: item.rawMaterialId?._id || item.rawMaterialId,
-    // Add name for display
-    name: item.rawMaterialId?.name || "Unknown Item",
-  }));
-
-  serializedProcurement.items = transformedItems;
 
   return (
     <div className="flex-1 saas-canvas p-6 md:p-10 min-h-screen">
@@ -60,12 +38,13 @@ export default async function EditRawMaterialProcurementPage({
           </p>
         </div>
 
-        <ProcurementForm
-          type="raw_material"
-          mode="edit"
-          initialData={serializedProcurement}
-          procurementId={id}
-        />
+        <Suspense fallback={<div className="space-y-8"><Skeleton className="h-64 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div>}>
+          <ProcurementForm
+            type="raw_material"
+            mode="edit"
+            procurementId={id}
+          />
+        </Suspense>
       </div>
     </div>
   );

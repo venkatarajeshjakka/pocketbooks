@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ProcurementForm } from "@/components/procurement/procurement-form";
-import { fetchProcurement } from "@/lib/api/procurements";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -10,26 +10,6 @@ interface PageProps {
 
 export default async function EditTradingGoodPage({ params }: PageProps) {
   const { id } = await params;
-
-  let procurement;
-  try {
-    procurement = await fetchProcurement("trading_good", id);
-  } catch (error) {
-    console.error("Failed to fetch procurement:", error);
-    notFound();
-  }
-
-  const serializedProcurement = procurement as any;
-
-  const transformedItems = serializedProcurement.items.map((item: any) => ({
-    ...item,
-    // Ensure tradingGoodId is just the ID string
-    tradingGoodId: item.tradingGoodId?._id || item.tradingGoodId,
-    // Add name for display
-    name: item.tradingGoodId?.name || "Unknown Item",
-  }));
-
-  serializedProcurement.items = transformedItems;
 
   return (
     <div className="flex-1 saas-canvas p-6 md:p-10 min-h-screen">
@@ -56,12 +36,13 @@ export default async function EditTradingGoodPage({ params }: PageProps) {
           </p>
         </div>
 
-        <ProcurementForm
-          type="trading_good"
-          mode="edit"
-          initialData={serializedProcurement}
-          procurementId={id}
-        />
+        <Suspense fallback={<div className="space-y-8"><Skeleton className="h-64 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div>}>
+          <ProcurementForm
+            type="trading_good"
+            mode="edit"
+            procurementId={id}
+          />
+        </Suspense>
       </div>
     </div>
   );

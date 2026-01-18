@@ -36,7 +36,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { PaymentMethod, ExpenseCategory, IExpense } from '@/types';
-import { useCreateExpense, useUpdateExpense } from '@/lib/hooks/use-expenses';
+import { useCreateExpense, useUpdateExpense, useExpense } from '@/lib/hooks/use-expenses';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -90,19 +90,48 @@ export function ExpenseForm({ mode, expenseId, initialData }: ExpenseFormProps) 
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [changes, setChanges] = useState<any[]>([]);
 
+    const { data: expenseDataResponse, isLoading: isFetching } = useExpense(expenseId || '', {
+        enabled: mode === 'edit' && !!expenseId && !initialData,
+    });
+
+    const expenseData = initialData || expenseDataResponse;
+
     const createExpenseMutation = useCreateExpense();
     const updateExpenseMutation = useUpdateExpense();
     const isSubmitting = createExpenseMutation.isPending || updateExpenseMutation.isPending;
 
+    if (mode === 'edit' && isFetching) {
+        return (
+            <div className="flex h-64 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
     const [formData, setFormData] = useState<ExpenseFormData>({
-        date: initialData?.date ? new Date(initialData.date) : new Date(),
-        category: initialData?.category || ExpenseCategory.MISCELLANEOUS,
-        description: initialData?.description || '',
-        amount: initialData?.amount || 0,
-        paymentMethod: initialData?.paymentMethod || PaymentMethod.CASH,
-        receiptNumber: initialData?.receiptNumber || '',
-        notes: initialData?.notes || '',
+        date: expenseData?.date ? new Date(expenseData.date) : new Date(),
+        category: expenseData?.category || ExpenseCategory.MISCELLANEOUS,
+        description: expenseData?.description || '',
+        amount: expenseData?.amount || 0,
+        paymentMethod: expenseData?.paymentMethod || PaymentMethod.CASH,
+        receiptNumber: expenseData?.receiptNumber || '',
+        notes: expenseData?.notes || '',
     });
+
+    // Reset form when expenseData changes
+    useEffect(() => {
+        if (expenseData) {
+            setFormData({
+                date: expenseData.date ? new Date(expenseData.date) : new Date(),
+                category: expenseData.category || ExpenseCategory.MISCELLANEOUS,
+                description: expenseData.description || '',
+                amount: expenseData.amount || 0,
+                paymentMethod: expenseData.paymentMethod || PaymentMethod.CASH,
+                receiptNumber: expenseData.receiptNumber || '',
+                notes: expenseData.notes || '',
+            });
+        }
+    }, [expenseData]);
 
     // Handle Ctrl+S keyboard shortcut for quick save
     useEffect(() => {
@@ -175,7 +204,7 @@ export function ExpenseForm({ mode, expenseId, initialData }: ExpenseFormProps) 
         };
 
         Object.keys(labels).forEach(key => {
-            let oldValue = (initialData as any)?.[key];
+            let oldValue = (expenseData as any)?.[key];
             let newValue = (formData as any)[key];
 
             if (key === 'date' && oldValue) {

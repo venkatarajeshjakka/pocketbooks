@@ -66,15 +66,15 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
   };
 
   // Transform IClient to BaseEntityFormData for initial data
-  const formInitialData: BaseEntityFormData | undefined = initialData
+  const formInitialData: BaseEntityFormData | undefined = clientData
     ? {
-      name: initialData.name,
-      email: initialData.email,
-      contactPerson: initialData.contactPerson,
-      phone: initialData.phone,
-      address: initialData.address,
-      status: initialData.status,
-      gstNumber: initialData.gstNumber,
+      name: clientData.name,
+      email: clientData.email,
+      contactPerson: clientData.contactPerson,
+      phone: clientData.phone,
+      address: clientData.address,
+      status: clientData.status,
+      gstNumber: clientData.gstNumber,
     }
     : undefined;
 

@@ -39,7 +39,7 @@ import {
 import { ProcurementStatus, PaymentStatus, PaymentMethod } from '@/types';
 import { useVendors } from '@/lib/hooks/use-vendors';
 import { useRawMaterials, useTradingGoods } from '@/lib/hooks/use-inventory-items';
-import { useCreateProcurement, useUpdateProcurement } from '@/lib/hooks/use-procurements';
+import { useCreateProcurement, useUpdateProcurement, useProcurement } from '@/lib/hooks/use-procurements';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -96,26 +96,50 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
     const inventoryHook = type === 'raw_material' ? useRawMaterials : useTradingGoods;
     const { data: inventoryData, isLoading: inventoryLoading } = inventoryHook({ limit: 100 });
 
-    const [formData, setFormData] = useState<ProcurementFormData>({
-        vendorId: typeof initialData?.vendorId === 'object' ? initialData.vendorId?._id : (initialData?.vendorId || ''),
-        procurementDate: initialData?.procurementDate ? new Date(initialData.procurementDate) : new Date(),
-        expectedDeliveryDate: initialData?.expectedDeliveryDate ? new Date(initialData.expectedDeliveryDate) : undefined,
-        invoiceNumber: initialData?.invoiceNumber || '',
-        paymentTerms: initialData?.paymentTerms || '',
-        notes: initialData?.notes || '',
-        items: initialData?.items?.map((item: any) => ({
-            itemId: type === 'raw_material' ? item.rawMaterialId : item.tradingGoodId,
-            name: item.name || 'Unknown Item',
-            quantity: item.quantity || 1,
-            unitPrice: item.unitPrice || 0,
-            amount: item.amount || 0
-        })) || [],
-        gstPercentage: initialData?.gstPercentage || 18,
-        totalAmount: initialData?.originalPrice || 0,
-        gstAmount: initialData?.gstAmount || 0,
-        grandTotal: initialData?.gstBillPrice || 0,
-        status: initialData?.status || ProcurementStatus.ORDERED,
+    const { data: procurementDataResponse, isLoading: procurementLoading } = useProcurement(type, mode === 'edit' ? (procurementId || '') : '', {
+        enabled: mode === 'edit' && !!procurementId && !initialData,
     });
+    const procurementData = initialData || procurementDataResponse;
+
+    const [formData, setFormData] = useState<ProcurementFormData>({
+        vendorId: '',
+        procurementDate: new Date(),
+        invoiceNumber: '',
+        paymentTerms: '',
+        notes: '',
+        items: [],
+        gstPercentage: 18,
+        totalAmount: 0,
+        gstAmount: 0,
+        grandTotal: 0,
+        status: ProcurementStatus.ORDERED,
+    });
+
+    // Initialize/Sync form data
+    useEffect(() => {
+        if (procurementData) {
+            setFormData({
+                vendorId: typeof procurementData.vendorId === 'object' ? procurementData.vendorId?._id : (procurementData.vendorId || ''),
+                procurementDate: procurementData.procurementDate ? new Date(procurementData.procurementDate) : new Date(),
+                expectedDeliveryDate: procurementData.expectedDeliveryDate ? new Date(procurementData.expectedDeliveryDate) : undefined,
+                invoiceNumber: procurementData.invoiceNumber || '',
+                paymentTerms: procurementData.paymentTerms || '',
+                notes: procurementData.notes || '',
+                items: procurementData.items?.map((item: any) => ({
+                    itemId: type === 'raw_material' ? (item.rawMaterialId?._id || item.rawMaterialId) : (item.tradingGoodId?._id || item.tradingGoodId),
+                    name: item.name || item.rawMaterialId?.name || item.tradingGoodId?.name || 'Unknown Item',
+                    quantity: item.quantity || 1,
+                    unitPrice: item.unitPrice || 0,
+                    amount: item.amount || 0
+                })) || [],
+                gstPercentage: procurementData.gstPercentage || 18,
+                totalAmount: procurementData.originalPrice || 0,
+                gstAmount: procurementData.gstAmount || 0,
+                grandTotal: procurementData.gstBillPrice || 0,
+                status: procurementData.status || ProcurementStatus.ORDERED,
+            });
+        }
+    }, [procurementData, type]);
 
     const [paymentData, setPaymentData] = useState<PaymentFormData>({
         recordPayment: false,
@@ -213,6 +237,15 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
     const createMutation = useCreateProcurement(type);
     const updateMutation = useUpdateProcurement(type);
 
+    if (mode === 'edit' && procurementLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-24 space-y-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary/40" />
+                <p className="text-sm font-medium text-muted-foreground animate-pulse">Loading procurement details...</p>
+            </div>
+        );
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -256,7 +289,7 @@ export function ProcurementForm({ type, mode, initialData, procurementId }: Proc
         };
 
         Object.keys(labels).forEach(key => {
-            let oldValue = initialData[key];
+            let oldValue = procurementData[key];
             let newValue = (formData as any)[key];
 
             if (key === 'vendorId') {

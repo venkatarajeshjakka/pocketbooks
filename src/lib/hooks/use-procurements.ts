@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import {
     fetchProcurements,
     fetchProcurement,
@@ -10,6 +10,9 @@ import {
     type FetchProcurementsParams
 } from '@/lib/api/procurements';
 import { toast } from 'sonner';
+import { IRawMaterialProcurement, ITradingGoodsProcurement } from '@/types';
+
+type IProcurement = IRawMaterialProcurement | ITradingGoodsProcurement;
 
 interface UseProcurementsParams extends FetchProcurementsParams {
     type: 'raw_material' | 'trading_good';
@@ -34,11 +37,12 @@ export function useProcurements(params: UseProcurementsParams) {
     });
 }
 
-export function useProcurement(type: 'raw_material' | 'trading_good', id: string) {
-    return useQuery({
+export function useProcurement(type: 'raw_material' | 'trading_good', id: string, options?: Omit<UseQueryOptions<IProcurement>, 'queryKey' | 'queryFn'>) {
+    return useQuery<IProcurement>({
         queryKey: PROCUREMENT_KEYS.detail(type, id),
         queryFn: () => fetchProcurement(type, id),
         enabled: !!id,
+        ...options,
     });
 }
 

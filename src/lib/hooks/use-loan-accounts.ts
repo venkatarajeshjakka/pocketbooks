@@ -2,9 +2,9 @@
  * Loan Accounts React Query Hooks
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { fetchLoanAccounts, fetchLoanAccount } from '@/lib/api/loan-accounts';
-import { ILoanAccountInput, QueryParams } from '@/types';
+import { ILoanAccountInput, QueryParams, ApiResponse, ILoanAccount } from '@/types';
 import { toast } from 'sonner';
 import { loanKeys } from '@/lib/query-keys';
 
@@ -19,15 +19,17 @@ export function useLoanAccounts(params: QueryParams = {}) {
     });
 }
 
+
 /**
  * Hook to fetch a single loan account
  */
-export function useLoanAccount(id: string) {
-    return useQuery({
+export function useLoanAccount(id: string, options?: Omit<UseQueryOptions<ApiResponse<ILoanAccount>>, 'queryKey' | 'queryFn'>) {
+    return useQuery<ApiResponse<ILoanAccount>>({
         queryKey: loanKeys.detail(id),
         queryFn: () => fetchLoanAccount(id),
         enabled: !!id,
         staleTime: 1000 * 60, // 1 minute
+        ...options,
     });
 }
 

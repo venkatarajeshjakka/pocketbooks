@@ -1,10 +1,4 @@
-/**
- * Vendor Detail Page
- *
- * Displays detailed information about a single vendor
- */
-
-import { VendorDetailView } from '@/components/vendors/vendor-detail-view';
+import { VendorDetailContainer } from '@/components/vendors/vendor-detail-container';
 
 interface VendorDetailPageProps {
   params: Promise<{ id: string }>;
@@ -14,6 +8,6 @@ export default async function VendorDetailPage({ params }: VendorDetailPageProps
   const { id } = await params;
 
   return (
-    <VendorDetailView id={id} />
+    <VendorDetailContainer id={id} />
   );
 }

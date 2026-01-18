@@ -3,10 +3,8 @@
  * Edit Sale Page
  */
 import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
 import { SaleForm } from '@/components/sales/sale-form';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchSaleById } from '@/lib/api/sales';
 
 interface PageProps {
     params: Promise<{ id: string }>;
