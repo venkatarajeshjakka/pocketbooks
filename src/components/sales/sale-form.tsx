@@ -17,7 +17,7 @@ import { SaleStatus, PaymentStatus, PaymentMethod, InventoryItemType } from '@/t
 import { Switch } from '@/components/ui/switch';
 import { useClients } from '@/lib/hooks/use-clients';
 import { useTradingGoods, useFinishedGoods } from '@/lib/hooks/use-inventory-items';
-import { useCreateSale, useUpdateSale } from '@/lib/hooks/use-sales';
+import { useCreateSale, useUpdateSale, useCreateSalePayment, useSale } from '@/lib/hooks/use-sales';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -73,30 +73,55 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
     const { data: clientsData, isLoading: clientsLoading } = useClients({ limit: 100 });
     const { data: tradingGoodsData, isLoading: tgLoading } = useTradingGoods({ limit: 100 });
     const { data: finishedGoodsData, isLoading: fgLoading } = useFinishedGoods({ limit: 100 });
+    const { data: saleDataResponse, isLoading: saleLoading } = useSale(mode === 'edit' ? (saleId || '') : '');
+    const saleData = saleDataResponse?.data;
 
     const [formData, setFormData] = useState<SaleFormData>({
-        clientId: typeof initialData?.clientId === 'object' ? initialData.clientId?._id : (initialData?.clientId || ''),
-        saleDate: initialData?.saleDate ? new Date(initialData.saleDate) : new Date(),
-        expectedDeliveryDate: initialData?.expectedDeliveryDate ? new Date(initialData.expectedDeliveryDate) : undefined,
-        actualDeliveryDate: initialData?.actualDeliveryDate ? new Date(initialData.actualDeliveryDate) : undefined,
-        invoiceNumber: initialData?.invoiceNumber || '',
-        paymentTerms: initialData?.paymentTerms || '',
-        notes: initialData?.notes || '',
-        items: initialData?.items?.map((item: any) => ({
-            itemId: item.itemId, // Assuming backend populates basic info or we kept it as ID
-            itemType: item.itemType,
-            name: item.name || 'Unknown Item', // Logic to get name if not populated? see below
-            quantity: item.quantity || 1,
-            unitPrice: item.unitPrice || 0,
-            amount: item.amount || 0
-        })) || [],
-        gstPercentage: initialData?.gstPercentage || 18,
-        discount: initialData?.discount || 0,
-        subtotal: 0, // Calculated
-        gstAmount: 0, // Calculated
-        grandTotal: 0, // Calculated
-        status: initialData?.status || SaleStatus.PENDING,
+        clientId: '',
+        saleDate: new Date(),
+        expectedDeliveryDate: undefined,
+        actualDeliveryDate: undefined,
+        invoiceNumber: '',
+        paymentTerms: '',
+        notes: '',
+        items: [],
+        gstPercentage: 18,
+        discount: 0,
+        subtotal: 0,
+        gstAmount: 0,
+        grandTotal: 0,
+        status: SaleStatus.PENDING,
     });
+
+    // Sync form data in edit mode
+    useEffect(() => {
+        const data = saleData || initialData;
+        if (data) {
+            setFormData({
+                clientId: typeof data.clientId === 'object' ? data.clientId?._id : (data.clientId || ''),
+                saleDate: data.saleDate ? new Date(data.saleDate) : new Date(),
+                expectedDeliveryDate: data.expectedDeliveryDate ? new Date(data.expectedDeliveryDate) : undefined,
+                actualDeliveryDate: data.actualDeliveryDate ? new Date(data.actualDeliveryDate) : undefined,
+                invoiceNumber: data.invoiceNumber || '',
+                paymentTerms: data.paymentTerms || '',
+                notes: data.notes || '',
+                items: data.items?.map((item: any) => ({
+                    itemId: typeof item.itemId === 'object' ? item.itemId?._id : (item.itemId || ''),
+                    itemType: item.itemType,
+                    name: item.itemId?.name || item.name || 'Unknown Item',
+                    quantity: item.quantity || 1,
+                    unitPrice: item.unitPrice || 0,
+                    amount: item.amount || 0
+                })) || [],
+                gstPercentage: data.gstPercentage || 18,
+                discount: data.discount || 0,
+                subtotal: data.subtotal || 0,
+                gstAmount: data.gstAmount || 0,
+                grandTotal: data.grandTotal || 0,
+                status: data.status || SaleStatus.PENDING,
+            });
+        }
+    }, [saleData, initialData]);
 
     const [paymentData, setPaymentData] = useState<PaymentFormData>({
         recordPayment: false,
@@ -200,6 +225,7 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
 
     const createMutation = useCreateSale();
     const updateMutation = useUpdateSale();
+    const createPaymentMutation = useCreateSalePayment();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -242,21 +268,15 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                 savedSaleId = (res as any).data._id; // safe cast based on typical response
 
                 if (paymentData.recordPayment && savedSaleId) {
-                    // Create Payment
+                    // Create Payment using hook
                     const paymentPayload = {
                         amount: paymentData.amount,
                         paymentMethod: paymentData.paymentMethod,
                         paymentDate: paymentData.paymentDate,
                         notes: paymentData.notes
                     };
-                    // Use import from api directly or use hook? Hook needs top level.
-                    // I can use the createPayment hook but I need to call it dynamically? No, hooks are top level.
-                    // I should probably manually call API here or use a separate mutation that is available.
-                    // But `createMutation` is for Sale.
-                    // I can use `axios` directly or import `createSalePayment` from api/sales.
 
-                    const { createSalePayment } = await import('@/lib/api/sales');
-                    await createSalePayment(savedSaleId, paymentPayload);
+                    await createPaymentMutation.mutateAsync({ id: savedSaleId, data: paymentPayload });
                 }
 
                 toast.success('Sale created successfully');
@@ -278,6 +298,14 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
     // Inventory Items Options
     const currentInventoryItems = selectedItemType === InventoryItemType.FINISHED_GOOD ? finishedGoodsData?.data : tradingGoodsData?.data;
     const isInventoryLoading = selectedItemType === InventoryItemType.FINISHED_GOOD ? fgLoading : tgLoading;
+
+    if (mode === 'edit' && saleLoading) {
+        return (
+            <div className="flex h-64 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+            </div>
+        );
+    }
 
     return (
         <TooltipProvider>

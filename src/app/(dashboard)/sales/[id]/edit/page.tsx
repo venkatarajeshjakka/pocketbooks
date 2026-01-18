@@ -12,24 +12,6 @@ interface PageProps {
     params: Promise<{ id: string }>;
 }
 
-export const metadata = {
-    title: 'Edit Sale | PocketBooks',
-    description: 'Edit sales details',
-};
-
-async function EditSaleForm({ id }: { id: string }) {
-    try {
-        const response = await fetchSaleById(id);
-        if (!response || !response.data) {
-            notFound();
-        }
-        return <SaleForm mode="edit" saleId={id} initialData={response.data} />;
-    } catch (error) {
-        console.error('Error fetching sale for edit:', error);
-        notFound();
-    }
-}
-
 export default async function EditSalePage({ params }: PageProps) {
     const { id } = await params;
 
@@ -52,7 +34,7 @@ export default async function EditSalePage({ params }: PageProps) {
                     </div>
                 }
             >
-                <EditSaleForm id={id} />
+                <SaleForm mode="edit" saleId={id} />
             </Suspense>
         </div>
     );

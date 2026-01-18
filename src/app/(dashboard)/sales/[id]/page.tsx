@@ -4,9 +4,8 @@
  */
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { SaleDetailView } from '@/components/sales/sale-detail-view';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchSaleById } from '@/lib/api/sales';
+import { SaleDetailContainer } from '@/components/sales/sale-detail-container';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -16,19 +15,6 @@ export const metadata = {
     title: 'Sale Details | PocketBooks',
     description: 'View sale details and payment history',
 };
-
-async function SaleDetails({ id }: { id: string }) {
-    try {
-        const response = await fetchSaleById(id);
-        if (!response || !response.data) {
-            notFound();
-        }
-        return <SaleDetailView sale={response.data} />;
-    } catch (error) {
-        console.error('Error fetching sale details:', error);
-        notFound();
-    }
-}
 
 export default async function SaleDetailsPage({ params }: PageProps) {
     const { id } = await params;
@@ -60,7 +46,7 @@ export default async function SaleDetailsPage({ params }: PageProps) {
                 </div>
             }
         >
-            <SaleDetails id={id} />
+            <SaleDetailContainer id={id} />
         </Suspense>
     );
 }

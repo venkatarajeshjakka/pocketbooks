@@ -37,7 +37,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { IAsset, IAssetInput, AssetCategory, AssetStatus, PaymentMethod } from '@/types';
-import { useCreateAsset, useUpdateAsset } from '@/lib/hooks/use-assets';
+import { useCreateAsset, useUpdateAsset, useAsset } from '@/lib/hooks/use-assets';
 import { useVendors } from '@/lib/hooks/use-vendors';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -115,82 +115,96 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [changes, setChanges] = useState<any[]>([]);
 
+  const { data: assetResponse, isLoading: isFetching } = useAsset(assetId || '', {
+    enabled: mode === 'edit' && !!assetId && !initialData,
+  });
+
+  const assetData = initialData || assetResponse?.data;
+
   const createAssetMutation = useCreateAsset();
   const updateAssetMutation = useUpdateAsset(assetId || '');
   const isSubmitting = createAssetMutation.isPending || updateAssetMutation.isPending;
 
+  if (mode === 'edit' && isFetching) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   const { data: vendorsData, isLoading: vendorsLoading } = useVendors({ limit: 100 });
 
   const [formData, setFormData] = useState<AssetFormData>({
-    name: initialData?.name || '',
-    description: initialData?.description || '',
-    category: initialData?.category || AssetCategory.ELECTRONICS,
-    serialNumber: initialData?.serialNumber || '',
-    purchaseDate: initialData?.purchaseDate
-      ? new Date(initialData.purchaseDate)
+    name: assetData?.name || '',
+    description: assetData?.description || '',
+    category: assetData?.category || AssetCategory.ELECTRONICS,
+    serialNumber: assetData?.serialNumber || '',
+    purchaseDate: assetData?.purchaseDate
+      ? new Date(assetData.purchaseDate)
       : new Date(),
-    purchasePrice: initialData?.purchasePrice || 0,
-    currentValue: initialData?.currentValue || 0,
-    location: initialData?.location || '',
-    vendorId: getVendorId(initialData?.vendorId),
-    status: initialData?.status || AssetStatus.ACTIVE,
-    gstEnabled: initialData?.gstEnabled || false,
-    gstPercentage: initialData?.gstPercentage || 0,
-    gstAmount: initialData?.gstAmount || 0,
-    basePrice: initialData?.purchasePrice
-      ? (initialData.gstEnabled
-        ? initialData.purchasePrice - (initialData.gstAmount || 0)
-        : initialData.purchasePrice)
+    purchasePrice: assetData?.purchasePrice || 0,
+    currentValue: assetData?.currentValue || 0,
+    location: assetData?.location || '',
+    vendorId: getVendorId(assetData?.vendorId),
+    status: assetData?.status || AssetStatus.ACTIVE,
+    gstEnabled: assetData?.gstEnabled || false,
+    gstPercentage: assetData?.gstPercentage || 0,
+    gstAmount: assetData?.gstAmount || 0,
+    basePrice: assetData?.purchasePrice
+      ? (assetData.gstEnabled
+        ? assetData.purchasePrice - (assetData.gstAmount || 0)
+        : assetData.purchasePrice)
       : 0,
   });
 
   const [paymentData, setPaymentData] = useState<PaymentFormData>({
-    recordPayment: !!initialData?.paymentDetails,
-    amount: initialData?.paymentDetails?.amount || 0,
-    paymentMethod: initialData?.paymentDetails?.paymentMethod || PaymentMethod.UPI,
-    paymentDate: initialData?.paymentDetails?.paymentDate
-      ? new Date(initialData.paymentDetails.paymentDate)
+    recordPayment: !!assetData?.paymentDetails,
+    amount: assetData?.paymentDetails?.amount || 0,
+    paymentMethod: assetData?.paymentDetails?.paymentMethod || PaymentMethod.UPI,
+    paymentDate: assetData?.paymentDetails?.paymentDate
+      ? new Date(assetData.paymentDetails.paymentDate)
       : new Date(),
-    notes: initialData?.paymentDetails?.notes || '',
+    notes: assetData?.paymentDetails?.notes || '',
   });
 
-  // Reset form when initialData changes
+  // Reset form when assetData changes
   useEffect(() => {
-    if (initialData) {
+    if (assetData) {
       setFormData({
-        name: initialData.name || '',
-        description: initialData.description || '',
-        category: initialData.category || AssetCategory.ELECTRONICS,
-        serialNumber: initialData.serialNumber || '',
-        purchaseDate: initialData.purchaseDate
-          ? new Date(initialData.purchaseDate)
+        name: assetData.name || '',
+        description: assetData.description || '',
+        category: assetData.category || AssetCategory.ELECTRONICS,
+        serialNumber: assetData.serialNumber || '',
+        purchaseDate: assetData.purchaseDate
+          ? new Date(assetData.purchaseDate)
           : new Date(),
-        purchasePrice: initialData.purchasePrice || 0,
-        currentValue: initialData.currentValue || 0,
-        location: initialData.location || '',
-        vendorId: getVendorId(initialData.vendorId),
-        status: initialData.status || AssetStatus.ACTIVE,
-        gstEnabled: initialData.gstEnabled || false,
-        gstPercentage: initialData.gstPercentage || 0,
-        gstAmount: initialData.gstAmount || 0,
-        basePrice: initialData.purchasePrice
-          ? (initialData.gstEnabled
-            ? Number(initialData.purchasePrice) - Number(initialData.gstAmount || 0)
-            : Number(initialData.purchasePrice))
+        purchasePrice: assetData.purchasePrice || 0,
+        currentValue: assetData.currentValue || 0,
+        location: assetData.location || '',
+        vendorId: getVendorId(assetData.vendorId),
+        status: assetData.status || AssetStatus.ACTIVE,
+        gstEnabled: assetData.gstEnabled || false,
+        gstPercentage: assetData.gstPercentage || 0,
+        gstAmount: assetData.gstAmount || 0,
+        basePrice: assetData.purchasePrice
+          ? (assetData.gstEnabled
+            ? Number(assetData.purchasePrice) - Number(assetData.gstAmount || 0)
+            : Number(assetData.purchasePrice))
           : 0,
       });
 
       setPaymentData({
-        recordPayment: !!initialData.paymentDetails,
-        amount: initialData.paymentDetails?.amount || 0,
-        paymentMethod: initialData.paymentDetails?.paymentMethod || PaymentMethod.UPI,
-        paymentDate: initialData.paymentDetails?.paymentDate
-          ? new Date(initialData.paymentDetails.paymentDate)
+        recordPayment: !!assetData.paymentDetails,
+        amount: assetData.paymentDetails?.amount || 0,
+        paymentMethod: assetData.paymentDetails?.paymentMethod || PaymentMethod.UPI,
+        paymentDate: assetData.paymentDetails?.paymentDate
+          ? new Date(assetData.paymentDetails.paymentDate)
           : new Date(),
-        notes: initialData.paymentDetails?.notes || '',
+        notes: assetData.paymentDetails?.notes || '',
       });
     }
-  }, [initialData]);
+  }, [assetData]);
 
   // Set currentValue to purchasePrice when creating
   useEffect(() => {
@@ -315,7 +329,7 @@ export function AssetForm({ mode, assetId, initialData }: AssetFormProps) {
     };
 
     Object.keys(labels).forEach(key => {
-      let oldValue = (initialData as any)?.[key];
+      let oldValue = (assetData as any)?.[key];
       let newValue = (formData as any)[key];
 
       if (key === 'vendorId') {

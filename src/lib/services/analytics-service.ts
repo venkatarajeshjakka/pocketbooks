@@ -8,7 +8,7 @@ export class AnalyticsService {
      */
     static async getDashboardMetrics() {
         // 1. Total Sales (Settled/Completed)
-        const salesStats = await Sale.aggregate([
+        const salesStats = (await Sale.aggregate([
             { $match: { status: { $ne: SaleStatus.CANCELLED } } },
             {
                 $group: {
@@ -18,19 +18,19 @@ export class AnalyticsService {
                     remaining: { $sum: '$remainingAmount' }
                 }
             }
-        ]);
+        ])) as any[];
 
         // 2. Pending Payables (Procurements)
         // We need to aggregate across both procurement types if they are separate collections
-        const rmProcStats = await RawMaterialProcurement.aggregate([
+        const rmProcStats = (await RawMaterialProcurement.aggregate([
             { $match: { status: { $ne: ProcurementStatus.CANCELLED } } },
             { $group: { _id: null, remaining: { $sum: '$remainingAmount' } } }
-        ]);
+        ])) as any[];
 
-        const tgProcStats = await TradingGoodsProcurement.aggregate([
+        const tgProcStats = (await TradingGoodsProcurement.aggregate([
             { $match: { status: { $ne: ProcurementStatus.CANCELLED } } },
             { $group: { _id: null, remaining: { $sum: '$remainingAmount' } } }
-        ]);
+        ])) as any[];
 
         // 3. Assets and Loans
         const totalAssets = await Asset.aggregate([

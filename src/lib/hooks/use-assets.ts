@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { IAsset, IAssetInput, PaginatedResponse, ApiResponse } from '@/types';
 import { toast } from 'sonner';
 import {
@@ -49,7 +49,8 @@ export function useAssets(params?: {
     });
 }
 
-export function useAsset(id: string) {
+
+export function useAsset(id: string, options?: Omit<UseQueryOptions<ApiResponse<IAsset>>, 'queryKey' | 'queryFn'>) {
     return useQuery<ApiResponse<IAsset>>({
         queryKey: assetKeys.detail(id),
         queryFn: async () => {
@@ -61,6 +62,7 @@ export function useAsset(id: string) {
         staleTime: 1000 * 60, // 1 minute
         refetchOnMount: true,
         refetchOnWindowFocus: true,
+        ...options,
     });
 }
 

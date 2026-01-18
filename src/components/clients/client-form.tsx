@@ -9,7 +9,8 @@
 
 import { EntityForm, BaseEntityFormData, EntityFormConfig } from '@/components/shared/entity';
 import { IClient, IClientInput } from '@/types';
-import { useCreateClient, useUpdateClient } from '@/lib/hooks/use-clients';
+import { useCreateClient, useUpdateClient, useClient } from '@/lib/hooks/use-clients';
+import { Loader2 } from 'lucide-react';
 
 interface ClientFormProps {
   mode: 'create' | 'edit';
@@ -18,9 +19,23 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
+  const { data: clientResponse, isLoading: isFetching } = useClient(clientId || '', {
+    enabled: mode === 'edit' && !!clientId && !initialData,
+  });
+
+  const clientData = initialData || clientResponse;
+
   const createClientMutation = useCreateClient();
   const updateClientMutation = useUpdateClient();
   const isSubmitting = createClientMutation.isPending || updateClientMutation.isPending;
+
+  if (mode === 'edit' && isFetching) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const config: EntityFormConfig = {
     entityType: 'client',
@@ -53,14 +68,14 @@ export function ClientForm({ mode, clientId, initialData }: ClientFormProps) {
   // Transform IClient to BaseEntityFormData for initial data
   const formInitialData: BaseEntityFormData | undefined = initialData
     ? {
-        name: initialData.name,
-        email: initialData.email,
-        contactPerson: initialData.contactPerson,
-        phone: initialData.phone,
-        address: initialData.address,
-        status: initialData.status,
-        gstNumber: initialData.gstNumber,
-      }
+      name: initialData.name,
+      email: initialData.email,
+      contactPerson: initialData.contactPerson,
+      phone: initialData.phone,
+      address: initialData.address,
+      status: initialData.status,
+      gstNumber: initialData.gstNumber,
+    }
     : undefined;
 
   return (

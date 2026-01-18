@@ -24,7 +24,9 @@ export async function GET(
     await connectToDatabase();
     const { id } = await params;
 
-    const sale = await Sale.findById(id).populate('clientId', 'name email phone');
+    const sale = await Sale.findById(id)
+      .populate('clientId', 'name email phone')
+      .populate('items.itemId');
 
     if (!sale) {
       return errorResponse('Sale not found', 404);

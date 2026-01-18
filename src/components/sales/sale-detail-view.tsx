@@ -99,7 +99,7 @@ export function SaleDetailView({ sale }: SaleDetailViewProps) {
                                 <span className="font-bold">Edit Sale</span>
                             </Link>
                         </Button>
-                        <SaleDeleteButton saleId={sale._id.toString()} />
+                        <SaleDeleteButton saleId={sale._id.toString()} invoiceNumber={sale.invoiceNumber} />
                     </div>
                 </div>
             </motion.div>

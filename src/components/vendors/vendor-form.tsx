@@ -9,7 +9,8 @@
 
 import { EntityForm, VendorFormData, EntityFormConfig } from '@/components/shared/entity';
 import { IVendor, IVendorInput } from '@/types';
-import { useCreateVendor, useUpdateVendor } from '@/lib/hooks/use-vendors';
+import { useCreateVendor, useUpdateVendor, useVendor } from '@/lib/hooks/use-vendors';
+import { Loader2 } from 'lucide-react';
 
 interface VendorFormProps {
   mode: 'create' | 'edit';
@@ -18,9 +19,23 @@ interface VendorFormProps {
 }
 
 export function VendorForm({ mode, vendorId, initialData }: VendorFormProps) {
+  const { data: vendorResponse, isLoading: isFetching } = useVendor(vendorId || '', {
+    enabled: mode === 'edit' && !!vendorId && !initialData,
+  });
+
+  const vendorData = initialData || vendorResponse;
+
   const createVendorMutation = useCreateVendor();
   const updateVendorMutation = useUpdateVendor();
   const isSubmitting = createVendorMutation.isPending || updateVendorMutation.isPending;
+
+  if (mode === 'edit' && isFetching) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const config: EntityFormConfig = {
     entityType: 'vendor',
@@ -53,17 +68,17 @@ export function VendorForm({ mode, vendorId, initialData }: VendorFormProps) {
   };
 
   // Transform IVendor to VendorFormData for initial data
-  const formInitialData: VendorFormData | undefined = initialData
+  const formInitialData: VendorFormData | undefined = vendorData
     ? {
-      name: initialData.name,
-      email: initialData.email,
-      contactPerson: initialData.contactPerson,
-      phone: initialData.phone,
-      address: initialData.address,
-      status: initialData.status,
-      gstNumber: initialData.gstNumber,
-      specialty: initialData.specialty,
-      rawMaterialTypes: initialData.rawMaterialTypes,
+      name: vendorData.name,
+      email: vendorData.email,
+      contactPerson: vendorData.contactPerson,
+      phone: vendorData.phone,
+      address: vendorData.address,
+      status: vendorData.status,
+      gstNumber: vendorData.gstNumber,
+      specialty: vendorData.specialty,
+      rawMaterialTypes: vendorData.rawMaterialTypes,
     }
     : undefined;
 

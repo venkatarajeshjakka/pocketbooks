@@ -13,31 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Asset } from '@/models'; // Kept for generic types if needed, but preferably remove. But AssetList imports it.
 // Actually AssetList imports from '@/models'? No, it imports types probably or just uses it.
 // Let's replace the imports.
-import { fetchAssets } from '@/lib/api/assets';
-
-// Bulk Payment Actions Component
-async function BulkPaymentActions() {
-    try {
-        const response = await fetchAssets({
-            limit: 1000,
-            hasOutstanding: true
-        });
-
-        const assets = response.data;
-
-        if (assets.length === 0) {
-            return null;
-        }
-
-        const { BulkPaymentDialog } = await import('@/components/assets/bulk-payment-dialog');
-        return <BulkPaymentDialog assets={assets} />;
-    } catch (error) {
-        console.error('Failed to load assets for bulk payment:', error);
-        // B8 Fix: Return a visible error indicator instead of silently failing
-        const { BulkPaymentErrorIndicator } = await import('@/components/assets/bulk-payment-error-indicator');
-        return <BulkPaymentErrorIndicator />;
-    }
-}
+import { BulkPaymentContainer } from '@/components/assets/bulk-payment-container';
 
 interface AssetsPageProps {
     searchParams: Promise<{
@@ -111,7 +87,7 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
                     showOutstandingFilter={false}
                 />
                 <Suspense fallback={null}>
-                    <BulkPaymentActions />
+                    <BulkPaymentContainer />
                 </Suspense>
             </div>
 

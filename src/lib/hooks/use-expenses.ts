@@ -4,9 +4,9 @@
 
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { fetchExpenses, fetchExpense, fetchExpenseStats } from '@/lib/api/expenses';
-import { IExpenseInput } from '@/types';
+import { IExpenseInput, ApiResponse, IExpense } from '@/types';
 import { toast } from 'sonner';
 import {
     expenseKeys,
@@ -39,17 +39,19 @@ export function useExpenses(params: {
     });
 }
 
+
 /**
  * Hook to fetch a single expense
  */
-export function useExpense(id: string) {
-    return useQuery({
+export function useExpense(id: string, options?: Omit<UseQueryOptions<IExpense>, 'queryKey' | 'queryFn'>) {
+    return useQuery<IExpense>({
         queryKey: expenseKeys.detail(id),
         queryFn: () => fetchExpense(id),
         enabled: !!id,
         staleTime: 1000 * 60, // 1 minute
         refetchOnMount: true,
         refetchOnWindowFocus: true,
+        ...options,
     });
 }
 

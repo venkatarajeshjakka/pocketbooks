@@ -19,40 +19,16 @@ export class PaymentService {
 
         // 2. Reverse effects based on transaction type
         if (transactionType === TransactionType.SALE && saleId) {
-            // Revert Sale totalPaid and remainingAmount
-            const sale = await Sale.findById(saleId).session(session || null);
-            if (sale) {
-                const oldRemaining = sale.remainingAmount;
-                sale.totalPaid = Math.max(0, (sale.totalPaid || 0) - amount);
-                await sale.save({ session });
-
-                // Adjust Client balance - the reduction in payment increases outstanding balance
-                if (partyId && partyType === PartyType.CLIENT) {
-                    const newRemaining = sale.remainingAmount;
-                    const diff = newRemaining - oldRemaining;
-                    if (diff !== 0) {
-                        await Client.findByIdAndUpdate(
-                            partyId,
-                            { $inc: { outstandingBalance: diff } },
-                            { session }
-                        );
-                    }
-                }
-            }
+            const { SaleService } = await import('./sale-service');
+            await SaleService.syncSalePaymentStatus(saleId.toString(), session);
         } else if (transactionType === TransactionType.PURCHASE) {
             if (procurementId && procurementType) {
-                // Use ProcurementService to sync status (avoids circular dependency if used carefully)
-                // Since this is a static call, we can import it dynamically or just use the same logic
                 const { ProcurementService } = await import('./procurement-service');
-
-                if (procurementId && procurementType) {
-                    const { ProcurementService } = await import('./procurement-service');
-                    await ProcurementService.syncProcurementPaymentStatus(
-                        procurementId.toString(),
-                        procurementType as any,
-                        session
-                    );
-                }
+                await ProcurementService.syncProcurementPaymentStatus(
+                    procurementId.toString(),
+                    procurementType as any,
+                    session
+                );
             } else if (partyId && partyType === PartyType.VENDOR) {
                 // Pure vendor payment not linked to procurement
                 await Vendor.findByIdAndUpdate(
@@ -94,24 +70,8 @@ export class PaymentService {
             const { transactionType, partyId, partyType, saleId, procurementId, procurementType, assetId } = updatedPayment;
 
             if (transactionType === TransactionType.SALE && saleId) {
-                const sale = await Sale.findById(saleId).session(session || null);
-                if (sale) {
-                    const oldRemaining = sale.remainingAmount;
-                    sale.totalPaid = Math.max(0, (sale.totalPaid || 0) + amountDiff);
-                    await sale.save({ session });
-
-                    if (partyId && partyType === PartyType.CLIENT) {
-                        const newRemaining = sale.remainingAmount;
-                        const diff = newRemaining - oldRemaining;
-                        if (diff !== 0) {
-                            await Client.findByIdAndUpdate(
-                                partyId,
-                                { $inc: { outstandingBalance: diff } },
-                                { session }
-                            );
-                        }
-                    }
-                }
+                const { SaleService } = await import('./sale-service');
+                await SaleService.syncSalePaymentStatus(saleId.toString(), session);
             } else if (transactionType === TransactionType.PURCHASE) {
                 if (procurementId && procurementType) {
                     const { ProcurementService } = await import('./procurement-service');
