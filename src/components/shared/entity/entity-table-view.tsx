@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment, IRawMaterialProcurement, ITradingGoodsProcurement, IRawMaterial, ITradingGood, IFinishedGood } from "@/types";
+import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment, IRawMaterialProcurement, ITradingGoodsProcurement, IRawMaterial, ITradingGood, IFinishedGood, ISale } from "@/types";
 import {
   Table,
   TableBody,
@@ -30,11 +30,11 @@ import { fadeInUp, listItem } from "@/lib/utils/animation-variants";
 import { cn } from "@/lib/utils";
 import { EntityActionsMenu } from "./entity-actions-menu";
 
-export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment | IRawMaterialProcurement | ITradingGoodsProcurement | IRawMaterial | ITradingGood | IFinishedGood;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment | IRawMaterialProcurement | ITradingGoodsProcurement | IRawMaterial | ITradingGood | IFinishedGood | ISale;
 
 export interface EntityTableViewProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement' | 'raw-material' | 'trading-good' | 'finished-good';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement' | 'raw-material' | 'trading-good' | 'finished-good' | 'sale';
   selectedEntities?: Set<string>;
   onToggleSelection?: (id: string) => void;
   onToggleAll?: () => void;

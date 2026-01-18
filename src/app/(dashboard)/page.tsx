@@ -13,58 +13,39 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 
-export default function DashboardPage() {
-  // Mock data - replace with actual data fetching
+import { AnalyticsService } from "@/lib/services/analytics-service";
+import { connectToDatabase } from "@/lib/api-helpers";
+
+export default async function DashboardPage() {
+  await connectToDatabase();
+  const metricsData = await AnalyticsService.getDashboardMetrics();
+
   const metrics = {
-    totalSales: 45230.5,
-    pendingReceivables: 12340.0,
-    pendingPayables: 8560.0,
-    netProfit: 18920.5,
-    salesChange: 12.5,
-    arChange: -5.2,
-    apChange: 8.3,
-    profitChange: 15.8,
-    totalAssets: 1250000.0,
-    outstandingLoans: 450000.0,
-    assetsChange: 4.2,
-    loansChange: -2.1,
+    totalSales: metricsData.totalSales,
+    pendingReceivables: metricsData.pendingReceivables,
+    pendingPayables: metricsData.pendingPayables,
+    netProfit: metricsData.netProfit,
+    salesChange: 0, // In a real app, you'd calc trend
+    arChange: 0,
+    apChange: 0,
+    profitChange: 0,
+    totalAssets: metricsData.totalAssets,
+    outstandingLoans: metricsData.outstandingLoans,
+    assetsChange: 0,
+    loansChange: 0,
   };
 
-  const recentSales = [
-    {
-      id: "S-001",
-      client: "Acme Corporation",
-      amount: 2500.0,
-      date: "2 min ago",
-      status: "Paid",
-    },
-    {
-      id: "S-002",
-      client: "TechStart Inc.",
-      amount: 1850.0,
-      date: "15 min ago",
-      status: "Pending",
-    },
-    {
-      id: "S-003",
-      client: "Global Solutions",
-      amount: 3200.0,
-      date: "1 hour ago",
-      status: "Paid",
-    },
-  ];
+  const recentSales = metricsData.recentSales.map((s: any) => ({
+    id: s.id,
+    client: s.client,
+    amount: s.amount,
+    date: new Date(s.date).toLocaleDateString(),
+    status: s.status
+  }));
 
-  const pendingPayments = [
-    { client: "Acme Corporation", amount: 2500.0, dueDate: "Dec 10, 2024" },
-    { client: "TechStart Inc.", amount: 1850.0, dueDate: "Dec 05, 2024" },
-    { client: "Beta Labs", amount: 950.0, dueDate: "Dec 12, 2024" },
-  ];
+  const pendingPayments: any[] = []; // Need to add logic to AnalyticsService for this if needed
 
-  const lowStockItems = [
-    { name: "Raw Material A", quantity: 5, unit: "kg" },
-    { name: "Trading Product B", quantity: 12, unit: "units" },
-    { name: "Packaging Box", quantity: 45, unit: "pcs" },
-  ];
+  const lowStockItems = metricsData.lowStockItems;
 
   return (
     <div className="flex flex-1 flex-col gap-6 sm:gap-8">

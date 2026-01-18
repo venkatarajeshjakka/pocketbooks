@@ -452,6 +452,7 @@ export interface ISale {
 export interface ISaleInput {
   clientId: string;
   saleDate: Date;
+  invoiceNumber?: string;
   items: {
     itemId: string;
     itemType: InventoryItemType;

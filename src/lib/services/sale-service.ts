@@ -114,6 +114,12 @@ export class SaleService {
         },
         session?: mongoose.ClientSession
     ) {
+        // 0. Validate invoice uniqueness
+        const existingSale = await Sale.findOne({ invoiceNumber: data.invoiceNumber }).session(session || null);
+        if (existingSale) {
+            throw new Error(`Invoice number ${data.invoiceNumber} already exists`);
+        }
+
         // 1. Validate stock availability
         await this.validateStockAvailability(data.items, session);
 
@@ -150,6 +156,17 @@ export class SaleService {
             client.outstandingBalance += sale.remainingAmount;
             await client.save({ session });
         }
+
+        // 6. Log the action
+        const { AuditService } = await import('./audit-service');
+        const { AuditAction } = await import('@/models/AuditLog');
+        await AuditService.log({
+            action: AuditAction.CREATE,
+            entityType: 'Sale',
+            entityId: sale._id.toString(),
+            details: `Sale created with invoice ${sale.invoiceNumber}`,
+            newValue: sale.toObject()
+        }, session);
 
         return sale;
     }

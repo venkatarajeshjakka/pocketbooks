@@ -18,3 +18,4 @@ export { default as InterestPayment } from './InterestPayment';
 export { default as RawMaterialType } from './RawMaterialType';
 export { default as Asset } from './Asset';
 export { default as LoanAccount } from './LoanAccount';
+export { default as AuditLog } from './AuditLog';

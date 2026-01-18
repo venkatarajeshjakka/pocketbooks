@@ -18,7 +18,7 @@ import {
 
 interface EntityActionsMenuProps {
   entityId: string;
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement' | 'raw-material' | 'trading-good' | 'finished-good';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement' | 'raw-material' | 'trading-good' | 'finished-good' | 'sale';
   entityName?: string;
   basePath: string;
   onEdit?: (id: string) => void;

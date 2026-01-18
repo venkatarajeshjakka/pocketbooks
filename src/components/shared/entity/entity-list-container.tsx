@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment, IRawMaterialProcurement, ITradingGoodsProcurement, IRawMaterial, ITradingGood, IFinishedGood } from '@/types';
+import { IClient, IVendor, IAsset, IPayment, IExpense, ILoanAccount, IInterestPayment, IRawMaterialProcurement, ITradingGoodsProcurement, IRawMaterial, ITradingGood, IFinishedGood, ISale } from '@/types';
 import { EntityGridView } from './entity-grid-view';
 import { EntityTableView } from './entity-table-view';
 import { ViewMode } from './view-toggle';
@@ -16,11 +16,11 @@ import { BulkActionsBar } from './bulk-actions-bar';
 import { DeleteEntityDialog } from './delete-entity-dialog';
 import { toast } from 'sonner';
 
-export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment | IRawMaterialProcurement | ITradingGoodsProcurement | IRawMaterial | ITradingGood | IFinishedGood;
+export type EntityType = IClient | IVendor | IAsset | IPayment | IExpense | ILoanAccount | IInterestPayment | IRawMaterialProcurement | ITradingGoodsProcurement | IRawMaterial | ITradingGood | IFinishedGood | ISale;
 
 export interface EntityListContainerProps<T extends EntityType> {
   entities: T[];
-  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement' | 'raw-material' | 'trading-good' | 'finished-good';
+  entityType: 'client' | 'vendor' | 'asset' | 'payment' | 'expense' | 'loan' | 'interest-payment' | 'procurement' | 'trading_good_procurement' | 'raw-material' | 'trading-good' | 'finished-good' | 'sale';
   initialView?: ViewMode;
   basePath: string;
   onDelete?: (id: string) => Promise<void>;
@@ -126,6 +126,12 @@ export function EntityListContainer<T extends EntityType>({
       } else if ((entityType as any) === 'finished-good') {
         affectedItems = [
           { label: 'Sales History', description: 'Any sales involving this finished good will block its deletion.', severity: 'warning' }
+        ];
+      } else if ((entityType as any) === 'sale') {
+        affectedItems = [
+          { label: 'Inventory Reversal', description: 'Deducted inventory items will be added back to stock.', severity: 'warning' },
+          { label: 'Client Balance', description: 'The client\'s outstanding balance will be reduced by the remaining amount.', severity: 'info' },
+          { label: 'Payment History', description: 'All associated payments for this sale will be permanently deleted.', severity: 'danger' }
         ];
       }
 

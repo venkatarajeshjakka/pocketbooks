@@ -52,7 +52,7 @@ function StatusBadge({ status }: { status: SaleStatus }) {
 
 export function SaleDetailView({ sale }: SaleDetailViewProps) {
     const listPath = '/sales';
-    const editPath = `/sales/${sale._id}/edit`;
+    const editPath = `/sales/${sale._id.toString()}/edit`;
 
     return (
         <motion.div
@@ -99,7 +99,7 @@ export function SaleDetailView({ sale }: SaleDetailViewProps) {
                                 <span className="font-bold">Edit Sale</span>
                             </Link>
                         </Button>
-                        <SaleDeleteButton saleId={sale._id} />
+                        <SaleDeleteButton saleId={sale._id.toString()} />
                     </div>
                 </div>
             </motion.div>
@@ -340,7 +340,7 @@ export function SaleDetailView({ sale }: SaleDetailViewProps) {
                                         {(sale.remainingAmount || 0) > 0 && (
                                             <div className="pt-2">
                                                 <AddSalePaymentDialog
-                                                    saleId={sale._id}
+                                                    saleId={sale._id.toString()}
                                                     remainingAmount={sale.remainingAmount || 0}
                                                     currentTranche={0} // Ideally we count payments
                                                     trigger={
@@ -369,7 +369,7 @@ export function SaleDetailView({ sale }: SaleDetailViewProps) {
                                 <p className="text-sm text-muted-foreground">Track all payments received for this sale</p>
                             </CardHeader>
                             <CardContent className="p-0">
-                                <SalePaymentHistory saleId={sale._id} />
+                                <SalePaymentHistory saleId={sale._id.toString()} />
                             </CardContent>
                         </Card>
                     </motion.div>

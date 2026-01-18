@@ -11,6 +11,7 @@ import {
     TransactionType,
     AccountType,
     PartyType,
+    PaymentMethod,
     IRawMaterialProcurementInput,
     ITradingGoodsProcurementInput,
     IPaymentInput
@@ -21,7 +22,7 @@ export class ProcurementService {
     /**
      * Get the appropriate model based on type
      */
-    private static getModel(type: 'raw_material' | 'trading_good') {
+    public static getModel(type: 'raw_material' | 'trading_good') {
         return type === 'raw_material' ? RawMaterialProcurement : TradingGoodsProcurement;
     }
 
@@ -157,6 +158,98 @@ export class ProcurementService {
 
         await procurement.save({ session });
         return procurement;
+    }
+
+    /**
+     * Update procurement details and handle all side effects
+     */
+    static async updateProcurement(
+        id: string,
+        type: 'raw_material' | 'trading_good',
+        data: any,
+        session?: mongoose.ClientSession
+    ) {
+        const Model = this.getModel(type) as any;
+        const procurement = await Model.findById(id).session(session || null);
+        if (!procurement) throw new Error('Procurement not found');
+
+        const oldStatus = procurement.status;
+        const oldRemaining = procurement.remainingAmount;
+        const oldVendorId = procurement.vendorId.toString();
+
+        // 1. Update the document
+        // This will trigger pre-validate hooks for pricing/status
+        Object.assign(procurement, data);
+        await procurement.save({ session });
+
+        // 2. Handle Status/Inventory transitions
+        if (data.status && data.status !== oldStatus) {
+            await this.updateProcurementStatus(id, type, data.status, data.receivedDate, session);
+        }
+
+        // 3. Handle Vendor Balance change
+        const newRemaining = procurement.remainingAmount;
+        const newVendorId = procurement.vendorId.toString();
+
+        if (oldVendorId === newVendorId) {
+            const diff = newRemaining - oldRemaining;
+            if (diff !== 0) {
+                await Vendor.findByIdAndUpdate(
+                    oldVendorId,
+                    { $inc: { outstandingPayable: diff } },
+                    { session }
+                );
+            }
+        } else {
+            // Vendor changed: Revert old, apply new
+            await Vendor.findByIdAndUpdate(
+                oldVendorId,
+                { $inc: { outstandingPayable: -oldRemaining } },
+                { session }
+            );
+            await Vendor.findByIdAndUpdate(
+                newVendorId,
+                { $inc: { outstandingPayable: newRemaining } },
+                { session }
+            );
+        }
+
+        return procurement;
+    }
+
+    /**
+     * Sync procurement totalPaid from all associated payments
+     */
+    static async syncProcurementPaymentStatus(
+        procurementId: string,
+        type: 'raw_material' | 'trading_good',
+        session?: mongoose.ClientSession
+    ) {
+        const Model = this.getModel(type) as any;
+        const procurement = await Model.findById(procurementId).session(session || null);
+        if (!procurement) return;
+
+        const payments = await Payment.find({
+            procurementId,
+            procurementType: type
+        }).session(session || null);
+
+        const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+
+        const oldRemaining = procurement.remainingAmount;
+        procurement.totalPaid = totalPaid;
+        await procurement.save({ session });
+
+        const newRemaining = procurement.remainingAmount;
+        const diff = newRemaining - oldRemaining;
+
+        if (diff !== 0) {
+            await Vendor.findByIdAndUpdate(
+                procurement.vendorId,
+                { $inc: { outstandingPayable: diff } },
+                { session }
+            );
+        }
     }
 
     /**
