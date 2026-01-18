@@ -5,7 +5,7 @@
  */
 
 import mongoose, { Schema, Model } from 'mongoose';
-import { ISale, SaleStatus, InventoryItemType } from '@/types';
+import { ISale, SaleStatus, InventoryItemType, PaymentStatus } from '@/types';
 
 const SaleSchema = new Schema<ISale>(
   {
@@ -79,6 +79,53 @@ const SaleSchema = new Schema<ISale>(
       default: 0,
       min: [0, 'Balance amount cannot be negative'],
     },
+    // Enhanced pricing fields
+    originalPrice: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: [0, 'Original price cannot be negative'],
+    },
+    gstBillPrice: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: [0, 'GST bill price cannot be negative'],
+    },
+    gstPercentage: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: [0, 'GST percentage cannot be negative'],
+      max: [100, 'GST percentage cannot exceed 100'],
+    },
+    // Payment tracking fields
+    paymentStatus: {
+      type: String,
+      enum: Object.values(PaymentStatus),
+      default: PaymentStatus.UNPAID,
+    },
+    totalPaid: {
+      type: Number,
+      default: 0,
+      min: [0, 'Total paid cannot be negative'],
+    },
+    remainingAmount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Remaining amount cannot be negative'],
+    },
+    paymentTerms: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Payment terms cannot exceed 200 characters'],
+    },
+    expectedDeliveryDate: {
+      type: Date,
+    },
+    actualDeliveryDate: {
+      type: Date,
+    },
     status: {
       type: String,
       enum: Object.values(SaleStatus),
@@ -129,17 +176,30 @@ SaleSchema.pre('save', async function () {
 
   // Calculate grand total
   const amountAfterDiscount = this.subtotal - this.discount;
-  this.grandTotal = amountAfterDiscount + this.gstAmount;
 
-  // Calculate balance amount
-  this.balanceAmount = this.grandTotal - this.paidAmount;
+  // New pricing logic
+  this.originalPrice = amountAfterDiscount; // Assuming original price is after discount but before GST for now, or should it be subtotal? 
+  // Let's stick to the prompt implication: price in GST bill usually means Base + GST.
+  // If originalPrice is the base amount before GST:
+  this.gstAmount = (this.originalPrice * (this.gstPercentage || 0)) / 100;
+  this.gstBillPrice = this.originalPrice + this.gstAmount;
+  this.grandTotal = this.gstBillPrice;
 
-  // Update status based on payment
-  if (this.paidAmount === 0) {
+  // Calculate remaining amount
+  this.remainingAmount = Math.max(0, this.grandTotal - (this.totalPaid || 0));
+  this.balanceAmount = this.remainingAmount; // Keep backward compatibility if needed, or deprecate balanceAmount
+
+  // Update payment status
+  if ((this.totalPaid || 0) === 0) {
+    this.paymentStatus = PaymentStatus.UNPAID;
     this.status = SaleStatus.PENDING;
-  } else if (this.balanceAmount === 0) {
+  } else if ((this.totalPaid || 0) >= this.grandTotal) {
+    this.paymentStatus = PaymentStatus.FULLY_PAID;
     this.status = SaleStatus.COMPLETED;
+    this.remainingAmount = 0;
+    this.balanceAmount = 0;
   } else {
+    this.paymentStatus = PaymentStatus.PARTIALLY_PAID;
     this.status = SaleStatus.PARTIALLY_PAID;
   }
 });

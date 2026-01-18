@@ -431,6 +431,20 @@ export interface ISale {
   invoiceNumber: string;
   deliveryDate?: Date;
   notes?: string;
+
+  // Enhanced pricing fields
+  originalPrice: number;
+  gstBillPrice: number;
+  gstPercentage: number;
+
+  // Payment tracking fields
+  paymentStatus: PaymentStatus;
+  totalPaid: number;
+  remainingAmount: number;
+  paymentTerms?: string;
+  expectedDeliveryDate?: Date;
+  actualDeliveryDate?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -448,6 +462,12 @@ export interface ISaleInput {
   gstAmount?: number;
   deliveryDate?: Date;
   notes?: string;
+
+  // Enhanced fields
+  gstPercentage?: number;
+  paymentTerms?: string;
+  expectedDeliveryDate?: Date;
+  actualDeliveryDate?: Date;
 }
 
 // ============================================================================

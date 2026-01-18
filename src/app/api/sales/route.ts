@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     // Generate invoice number if not provided
     const invoiceNumber = generateInvoiceNumber('INV');
 
-    // Calculate amounts
+    // Calculate amounts (logic consistent with Sale model, but re-calculated here for Client update)
     const items = body.items.map((item) => ({
       ...item,
       amount: item.quantity * item.unitPrice,
@@ -86,8 +86,12 @@ export async function POST(request: NextRequest) {
 
     const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
     const discount = body.discount || 0;
-    const gstAmount = body.gstAmount || 0;
-    const grandTotal = subtotal - discount + gstAmount;
+    const gstPercentage = body.gstPercentage || 0;
+
+    // Calculate derived amounts
+    const originalPrice = subtotal - discount;
+    const gstAmount = (originalPrice * gstPercentage) / 100;
+    const grandTotal = originalPrice + gstAmount;
 
     // Create sale
     const sale = await Sale.create(
@@ -97,10 +101,17 @@ export async function POST(request: NextRequest) {
           items,
           subtotal,
           discount,
+          gstPercentage,
+          originalPrice,
           gstAmount,
+          gstBillPrice: grandTotal,
           grandTotal,
-          balanceAmount: grandTotal,
+          balanceAmount: grandTotal, // Initial balance is full amount
           invoiceNumber,
+          paymentTerms: body.paymentTerms,
+          // New date fields if provided
+          expectedDeliveryDate: body.expectedDeliveryDate,
+          actualDeliveryDate: body.actualDeliveryDate,
         },
       ],
       { session }

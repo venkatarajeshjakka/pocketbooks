@@ -1,41 +1,83 @@
+
 /**
- * Sales History Page
+ * Sales Page
  */
+import { Suspense } from 'react';
+import { ShoppingCart } from 'lucide-react';
+import { SaleList } from '@/components/sales/sale-list';
+import { EntitySearchFilterBar } from '@/components/shared/entity/entity-search-filter-bar';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
+interface SalesPageProps {
+  searchParams: Promise<{
+    page?: string;
+    search?: string;
+    status?: string;
+    view?: 'grid' | 'table';
+  }>;
+}
 
-export default async function SalesPage() {
+export const metadata = {
+  title: 'Sales | PocketBooks',
+  description: 'Manage sales transactions and invoices',
+};
+
+export default async function SalesPage({ searchParams }: SalesPageProps) {
+  const params = await searchParams;
+  const page = Number(params?.page) || 1;
+  const search = params?.search || '';
+  const status = params?.status || '';
+  const view = params?.view || 'grid';
+
   return (
-    <div className="flex flex-1 flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Sales</h2>
-          <p className="text-muted-foreground">
-            View all sales transactions and invoices
-          </p>
+    <div className="flex flex-1 flex-col gap-6 md:gap-8">
+      {/* Page Header */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 text-primary border border-primary/20 backdrop-blur-md shadow-lg shadow-primary/5">
+            <ShoppingCart className="h-7 w-7" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
+              Sales
+            </h1>
+            <p className="text-sm font-medium text-muted-foreground/60">
+              Track revenue, invoices, and payments
+            </p>
+          </div>
         </div>
-        <Button asChild>
-          <Link href="/sales/new">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Sale
-          </Link>
-        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Sales History</CardTitle>
-          <CardDescription>All sales transactions and their status</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Connect to MongoDB to view sales data.</p>
+      {/* Stats Dashboard can be added here */}
+
+      {/* Search, Filters, and Actions Bar */}
+      <div className="flex items-center justify-between gap-4">
+        <EntitySearchFilterBar
+          entityType="sale"
+          addNewPath="/sales/new"
+          addNewLabel="New Sale"
+          searchPlaceholder="Search sales by invoice or client..."
+          showOutstandingFilter={false}
+        />
+      </div>
+
+      {/* Sales List */}
+      <Suspense
+        fallback={
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full rounded-xl" />
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        }
+      >
+        <SaleList
+          page={page}
+          search={search}
+          status={status}
+          view={view}
+        />
+      </Suspense>
     </div>
   );
 }
