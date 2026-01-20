@@ -173,6 +173,27 @@ SaleSchema.virtual('isFullyPaid').get(function () {
   return this.balanceAmount === 0;
 });
 
+// Virtual for payments
+SaleSchema.virtual('payments', {
+  ref: 'Payment',
+  localField: '_id',
+  foreignField: 'saleId',
+});
+
+// Pre-delete middleware to warn about associated payments
+// Note: SaleService.deleteSale() handles proper cleanup, but this prevents accidental direct deletion
+SaleSchema.pre('findOneAndDelete', async function () {
+  const doc = await this.model.findOne(this.getQuery());
+  if (doc) {
+    const paymentCount = await mongoose.model('Payment').countDocuments({ saleId: doc._id });
+    if (paymentCount > 0) {
+      throw new Error(
+        `Cannot delete sale "${doc.invoiceNumber}" directly because it has ${paymentCount} associated payment(s). Use SaleService.deleteSale() for proper cleanup.`
+      );
+    }
+  }
+});
+
 // Calculate amounts before saving
 SaleSchema.pre('save', async function () {
   // Calculate item amounts

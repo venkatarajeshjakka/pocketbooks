@@ -17,7 +17,7 @@ import { SaleStatus, PaymentMethod, InventoryItemType, ISale, ISaleItem } from '
 import { Switch } from '@/components/ui/switch';
 import { useClients } from '@/lib/hooks/use-clients';
 import { useTradingGoods, useFinishedGoods } from '@/lib/hooks/use-inventory-items';
-import { useCreateSale, useUpdateSale, useCreateSalePayment, useSale } from '@/lib/hooks/use-sales';
+import { useCreateSale, useUpdateSale, useSale } from '@/lib/hooks/use-sales';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -255,7 +255,6 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
 
     const createMutation = useCreateSale();
     const updateMutation = useUpdateSale();
-    const createPaymentMutation = useCreateSalePayment();
 
     const getDetectedChanges = () => {
         const changes: any[] = [];
@@ -338,8 +337,15 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
         setIsSubmitting(true);
         try {
             const payload = {
-                ...formData,
+                clientId: formData.clientId,
+                saleDate: formData.saleDate,
+                invoiceNumber: formData.invoiceNumber || undefined,
                 discount: typeof formData.discount === 'string' ? parseFloat(formData.discount) || 0 : formData.discount,
+                gstPercentage: formData.gstPercentage,
+                paymentTerms: formData.paymentTerms || undefined,
+                expectedDeliveryDate: formData.expectedDeliveryDate,
+                actualDeliveryDate: formData.actualDeliveryDate,
+                notes: formData.notes || undefined,
                 items: formData.items.map(item => {
                     const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity;
                     const price = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) || 0 : item.unitPrice;
@@ -347,41 +353,21 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
                         itemId: item.itemId,
                         itemType: item.itemType,
                         quantity: qty,
-                        unitPrice: price,
-                        amount: qty * price
+                        unitPrice: price
                     };
                 }),
-                clientId: formData.clientId,
-                // Include initial payment checks if needed by backend (API needs to support this)
-                // My API implementation for POST /api/sales doesn't intrinsically handle payment creation IN SAME REQUEST?
-                // Wait, I implemented POST /api/sales primarily for Sale creation.
-                // I might need to make a separate call for Payment or update API to handle it.
-                // The `ProcurementForm` did `initialPayment` in payload.
-                // My `Sale` API implementation (step 70) didn't look for `initialPayment`. 
-                // Uh oh. 
-                // I should probably do two calls here if I want to support "Record Payment" on creation. 
-                // OR update the API. 
-                // Let's do two calls here for simplicity as I can control frontend.
+                // Include initialPayment in the payload for atomic transaction
+                // This ensures sale and payment are created in a single database transaction
+                initialPayment: (mode === 'create' && paymentData.recordPayment && paymentData.amount > 0) ? {
+                    amount: paymentData.amount,
+                    paymentMethod: paymentData.paymentMethod,
+                    paymentDate: paymentData.paymentDate,
+                    notes: paymentData.notes || `Initial payment for sale`
+                } : undefined
             };
 
-            let savedSaleId = saleId;
-
             if (mode === 'create') {
-                const res = await createMutation.mutateAsync(payload);
-                savedSaleId = String(res.data?._id);
-
-                if (paymentData.recordPayment && savedSaleId) {
-                    // Create Payment using hook
-                    const paymentPayload = {
-                        amount: paymentData.amount,
-                        paymentMethod: paymentData.paymentMethod,
-                        paymentDate: paymentData.paymentDate,
-                        notes: paymentData.notes
-                    };
-
-                    await createPaymentMutation.mutateAsync({ id: savedSaleId, data: paymentPayload });
-                }
-
+                await createMutation.mutateAsync(payload);
                 toast.success('Sale created successfully');
             } else {
                 await updateMutation.mutateAsync({ id: saleId!, data: payload });
@@ -390,9 +376,10 @@ export function SaleForm({ mode, initialData, saleId }: SaleFormProps) {
 
             router.push('/sales');
             router.refresh();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Submission error:', error);
-            toast.error(error.message || 'Failed to save sale');
+            const message = error instanceof Error ? error.message : 'Failed to save sale';
+            toast.error(message);
         } finally {
             setIsSubmitting(false);
         }

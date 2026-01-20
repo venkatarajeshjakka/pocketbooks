@@ -469,6 +469,14 @@ export interface ISaleInput {
   paymentTerms?: string;
   expectedDeliveryDate?: Date;
   actualDeliveryDate?: Date;
+
+  // Initial payment for atomic sale+payment creation
+  initialPayment?: {
+    amount: number;
+    paymentMethod: PaymentMethod;
+    paymentDate?: Date;
+    notes?: string;
+  };
 }
 
 // ============================================================================

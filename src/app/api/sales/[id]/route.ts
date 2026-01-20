@@ -1,20 +1,14 @@
-
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/mongodb';
 import Sale from '@/models/Sale';
-import Client from '@/models/Client';
-import RawMaterial from '@/models/RawMaterial';
-import TradingGood from '@/models/TradingGood';
-import FinishedGood from '@/models/FinishedGood';
-import Payment from '@/models/Payment';
-import { InventoryItemType } from '@/types';
 import { successResponse, errorResponse } from '@/lib/api-helpers';
 import { SaleService } from '@/lib/services/sale-service';
+import { revalidatePath } from 'next/cache';
 
 /**
  * GET /api/sales/[id]
- * Fetch a single sale by ID
+ * Fetch a single sale by ID with payment summary
  */
 export async function GET(
   request: NextRequest,
@@ -26,15 +20,31 @@ export async function GET(
 
     const sale = await Sale.findById(id)
       .populate('clientId', 'name email phone')
-      .populate('items.itemId');
+      .populate('items.itemId')
+      .populate('payments');
 
     if (!sale) {
       return errorResponse('Sale not found', 404);
     }
 
-    return successResponse(sale, 'Sale fetched successfully');
-  } catch (error: any) {
-    return errorResponse(error.message || 'Failed to fetch sale', 500);
+    // Add payment summary to response
+    const saleObj = sale.toObject();
+    const payments = (saleObj as unknown as { payments?: Array<unknown> }).payments || [];
+    const responseData = {
+      ...saleObj,
+      paymentSummary: {
+        totalPayments: payments.length,
+        totalPaid: sale.totalPaid || 0,
+        remainingAmount: sale.remainingAmount || 0,
+        paymentStatus: sale.paymentStatus
+      }
+    };
+
+    return successResponse(responseData, 'Sale fetched successfully');
+  } catch (error) {
+    console.error('GET /api/sales/[id] error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch sale';
+    return errorResponse(message, 500);
   }
 }
 
@@ -59,12 +69,21 @@ export async function PUT(
     const sale = await SaleService.updateSale(id, body, session);
 
     await session.commitTransaction();
+
+    // Revalidate related paths
+    revalidatePath('/sales');
+    revalidatePath(`/sales/${id}`);
+    revalidatePath('/payments');
+    revalidatePath('/clients');
+    revalidatePath('/inventory');
+
     return successResponse(sale, 'Sale updated successfully');
 
-  } catch (error: any) {
+  } catch (error) {
     if (session) await session.abortTransaction();
     console.error('PUT /api/sales/[id] error:', error);
-    return errorResponse(error.message || 'Failed to update sale', 500);
+    const message = error instanceof Error ? error.message : 'Failed to update sale';
+    return errorResponse(message, 500);
   } finally {
     if (session) session.endSession();
   }
@@ -90,11 +109,19 @@ export async function DELETE(
     await SaleService.deleteSale(id, session);
 
     await session.commitTransaction();
+
+    // Revalidate related paths
+    revalidatePath('/sales');
+    revalidatePath('/payments');
+    revalidatePath('/clients');
+    revalidatePath('/inventory');
+
     return successResponse({ id }, 'Sale deleted successfully');
-  } catch (error: any) {
+  } catch (error) {
     if (session) await session.abortTransaction();
     console.error('DELETE /api/sales/[id] error:', error);
-    return errorResponse(error.message || 'Failed to delete sale', 500);
+    const message = error instanceof Error ? error.message : 'Failed to delete sale';
+    return errorResponse(message, 500);
   } finally {
     if (session) session.endSession();
   }
